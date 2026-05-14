@@ -37,6 +37,13 @@ export default function TabLayout() {
           },
         }}
       />
+      <Tabs.Screen
+        name="ui-demo"
+        options={{
+          title: 'UI Demo',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="sparkles" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
