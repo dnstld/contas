@@ -42,6 +42,8 @@ export default function TabLayout() {
         options={{
           title: 'UI Demo',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="sparkles" color={color} />,
+          // Only expose the UI Demo tab in development builds.
+          href: __DEV__ ? '/ui-demo' : null,
         }}
       />
     </Tabs>
