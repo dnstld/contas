@@ -29,11 +29,24 @@
       "body": "No transactions match the selected period."
     }
   },
+  "auth": {
+    "welcome": {
+      "title": "Welcome to CONTAS",
+      "body": "Sign in to keep your finances in sync across devices."
+    },
+    "signInWithGoogle": "Sign in with Google",
+    "signOut": "Sign out"
+  },
   "settings": {
     "title": "Settings",
     "sections": {
       "display": "Display",
-      "regional": "Language & Currency"
+      "regional": "Language & Currency",
+      "account": "Account"
+    },
+    "signOutRow": {
+      "title": "Sign out",
+      "description": "End your session on this device."
     },
     "revenueVisible": {
       "title": "Show revenue",

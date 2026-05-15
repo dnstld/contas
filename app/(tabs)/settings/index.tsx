@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import {
+  Button,
   SettingsRow,
   SettingsSection,
   SortMenu,
   Text,
   Toggle,
 } from '@/components/ui';
+import { useAuth } from '@/hooks/use-auth';
 import { useCurrency, type SupportedCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/hooks/use-language';
 import { usePersistedState } from '@/hooks/use-persisted-state';
@@ -18,6 +20,7 @@ import { type SupportedLanguage } from '@/i18n';
 export default function SettingsScreen() {
   const background = useThemeColor({}, 'background');
   const { t } = useTranslation();
+  const { signOut } = useAuth();
   const { language, setLanguage, supported } = useLanguage();
   const {
     currency,
@@ -93,6 +96,21 @@ export default function SettingsScreen() {
               options={currencyOptions}
               value={currency}
               onChange={setCurrency}
+            />
+          }
+        />
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.sections.account')}>
+        <SettingsRow
+          title={t('settings.signOutRow.title')}
+          description={t('settings.signOutRow.description')}
+          trailing={
+            <Button
+              label={t('auth.signOut')}
+              onPress={signOut}
+              variant="destructive"
+              size="small"
             />
           }
         />

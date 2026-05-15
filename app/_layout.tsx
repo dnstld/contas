@@ -7,7 +7,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { withLayoutContext } from "expo-router";
+import { useRouter, useSegments, withLayoutContext } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import Transition from "react-native-screen-transitions";
@@ -17,6 +17,7 @@ import {
   type BlankStackNavigationOptions,
 } from "react-native-screen-transitions/blank-stack";
 
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initI18n } from "@/i18n";
 import { interpolate } from "react-native-reanimated";
@@ -29,6 +30,68 @@ const Stack = withLayoutContext<
   StackNavigationState<ParamListBase>,
   BlankStackNavigationEventMap
 >(Navigator);
+
+const modalScreenOptions: BlankStackNavigationOptions = {
+  ...Transition.Presets.SlideFromBottom(),
+  gestureDirection: "vertical",
+  screenStyleInterpolator: ({ progress, current, insets }) => {
+    "worklet";
+
+    const scale = interpolate(
+      progress,
+      [0, 1, 2],
+      [0.95, 1, 1.05],
+      "clamp",
+    );
+    const translateY = interpolate(
+      progress,
+      [0, 1, 2],
+      [current.layouts.screen.height, 0, insets.top - 14],
+      "clamp",
+    );
+
+    return {
+      content: {
+        style: {
+          opacity: interpolate(progress, [0, 1, 2], [0, 1, 0]),
+          transform: [{ translateY }, { scale }],
+        },
+      },
+      backdrop: {
+        opacity: 0,
+        backgroundColor: "transparent",
+      },
+    };
+  },
+  transitionSpec: {
+    open: Transition.Specs.DefaultSpec,
+    close: Transition.Specs.DefaultSpec,
+  },
+};
+
+function RootStack() {
+  const { session, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+    const inAuthRoute = segments[0] === "authentication";
+    if (!session && !inAuthRoute) {
+      router.replace("/authentication");
+    } else if (session && inAuthRoute) {
+      router.replace("/(tabs)/(balanco)");
+    }
+  }, [session, loading, segments, router]);
+
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{}} />
+      <Stack.Screen name="authentication" options={{}} />
+      <Stack.Screen name="(modals)" options={modalScreenOptions} />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -48,49 +111,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{}} />
-        <Stack.Screen
-          name="(modals)"
-          options={{
-            ...Transition.Presets.SlideFromBottom(),
-            gestureDirection: "vertical",
-            screenStyleInterpolator: ({ progress, current, insets }) => {
-              "worklet";
-
-              const scale = interpolate(
-                progress,
-                [0, 1, 2],
-                [0.95, 1, 1.05],
-                "clamp",
-              );
-              const translateY = interpolate(
-                progress,
-                [0, 1, 2],
-                [current.layouts.screen.height, 0, insets.top - 14],
-                "clamp",
-              );
-
-              return {
-                content: {
-                  style: {
-                    opacity: interpolate(progress, [0, 1, 2], [0, 1, 0]),
-                    transform: [{ translateY }, { scale }],
-                  },
-                },
-                backdrop: {
-                  opacity: 0,
-                  backgroundColor: "transparent",
-                },
-              };
-            },
-            transitionSpec: {
-              open: Transition.Specs.DefaultSpec,
-              close: Transition.Specs.DefaultSpec,
-            },
-          }}
-        />
-      </Stack>
+      <AuthProvider>
+        <RootStack />
+      </AuthProvider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

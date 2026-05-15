@@ -29,11 +29,24 @@
       "body": "Nenhuma transação no período selecionado."
     }
   },
+  "auth": {
+    "welcome": {
+      "title": "Bem-vindo ao CONTAS",
+      "body": "Entre para manter suas finanças sincronizadas entre dispositivos."
+    },
+    "signInWithGoogle": "Entrar com o Google",
+    "signOut": "Sair"
+  },
   "settings": {
     "title": "Ajustes",
     "sections": {
       "display": "Exibição",
-      "regional": "Idioma e moeda"
+      "regional": "Idioma e moeda",
+      "account": "Conta"
+    },
+    "signOutRow": {
+      "title": "Sair",
+      "description": "Encerra sua sessão neste dispositivo."
     },
     "revenueVisible": {
       "title": "Mostrar receitas",
