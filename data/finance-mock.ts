@@ -42,9 +42,22 @@ export type FinanceMock = {
 
 const CURRENT_DATE = new Date()
 const CURRENT_YEAR = CURRENT_DATE.getFullYear()
+const CURRENT_MONTH = CURRENT_DATE.getMonth()
+const CURRENT_DAY = CURRENT_DATE.getDate()
 const PREVIOUS_YEAR = CURRENT_YEAR - 1
 
 const YEARS = [PREVIOUS_YEAR, CURRENT_YEAR]
+
+function isFutureMonth(year: number, month: number): boolean {
+  if (year > CURRENT_YEAR) return true
+  if (year === CURRENT_YEAR && month > CURRENT_MONTH) return true
+  return false
+}
+
+function maxDayForMonth(year: number, month: number): number {
+  if (year === CURRENT_YEAR && month === CURRENT_MONTH) return CURRENT_DAY
+  return 28
+}
 
 const categories: Category[] = [
   {
@@ -260,6 +273,9 @@ export function generateFinanceMock(): FinanceMock {
 
   YEARS.forEach((year) => {
     for (let month = 0; month < 12; month++) {
+      if (isFutureMonth(year, month)) continue
+      const maxDay = maxDayForMonth(year, month)
+
       categories.forEach((category, categoryIndex) => {
         const seed = year * 1000 + month * 100 + categoryIndex
 
@@ -272,26 +288,30 @@ export function generateFinanceMock(): FinanceMock {
             monthExpenses * (isDeficit ? DEFICIT_RATIO : SURPLUS_RATIO),
           )
 
-          const salaryDate = new Date(year, month, randomInt(1, 5, seed))
+          const salaryMaxDay = Math.min(5, maxDay)
+          if (salaryMaxDay >= 1) {
+            const salaryDate = new Date(year, month, randomInt(1, salaryMaxDay, seed))
 
-          transactions.push({
-            id: createTransactionId(txIndex++),
-            type: 'income',
-            categoryId: category.id,
-            categoryName: category.name,
-            amount: salary,
-            description: 'Salário',
-            status: 'completed',
-            recurrence: 'monthly',
-            date: salaryDate.toISOString(),
-          })
+            transactions.push({
+              id: createTransactionId(txIndex++),
+              type: 'income',
+              categoryId: category.id,
+              categoryName: category.name,
+              amount: salary,
+              description: 'Salário',
+              status: 'completed',
+              recurrence: 'monthly',
+              date: salaryDate.toISOString(),
+            })
+          }
 
           // Freelance only in surplus months — keeps deficit months actually negative.
-          if (!isDeficit) {
+          if (!isDeficit && maxDay >= 10) {
             const freelanceAmount = generateFreelanceAmount(seed)
 
             if (freelanceAmount) {
-              const freelanceDate = new Date(year, month, randomInt(10, 28, seed + 20))
+              const freelanceMaxDay = Math.min(28, maxDay)
+              const freelanceDate = new Date(year, month, randomInt(10, freelanceMaxDay, seed + 20))
 
               transactions.push({
                 id: createTransactionId(txIndex++),
@@ -318,6 +338,8 @@ export function generateFinanceMock(): FinanceMock {
           seed,
         )
 
+        const expenseMaxDay = Math.min(28, maxDay)
+
         for (let i = 0; i < entryCount; i++) {
           const amount = formatAmount(
             randomBetween(
@@ -330,7 +352,7 @@ export function generateFinanceMock(): FinanceMock {
           const transactionDate = new Date(
             year,
             month,
-            randomInt(1, 28, seed + i + 10),
+            randomInt(1, expenseMaxDay, seed + i + 10),
           )
 
           transactions.push({
@@ -346,7 +368,7 @@ export function generateFinanceMock(): FinanceMock {
           })
         }
 
-        if (category.behavior.recurring) {
+        if (category.behavior.recurring && maxDay >= 5) {
           const scheduledDate = new Date(year, month, 5)
 
           transactions.push({

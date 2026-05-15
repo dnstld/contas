@@ -29,11 +29,13 @@ export { SettingsRow } from './molecules/settings-row';
 export { SettingsSection } from './molecules/settings-section';
 export { SortMenu } from './molecules/sort-menu';
 export { TimelineItem } from './molecules/timeline-item';
+export { TransactionRow } from './molecules/transaction-row';
 
 // Organisms
 export { CategoryCard } from './organisms/category-card';
 export { CategoryFilter } from './organisms/category-filter';
 export { CategoryGrid } from './organisms/category-grid';
+export { FinanceTimeFilter } from './organisms/finance-time-filter';
 export { MonthlyTimeline } from './organisms/monthly-timeline';
 export { Overview } from './organisms/overview';
 export { TimeFilterBar } from './organisms/time-filter-bar';

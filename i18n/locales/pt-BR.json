@@ -21,7 +21,13 @@
   },
   "transactions": {
     "title": "Transações",
-    "comingSoon": "Em breve"
+    "net": "Saldo",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "empty": {
+      "title": "Sem transações",
+      "body": "Nenhuma transação no período selecionado."
+    }
   },
   "settings": {
     "title": "Ajustes",

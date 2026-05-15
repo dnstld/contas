@@ -4,17 +4,17 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   CategoryGrid,
+  FinanceTimeFilter,
   Icon,
   Overview,
   Surface,
   Text,
-  TimeFilterBar,
 } from '@/components/ui';
 import { useCurrency } from '@/hooks/use-currency';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
+import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useTimeFilter } from '@/hooks/use-time-filter';
 
 export default function HomeScreen() {
   const background = useThemeColor({}, 'background');
@@ -22,7 +22,7 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { currency } = useCurrency();
 
-  const filterApi = useTimeFilter({ storageKey: 'dashboard:time-filter:v2', now });
+  const filterApi = useFinanceTimeFilter(now);
   const [revenueVisible] = usePersistedState(
     'dashboard:revenue-visible',
     false,
@@ -38,7 +38,7 @@ export default function HomeScreen() {
       style={{ backgroundColor: background }}
       contentContainerStyle={styles.content}
     >
-      <TimeFilterBar api={filterApi} now={now} yearsRange={2} />
+      <FinanceTimeFilter api={filterApi} now={now} />
 
       {showEmptyNotice ? (
         <Surface variant="muted" padding={12} bordered style={styles.notice}>

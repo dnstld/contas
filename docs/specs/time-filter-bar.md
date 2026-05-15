@@ -1,6 +1,8 @@
 # Component 1 — Time Filter Bar
 
-The time filter bar is the dashboard's primary scoping control. It selects a year and either a specific month or the entire year (the "full year" chip). The dashboard recomputes from this selection.
+The time filter bar is the app's primary period-scoping control. It selects a year and either a specific month or the entire year (the "full year" chip). Every screen that reflects a finance period — currently the Balance dashboard and the [Transactions screen](transactions.md) — recomputes from this selection.
+
+The filter UI lives in the `TimeFilterBar` organism and is consumed via the `FinanceTimeFilter` wrapper. Both surfaces share the same persisted selection (storage key `"dashboard:time-filter:v2"`) through the `useFinanceTimeFilter` hook, so a change on either tab is visible on the other.
 
 Month labels and the full-year chip label follow the active language; see the [Localization spec](localization.md).
 
@@ -106,7 +108,7 @@ In all states, exactly one year must be selected, and either a specific month OR
 ```
 Given that the user has changed the year, month, or full-year selection
 When the change is applied
-Then the new state must be persisted to local storage immediately
+Then the new state must be persisted to local storage immediately under the key "dashboard:time-filter:v2"
 
 Given that the user leaves the app and returns
 When the dashboard is mounted
@@ -114,6 +116,17 @@ Then the previously persisted year and month-axis selection must be restored
 And if no persisted state exists, the current year and current month must be used as defaults
 And the full-year chip must only be active on restore if it was the explicit last selection
 And any persisted state with an invalid shape (missing year, both month and full-year missing) must be normalized back to defaults without error
+```
+
+### Cross-screen sharing
+
+```
+Given that more than one screen uses the time filter (currently Balance and Transactions)
+When the user changes the selection on one screen
+Then the other screen must reflect the same selection on its next render — no app restart required
+And both screens must read the same persisted value from key "dashboard:time-filter:v2"
+And both screens must obtain the filter API via the useFinanceTimeFilter hook so the storage key is never duplicated at the call site
+And both screens must render the bar via the FinanceTimeFilter wrapper so the visible years range (2) and other UI defaults stay consistent
 ```
 
 ### Localization

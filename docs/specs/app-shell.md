@@ -182,7 +182,10 @@ Given that any non-Balance visible tab is rendered (Transactions, Settings, UI D
 When the screen's primary content is laid out
 Then it must respect the system content-inset adjustment so its content is not occluded by the transparent header
 And on tabs whose root content is a ScrollView, the scrollable content must scroll under the header (the header overlays it visually)
-And on tabs whose root content is a centered View (e.g. Transactions placeholder), the content must remain centered with the header floating above
+And on tabs whose root content is a non-scrolling View with its own scrolling region below (e.g. Transactions, which has a static header block above a SectionList),
+  the outer View must add a top padding equal to useHeaderHeight() so the static block (filter, total card) sits below the header
+  while the inner scrolling region still scrolls within its bounds
+And on tabs whose root content is a centered View (e.g. fallback placeholders), the content must remain centered with the header floating above
 ```
 
 ### Theme tint propagation

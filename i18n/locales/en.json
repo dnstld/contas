@@ -21,7 +21,13 @@
   },
   "transactions": {
     "title": "Transactions",
-    "comingSoon": "Coming soon"
+    "net": "Net",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "empty": {
+      "title": "No transactions",
+      "body": "No transactions match the selected period."
+    }
   },
   "settings": {
     "title": "Settings",
