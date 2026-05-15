@@ -1,28 +1,57 @@
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import { Text } from '@/components/ui';
+import {
+  SettingsRow,
+  SettingsSection,
+  Text,
+  Toggle,
+} from '@/components/ui';
+import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function SettingsScreen() {
   const background = useThemeColor({}, 'background');
+  const [revenueVisible, setRevenueVisible] = usePersistedState(
+    'dashboard:revenue-visible',
+    false,
+  );
+  const [demoMode, setDemoMode] = usePersistedState(
+    'settings:demo-mode',
+    false,
+  );
 
   return (
-    <View style={[styles.container, { backgroundColor: background }]}>
-      <Text variant="title" weight="semibold">
+    <ScrollView
+      style={{ backgroundColor: background }}
+      contentContainerStyle={styles.content}
+    >
+      <Text variant="display" weight="bold">
         Ajustes
       </Text>
-      <Text variant="body" tone="textMuted">
-        Em breve
-      </Text>
-    </View>
+
+      <SettingsSection title="Exibição">
+        <SettingsRow
+          title="Mostrar receitas"
+          description="Exibe os valores de receita no resumo financeiro."
+          trailing={
+            <Toggle value={revenueVisible} onValueChange={setRevenueVisible} />
+          }
+        />
+        <SettingsRow
+          title="Modo demo"
+          description="Substitui todos os valores reais por dados de exemplo."
+          trailing={<Toggle value={demoMode} onValueChange={setDemoMode} />}
+        />
+      </SettingsSection>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+  content: {
+    padding: 16,
+    paddingTop: 0,
+    paddingBottom: 64,
+    gap: 24,
   },
 });

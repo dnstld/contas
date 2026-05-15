@@ -36,13 +36,16 @@ And budget influence is limited to the total's color — no progress meter or bu
 Given that the card has previous-period data
 When the comparison row renders
 Then it must include, in order:
-  - a directional arrow icon
+  - a directional indicator (arrow or minus)
   - a signed percentage with no decimals
   - the text "vs <previous period label>: <previous absolute>"
   (e.g. "↑ +32% vs Abril: 4.700,00" or "↑ +32% vs 2025: 50.000,00")
 And the previous absolute must be rendered as a plain number with the pt-BR thousand/decimal separators (no currency symbol)
-And the arrow direction must reflect the actual movement (up if spent more, down if spent less)
-And the tone must be red when expenses increased and green when expenses decreased
+And the indicator's icon and tone must reflect the movement:
+  - delta > 0 → up-right arrow, red tone (more spending is unfavorable)
+  - delta < 0 → down-right arrow, green tone (less spending is favorable)
+  - delta = 0 → minus icon, neutral muted tone (textMuted); percentage renders as "0%" with no sign
+And signed percentages use "exceptZero" sign display (positives prefixed with "+", negatives with "−", zero rendered bare)
   (lowerIsBetter applies to expense categories — the only kind shown in the grid)
 ```
 

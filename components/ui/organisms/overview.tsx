@@ -43,6 +43,7 @@ const LENS_OPTIONS = [
 ];
 
 function safePct(delta: number, base: number): number | undefined {
+  if (delta === 0) return 0;
   if (base === 0) return undefined;
   return delta / base;
 }

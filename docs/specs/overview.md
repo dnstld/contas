@@ -39,15 +39,15 @@ And an "ANO" badge must be visible in the card header
 ```
 Given that an overview comparison is rendered (month or year mode)
 When the comparison row is displayed
-Then it must contain a directional arrow icon, a signed percentage, and a baseline phrase
+Then it must contain a directional indicator, a signed percentage, and a baseline phrase
 And the baseline phrase must follow the format: vs {label} ({absolute value})
   (e.g. "vs Abril (R$ 4.700,00)" or "vs 2025 (R$ 50.000,00)")
-And the absolute delta amount must be hidden — only the percentage is shown next to the arrow
-And the arrow direction must reflect the actual movement of the value (up if it increased, down if it decreased)
-And the tone (color) must reflect the financial outcome:
-  - red when the change is unfavorable
-  - green when the change is favorable
-And the tone semantics must depend on the active lens (see "Per-lens comparison semantics")
+And the absolute delta amount must be hidden — only the percentage is shown next to the indicator
+And the indicator's icon and tone must reflect the movement:
+  - delta > 0 → up-right arrow, tone reflects the lens-specific favorability (red/green per "Per-lens comparison semantics")
+  - delta < 0 → down-right arrow, tone reflects the lens-specific favorability
+  - delta = 0 → minus icon, neutral muted tone (textMuted); percentage renders as "0%" with no sign
+And signed percentages use "exceptZero" sign display (positives prefixed with "+", negatives with "−", zero rendered bare)
 ```
 
 ### Per-lens comparison semantics
@@ -112,7 +112,19 @@ Then the previous period must match the same aggregation level as the primary pe
   - month mode → previous month (crossing year boundaries when the selected month is January)
   - year mode → previous year
 And the percentage must be the delta divided by the previous-period absolute value
-And when the previous-period value is zero, the percentage must be omitted (only the absolute baseline is shown)
+And when the delta is zero (current equals previous), the percentage must be "0%" and rendered with the neutral muted tone
+And when the previous-period value is zero AND the current value is non-zero, the percentage must be omitted (only the absolute baseline is shown)
+```
+
+### Revenue toggle source of truth
+
+```
+Given that the "Mostrar receitas" toggle exists
+When the user wants to flip it
+Then the control lives on the Ajustes tab inside the "Exibição" section (not on the Balanço screen itself)
+And toggling it in Ajustes must take effect on the Overview without an app restart
+  (cross-instance state sync via the persisted-state hook)
+And the persisted storage key for this toggle is "dashboard:revenue-visible"
 ```
 
 ### Localization

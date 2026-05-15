@@ -12,10 +12,12 @@ Implementation is platform-aware: on iOS 26+ the tab bar uses Apple's liquid-gla
 Given that the user is logged in
 And the app launches in a development build (__DEV__ is true)
 When the bottom tab bar is rendered
-Then it must show exactly two visible tabs, in this order:
-  1. "Home" with the SF Symbol "house.fill" (drawable "ic_menu_home" on Android)
-  2. "UI Demo" with the SF Symbol "sparkles" (drawable "ic_menu_view" on Android)
-And the "Home" tab must be selected by default
+Then it must show exactly four visible tabs, in this order:
+  1. "Balanço" with the SF Symbol "house.fill" (drawable "ic_menu_home" on Android)
+  2. "Transações" with the SF Symbol "arrow.left.arrow.right" (drawable "ic_menu_recent_history" on Android)
+  3. "Ajustes" with the SF Symbol "gearshape.fill" (drawable "ic_menu_preferences" on Android)
+  4. "UI Demo" with the SF Symbol "sparkles" (drawable "ic_menu_view" on Android)
+And the "Balanço" tab must be selected by default
 ```
 
 ### Bottom tab bar — production build
@@ -24,7 +26,7 @@ And the "Home" tab must be selected by default
 Given that the app is built in production mode (__DEV__ is false)
 When the bottom tab bar is rendered
 Then the "UI Demo" tab must NOT be visible
-And only the "Home" tab must remain in the bar
+And the bar must show exactly three tabs: "Balanço", "Transações", and "Ajustes"
 And no navigation to /ui-demo must be possible from the tab bar
 ```
 
@@ -56,7 +58,7 @@ Given that the app is running on iOS < 26 or on Android
 When the bottom tab bar is rendered
 Then it must render with the platform's default native tab bar style
 And no app crash or rendering error must occur due to liquid-glass-only props
-And the same two tabs (Home, UI Demo when __DEV__) must be present
+And the same tabs (Balanço, Transações, Ajustes — plus UI Demo when __DEV__) must be present
 And the selected tab must reflect the theme's primary tint
 ```
 
@@ -74,22 +76,22 @@ Then the screen must not change
 (Tab change cannot be cancelled — there is no preventDefault on tabPress.)
 ```
 
-### Home header — placement and visibility
+### Balanço header — placement and visibility
 
 ```
-Given that the Home tab is selected
-When the Home screen is rendered
+Given that the Balanço tab is selected
+When the Balanço screen is rendered
 Then a native stack header must be visible at the top of the screen
 And the header must have a transparent background
 And no shadow or divider line must be rendered under the header
 And no title text must be rendered in the header center
-And the content of the Home screen must scroll under the header (content-inset adjusted)
+And the content of the Balanço screen must scroll under the header (content-inset adjusted)
 ```
 
-### Home header — wordmark (left)
+### Balanço header — wordmark (left)
 
 ```
-Given that the Home header is rendered
+Given that the Balanço header is rendered
 When the left header item is displayed
 Then it must display the text wordmark "CONTAS" in uppercase
 And the text must use the design-system Text atom with variant="subtitle" and weight="bold"
@@ -98,10 +100,10 @@ And letter-spacing of 1.5 must be applied for a logo-like appearance
 And no image asset must be rendered as the logo
 ```
 
-### Home header — "Adicionar" button (right) on iOS
+### Balanço header — "Adicionar" button (right) on iOS
 
 ```
-Given that the Home header is rendered on iOS
+Given that the Balanço header is rendered on iOS
 When the right header item is displayed
 Then it must render as a SwiftUI Button with both icon and label visible
 And the icon must be the SF Symbol "plus"
@@ -113,10 +115,10 @@ And the button must size to its content (fixed size, not stretched)
 And the button must render as a single capsule containing icon + label
 ```
 
-### Home header — "Adicionar" button (right) on Android / fallback
+### Balanço header — "Adicionar" button (right) on Android / fallback
 
 ```
-Given that the Home header is rendered on Android (or any non-iOS platform)
+Given that the Balanço header is rendered on Android (or any non-iOS platform)
 When the right header item is displayed
 Then it must render as a touchable pill with:
   - background color matching the theme's positive color
@@ -127,20 +129,20 @@ And pressing it must show visual feedback (opacity 0.7 on press)
 And it must include a hit slop of 8 points to ease touch targeting
 ```
 
-### Home header — opening the create modal
+### Balanço header — opening the create modal
 
 ```
-Given that the Home header "Adicionar" button is visible
+Given that the Balanço header "Adicionar" button is visible
 When the user taps the button
-Then the app must navigate (push) to the /modal route
+Then the app must navigate (push) to the /create route
 And the modal must present with the slide-from-bottom transition defined in app/_layout.tsx
-And the Home screen must remain in the stack underneath
+And the Balanço screen must remain in the stack underneath
 ```
 
-### Home screen — top spacing
+### Balanço screen — top spacing
 
 ```
-Given that the Home screen is rendered with the transparent stack header
+Given that the Balanço screen is rendered with the transparent stack header
 When the screen's primary scrollable content is positioned
 Then the first content element (TimeFilterBar) must appear immediately below the header
   with no extra padding beyond the system content-inset adjustment
@@ -151,7 +153,7 @@ And the content must scroll under the transparent header (so the header overlays
 
 ```
 Given that the app's color scheme changes (light ↔ dark)
-When the tab bar and Home header are re-rendered
+When the tab bar and Balanço header are re-rendered
 Then the tab bar tintColor must update to the new palette.tint
 And the "Adicionar" button background tint must update to the new palette.positive
 And the "CONTAS" wordmark color must update to the new palette.text so it remains legible in both schemes
@@ -161,10 +163,10 @@ And the "CONTAS" wordmark color must update to the new palette.text so it remain
 
 ```
 Given that the user navigates between tabs
-When the UI Demo tab is selected
-Then the Home header must NOT be rendered on the UI Demo screen
-And the UI Demo screen must continue to render its own internal layout unchanged
+When the Transações, Ajustes, or UI Demo tab is selected
+Then the Balanço header must NOT be rendered on those screens
+And each tab's screen must render its own internal layout unchanged
 
-When the user navigates back to the Home tab
-Then the Home header must reappear with logo and "Adicionar" button
+When the user navigates back to the Balanço tab
+Then the Balanço header must reappear with logo and "Adicionar" button
 ```

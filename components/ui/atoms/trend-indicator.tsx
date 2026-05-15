@@ -22,27 +22,30 @@ export function TrendIndicator({
   hideValue = false,
   lowerIsBetter = false,
 }: TrendIndicatorProps) {
-  const isUp = delta >= 0;
+  const isFlat = delta === 0;
+  const isUp = delta > 0;
   const isPositiveOutcome = lowerIsBetter ? !isUp : isUp;
-  const tone = isPositiveOutcome ? 'positive' : 'negative';
+  const tone = isFlat ? 'textMuted' : isPositiveOutcome ? 'positive' : 'negative';
   const color = useThemeColor({}, tone);
+
+  const iconName = isFlat ? 'minus' : isUp ? 'arrow.up.right' : 'arrow.down.right';
 
   const valueFormatter = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
-    signDisplay: 'always',
+    signDisplay: 'exceptZero',
     maximumFractionDigits: 2,
   });
 
   const pctFormatter = new Intl.NumberFormat(locale, {
     style: 'percent',
-    signDisplay: 'always',
+    signDisplay: 'exceptZero',
     maximumFractionDigits: 0,
   });
 
   return (
     <View style={styles.row}>
-      <Icon name={isUp ? 'arrow.up.right' : 'arrow.down.right'} size={14} color={color} />
+      <Icon name={iconName} size={14} color={color} />
       {!hideValue && (
         <Text variant="caption" tone={tone} weight="semibold">
           {valueFormatter.format(delta)}

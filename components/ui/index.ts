@@ -25,6 +25,8 @@ export { EmptyState } from './molecules/empty-state';
 export { MetricCard } from './molecules/metric-card';
 export { MetricRow } from './molecules/metric-row';
 export { SectionHeader } from './molecules/section-header';
+export { SettingsRow } from './molecules/settings-row';
+export { SettingsSection } from './molecules/settings-section';
 export { SortMenu } from './molecules/sort-menu';
 export { TimelineItem } from './molecules/timeline-item';
 

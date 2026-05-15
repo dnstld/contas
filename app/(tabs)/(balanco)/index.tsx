@@ -3,10 +3,11 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   CategoryGrid,
+  Icon,
   Overview,
+  Surface,
   Text,
   TimeFilterBar,
-  Toggle,
 } from '@/components/ui';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { usePersistedState } from '@/hooks/use-persisted-state';
@@ -18,12 +19,15 @@ export default function HomeScreen() {
   const now = useMemo(() => new Date(), []);
 
   const filterApi = useTimeFilter({ storageKey: 'dashboard:time-filter:v2', now });
-  const [revenueVisible, setRevenueVisible] = usePersistedState(
+  const [revenueVisible] = usePersistedState(
     'dashboard:revenue-visible',
     false,
   );
+  const [demoMode] = usePersistedState('settings:demo-mode', false);
 
   const dashboard = useFinanceDashboard(filterApi.state, now);
+  const hasTransactions = dashboard.mock.transactions.length > 0;
+  const showEmptyNotice = !demoMode && !hasTransactions;
 
   return (
     <ScrollView
@@ -32,18 +36,39 @@ export default function HomeScreen() {
     >
       <TimeFilterBar api={filterApi} now={now} yearsRange={2} />
 
-      <View style={styles.toggleRow}>
-        <Text variant="body" tone="textMuted">
-          Mostrar receitas
-        </Text>
-        <Toggle value={revenueVisible} onValueChange={setRevenueVisible} />
-      </View>
+      {showEmptyNotice ? (
+        <Surface variant="muted" padding={12} bordered style={styles.notice}>
+          <Icon name="sparkles" size={18} tone="tint" />
+          <View style={styles.noticeText}>
+            <Text variant="body" weight="semibold">
+              Sem dados para exibir
+            </Text>
+            <Text variant="caption" tone="textMuted">
+              Ative o Modo demo em Ajustes para ver dados de exemplo.
+            </Text>
+          </View>
+        </Surface>
+      ) : null}
 
       <Overview
         {...dashboard.overview}
         currency={dashboard.currency}
         revenueVisible={revenueVisible}
       />
+
+      {demoMode ? (
+        <Surface variant="muted" padding={12} bordered style={styles.notice}>
+          <Icon name="sparkles" size={18} tone="tint" />
+          <View style={styles.noticeText}>
+            <Text variant="body" weight="semibold">
+              Modo demo ativado
+            </Text>
+            <Text variant="caption" tone="textMuted">
+              Os valores exibidos são dados de exemplo. Desative em Ajustes.
+            </Text>
+          </View>
+        </Surface>
+      ) : null}
 
       <CategoryGrid
         categories={dashboard.categories}
@@ -63,10 +88,13 @@ const styles = StyleSheet.create({
     paddingBottom: 64,
     gap: 32,
   },
-  toggleRow: {
+  notice: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
+    gap: 12,
+  },
+  noticeText: {
+    flex: 1,
+    gap: 2,
   },
 });
