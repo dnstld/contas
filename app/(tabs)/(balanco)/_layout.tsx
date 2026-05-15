@@ -75,7 +75,7 @@ export default function HomeLayout() {
         headerShadowVisible: false,
         headerLeft: () => <HeaderLogo />,
         headerRight: () => (
-          <HeaderCreateButton onPress={() => router.push('/modal')} />
+          <HeaderCreateButton onPress={() => router.push('/create')} />
         ),
       }}
     />
