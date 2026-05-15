@@ -74,6 +74,27 @@
   "timeFilter": {
     "fullYear": "Full year"
   },
+  "create": {
+    "title": "New transaction",
+    "close": "Close",
+    "types": {
+      "expense": "Expense",
+      "income": "Income"
+    },
+    "amountPlaceholder": "Amount",
+    "dateLabel": "Date",
+    "categoryLabel": "Category",
+    "categoryEmpty": "No categories available",
+    "descriptionPlaceholder": "Description",
+    "descriptionCaption": "Appears in transactions",
+    "descriptionCounter": "{{count}}/100",
+    "save": "Save"
+  },
+  "edit": {
+    "title": "Edit transaction",
+    "save": "Save changes",
+    "delete": "Delete"
+  },
   "category": {
     "transactionCount_one": "{{count}} transaction",
     "transactionCount_other": "{{count}} transactions",

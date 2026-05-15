@@ -74,6 +74,27 @@
   "timeFilter": {
     "fullYear": "Ano todo"
   },
+  "create": {
+    "title": "Nova transação",
+    "close": "Fechar",
+    "types": {
+      "expense": "Despesa",
+      "income": "Receita"
+    },
+    "amountPlaceholder": "Valor",
+    "dateLabel": "Data",
+    "categoryLabel": "Categoria",
+    "categoryEmpty": "Sem categorias disponíveis",
+    "descriptionPlaceholder": "Descrição",
+    "descriptionCaption": "Aparece nas transações",
+    "descriptionCounter": "{{count}}/100",
+    "save": "Salvar"
+  },
+  "edit": {
+    "title": "Editar transação",
+    "save": "Salvar alterações",
+    "delete": "Excluir"
+  },
   "category": {
     "transactionCount_one": "{{count}} transação",
     "transactionCount_other": "{{count}} transações",

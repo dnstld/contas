@@ -43,9 +43,12 @@ export default function TransactionsScreen() {
   const hasTransactions = sections.length > 0;
   const router = useRouter();
 
-  const handlePressTransaction = useCallback(() => {
-    router.push('/create');
-  }, [router]);
+  const handlePressTransaction = useCallback(
+    (transactionId: string) => {
+      router.push({ pathname: '/edit', params: { id: transactionId } });
+    },
+    [router],
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
@@ -86,7 +89,7 @@ export default function TransactionsScreen() {
             <TransactionRow
               transaction={item}
               currency={currency}
-              onPress={handlePressTransaction}
+              onPress={() => handlePressTransaction(item.id)}
             />
           )}
           ItemSeparatorComponent={Divider}

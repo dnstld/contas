@@ -115,12 +115,13 @@ And the row must be vertically padded by 10 points (top and bottom) so the divid
 ```
 Given that a transaction row is rendered
 When the user taps anywhere on the row
-Then the app must push the /create modal route (the same route used by the global "Adicionar" button)
+Then the app must push the /edit modal route with that row's transaction id as the `id` query parameter
+  (router.push({ pathname: "/edit", params: { id: <row.id> } }))
 And the press must show a brief visual feedback (opacity 0.6 while pressed)
 And the row must be the entire press target — there is no secondary action button on the row
-And no other affordance (ellipsis menu, swipe action, long-press) must be wired in the current scope
-(Editing and deleting a specific transaction are intentionally out of scope until the create-modal
- form is implemented and a real data layer exists — see [Create Modal spec](create-modal.md).)
+And no other affordance (ellipsis menu, swipe action, long-press) is wired in the current scope
+(Creating a new transaction lives on the global header's "Adicionar" button and pushes /create — see [Create Modal spec](create-modal.md).
+ Editing and deleting a specific transaction are handled by the edit modal — see [Edit Modal spec](edit-modal.md).)
 ```
 
 ### Empty state

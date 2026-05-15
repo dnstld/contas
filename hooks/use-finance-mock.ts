@@ -9,26 +9,8 @@ import { usePersistedState } from '@/hooks/use-persisted-state';
 
 const STARTER_CATEGORIES: Category[] = [
   {
-    id: 'bar_restaurante',
-    name: 'Bar / Restaurante',
-    type: 'expense',
-    behavior: { minEntriesPerMonth: 0, maxEntriesPerMonth: 0, minAmount: 0, maxAmount: 0 },
-  },
-  {
-    id: 'mercado',
-    name: 'Mercado',
-    type: 'expense',
-    behavior: { minEntriesPerMonth: 0, maxEntriesPerMonth: 0, minAmount: 0, maxAmount: 0 },
-  },
-  {
-    id: 'farmacia',
-    name: 'Farmácia',
-    type: 'expense',
-    behavior: { minEntriesPerMonth: 0, maxEntriesPerMonth: 0, minAmount: 0, maxAmount: 0 },
-  },
-  {
-    id: 'viagens',
-    name: 'Viagens',
+    id: 'cafe_bar',
+    name: 'Café / Bar',
     type: 'expense',
     behavior: { minEntriesPerMonth: 0, maxEntriesPerMonth: 0, minAmount: 0, maxAmount: 0 },
   },
