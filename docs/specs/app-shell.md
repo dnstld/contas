@@ -1,10 +1,15 @@
-# Component 5 — App Shell (Tab Navigation + Home Header)
+# Component 5 — App Shell (Tab Navigation + Global Header)
 
-The app shell consists of the bottom tab navigation and the per-tab header chrome. It owns the cross-screen navigation surface and the project's primary entry point into the create flow.
+The app shell consists of the bottom tab navigation and the **global** stack header — a single header chrome rendered above every tab. It owns the cross-screen navigation surface and the project's primary entry point into the create flow.
 
 Implementation is platform-aware: on iOS 26+ the tab bar uses Apple's liquid-glass material; on older iOS / Android it falls back to the system tab bar.
 
-All user-visible labels in the shell (tab labels, the "Add" button) are sourced from i18next and follow the active language — see the [Localization spec](localization.md). The "CONTAS" wordmark on the Balance header is intentionally not translated; it is the app's brand mark.
+The header is implemented as a shared Stack layout (`components/navigation/app-stack-layout.tsx`) reused by every visible tab's `_layout.tsx`. The shared layout exposes:
+- a transparent stack header,
+- a left "CONTAS" wordmark,
+- a right "Add" button that pushes the `/create` modal.
+
+All user-visible labels in the shell (tab labels, the "Add" button) are sourced from i18next and follow the active language — see the [Localization spec](localization.md). The "CONTAS" wordmark is intentionally not translated; it is the app's brand mark.
 
 ## Scenarios
 
@@ -82,22 +87,33 @@ Then the screen must not change
 (Tab change cannot be cancelled — there is no preventDefault on tabPress.)
 ```
 
-### Balance header — placement and visibility
+### Global header — placement and visibility
 
 ```
-Given that the Balance tab is selected
-When the Balance screen is rendered
+Given that any visible tab is selected (Balance, Transactions, Settings, or UI Demo)
+When that tab's screen is rendered
 Then a native stack header must be visible at the top of the screen
 And the header must have a transparent background
 And no shadow or divider line must be rendered under the header
 And no title text must be rendered in the header center
-And the content of the Balance screen must scroll under the header (content-inset adjusted)
+And the screen's primary content must scroll under the header (content-inset adjusted)
 ```
 
-### Balance header — wordmark (left)
+### Global header — shared implementation
 
 ```
-Given that the Balance header is rendered
+Given that the global header is rendered above any visible tab
+When the implementation is inspected
+Then the same screenOptions object (transparent header, no title, no shadow, headerLeft, headerRight) must be applied by every visible tab's _layout.tsx
+And the shared implementation must live in components/navigation/app-stack-layout.tsx
+And each tab's _layout.tsx must re-export that default to avoid duplicating header config
+And the explicit hidden /explore route is exempt — it has no _layout and therefore no global header
+```
+
+### Global header — wordmark (left)
+
+```
+Given that the global header is rendered on any tab
 When the left header item is displayed
 Then it must display the text wordmark from key "common.appName" — value "CONTAS" — in uppercase
 And the text must use the design-system Text atom with variant="subtitle" and weight="bold"
@@ -105,12 +121,13 @@ And the text must inherit the theme's primary text color (Colors[scheme].text)
 And letter-spacing of 1.5 must be applied for a logo-like appearance
 And no image asset must be rendered as the logo
 And the wordmark string must be identical in every supported language (it is the app's brand mark, not a translated label)
+And the wordmark must look and behave identically on every tab (Balance, Transactions, Settings, UI Demo)
 ```
 
-### Balance header — "Add" button (right) on iOS
+### Global header — "Add" button (right) on iOS
 
 ```
-Given that the Balance header is rendered on iOS
+Given that the global header is rendered on iOS on any visible tab
 When the right header item is displayed
 Then it must render as a SwiftUI Button with both icon and label visible
 And the icon must be the SF Symbol "plus"
@@ -123,10 +140,10 @@ And the button must size to its content (fixed size, not stretched)
 And the button must render as a single capsule containing icon + label
 ```
 
-### Balance header — "Add" button (right) on Android / fallback
+### Global header — "Add" button (right) on Android / fallback
 
 ```
-Given that the Balance header is rendered on Android (or any non-iOS platform)
+Given that the global header is rendered on Android (or any non-iOS platform) on any visible tab
 When the right header item is displayed
 Then it must render as a touchable pill with:
   - background color matching the theme's positive color
@@ -137,46 +154,65 @@ And pressing it must show visual feedback (opacity 0.7 on press)
 And it must include a hit slop of 8 points to ease touch targeting
 ```
 
-### Balance header — opening the create modal
+### Global header — opening the create modal from any tab
 
 ```
-Given that the Balance header "Add" button is visible
+Given that the global header "Add" button is visible on any tab
 When the user taps the button
 Then the app must navigate (push) to the /create route
 And the modal must present with the slide-from-bottom transition defined in app/_layout.tsx
-And the Balance screen must remain in the stack underneath
+And the currently active tab's screen must remain in the stack underneath the modal
+And after the modal is dismissed, the user must return to the same tab and the same screen state they were on before
 ```
 
-### Balance screen — top spacing
+### Balance screen — top spacing under the global header
 
 ```
-Given that the Balance screen is rendered with the transparent stack header
+Given that the Balance screen is rendered with the transparent global header
 When the screen's primary scrollable content is positioned
 Then the first content element (TimeFilterBar) must appear immediately below the header
   with no extra padding beyond the system content-inset adjustment
 And the content must scroll under the transparent header (so the header overlays the top of the content visually)
 ```
 
+### Other tabs — content under the global header
+
+```
+Given that any non-Balance visible tab is rendered (Transactions, Settings, UI Demo)
+When the screen's primary content is laid out
+Then it must respect the system content-inset adjustment so its content is not occluded by the transparent header
+And on tabs whose root content is a ScrollView, the scrollable content must scroll under the header (the header overlays it visually)
+And on tabs whose root content is a centered View (e.g. Transactions placeholder), the content must remain centered with the header floating above
+```
+
 ### Theme tint propagation
 
 ```
 Given that the app's color scheme changes (light ↔ dark)
-When the tab bar and Balanço header are re-rendered
+When the tab bar and global header are re-rendered
 Then the tab bar tintColor must update to the new palette.tint
-And the "Adicionar" button background tint must update to the new palette.positive
+And the "Add" button background tint must update to the new palette.positive
 And the "CONTAS" wordmark color must update to the new palette.text so it remains legible in both schemes
+And this update must apply on every visible tab simultaneously (they share the same header implementation)
 ```
 
-### Header isolation per tab
+### Header consistency across tabs
 
 ```
-Given that the user navigates between tabs
-When the Transactions, Settings, or UI Demo tab is selected
-Then the Balance header must NOT be rendered on those screens
-And each tab's screen must render its own internal layout unchanged
+Given that the user navigates between visible tabs
+When the active tab changes
+Then the global header must remain visible above the newly active tab
+And the wordmark, "Add" button styling, and behavior must be visually identical on every tab
+  (the only thing that changes on tab switch is the content area below the header — the header is shared)
+```
 
-When the user navigates back to the Balance tab
-Then the Balance header must reappear with the wordmark and the "Add" button
+### Hidden /explore route
+
+```
+Given that the /explore route exists but is hidden from the tab bar
+When the route is reached programmatically
+Then the global header is not rendered above it (explore has no nested layout)
+And this is the only intentional exception to the global-header rule
 ```
 
 ### Bootstrap gating
@@ -184,9 +220,9 @@ Then the Balance header must reappear with the wordmark and the "Add" button
 ```
 Given that the app launches (cold start)
 When the root layout mounts
-Then it must call initI18n() and gate the entire UI tree (including the tab bar) behind the returned promise
+Then it must call initI18n() and gate the entire UI tree (including the tab bar and global header) behind the returned promise
 And no tab bar, header, or screen content must render before i18next has resolved the initial language
 And the currency cell must also be pre-warmed during this same await window
   (so the first render of any monetary value already reflects the persisted choice)
-And once initI18n resolves, the tab bar and Balance header must render with the correct, persisted language and currency on the very first frame
+And once initI18n resolves, the tab bar and global header must render with the correct, persisted language and currency on the very first frame
 ```
