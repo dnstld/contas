@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   buildDashboard,
@@ -59,11 +60,12 @@ export function useFinanceDashboard(
   now: Date,
 ): UseFinanceDashboardResult {
   const [demoMode] = usePersistedState('settings:demo-mode', false);
+  const { i18n } = useTranslation();
   const generatedMock = useMemo(() => generateFinanceMock(), []);
   const mock = demoMode ? generatedMock : STARTER_MOCK;
   const data = useMemo(
-    () => buildDashboard(mock, filter, now),
-    [mock, filter, now],
+    () => buildDashboard(mock, filter, now, i18n.language),
+    [mock, filter, now, i18n.language],
   );
 
   return { mock, currency: mock.currency, ...data };

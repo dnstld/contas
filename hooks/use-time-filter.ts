@@ -11,18 +11,6 @@ export const MONTHS: readonly Month[] = [
   'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
 ] as const;
 
-export const MONTH_LABEL: Record<Month, string> = {
-  jan: 'Jan', feb: 'Fev', mar: 'Mar', apr: 'Abr',
-  may: 'Mai', jun: 'Jun', jul: 'Jul', aug: 'Ago',
-  sep: 'Set', oct: 'Out', nov: 'Nov', dec: 'Dez',
-};
-
-export const MONTH_FULL_LABEL: Record<Month, string> = {
-  jan: 'Janeiro', feb: 'Fevereiro', mar: 'Março', apr: 'Abril',
-  may: 'Maio', jun: 'Junho', jul: 'Julho', aug: 'Agosto',
-  sep: 'Setembro', oct: 'Outubro', nov: 'Novembro', dec: 'Dezembro',
-};
-
 /**
  * Single-select per axis. A year is always selected. Either a specific month
  * is selected (`all=false`) OR "all months" is selected (`all=true`).

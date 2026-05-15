@@ -1,10 +1,11 @@
 import { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Chip } from '@/components/ui/atoms/chip';
 import { Divider } from '@/components/ui/atoms/divider';
+import { useFormatters } from '@/hooks/use-formatters';
 import {
-  MONTH_FULL_LABEL,
   MONTHS,
   useTimeFilter,
   type Month,
@@ -59,6 +60,8 @@ function TimeFilterBarView({
   onChange,
 }: ViewProps) {
   const { state, selectAll, toggleYear, toggleMonth } = api;
+  const { t } = useTranslation();
+  const { monthName } = useFormatters();
 
   const years = useMemo(() => {
     const current = now.getFullYear();
@@ -102,7 +105,7 @@ function TimeFilterBarView({
         <Divider orientation="vertical" />
       </View>
       <Chip
-        label="Ano todo"
+        label={t('timeFilter.fullYear')}
         variant={state.all ? 'primary' : 'tertiary'}
         selected={state.all}
         showCheckWhenSelected
@@ -113,7 +116,7 @@ function TimeFilterBarView({
         return (
           <Chip
             key={m}
-            label={MONTH_FULL_LABEL[m]}
+            label={monthName(MONTHS.indexOf(m), 'long')}
             variant={selected ? 'primary' : 'tertiary'}
             selected={selected}
             showCheckWhenSelected

@@ -1,7 +1,8 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { TimelineItem } from '@/components/ui/molecules/timeline-item';
-import { MONTH_LABEL, MONTHS, type Month } from '@/hooks/use-time-filter';
+import { useFormatters } from '@/hooks/use-formatters';
+import { MONTHS, type Month } from '@/hooks/use-time-filter';
 
 export interface MonthlyTimelinePoint {
   month: Month;
@@ -39,6 +40,7 @@ export function MonthlyTimeline({
   currentMonth = MONTHS[new Date().getMonth()],
 }: MonthlyTimelineProps) {
   const ordered = orderPoints(points, currentMonth);
+  const { monthName } = useFormatters();
 
   return (
     <ScrollView
@@ -49,7 +51,7 @@ export function MonthlyTimeline({
       {ordered.map((p) => (
         <View key={p.month} style={styles.cell}>
           <TimelineItem
-            label={MONTH_LABEL[p.month]}
+            label={monthName(MONTHS.indexOf(p.month), 'short')}
             value={p.value}
             delta={p.delta}
             currency={currency}

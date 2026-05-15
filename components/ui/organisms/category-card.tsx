@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon, type IconName } from '@/components/ui/atoms/icon';
@@ -5,6 +6,7 @@ import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
 import { TrendIndicator } from '@/components/ui/atoms/trend-indicator';
 import { CategoryHeader } from '@/components/ui/molecules/category-header';
+import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 export interface CategoryCardData {
@@ -42,6 +44,8 @@ export function CategoryCard({
 }: CategoryCardProps) {
   const iconBg = useThemeColor({}, 'surfaceMuted');
   const iconColor = useThemeColor({}, 'icon');
+  const { t } = useTranslation();
+  const { formatNumber, locale } = useFormatters();
 
   const overBudget = data.budget != null && data.total > data.budget;
   const tone = data.budget != null ? (overBudget ? 'negative' : 'positive') : 'neutral';
@@ -61,7 +65,7 @@ export function CategoryCard({
             total={data.total}
             percentage={data.percentage}
             currency={currency}
-            locale="pt-BR"
+            locale={locale}
             tone={tone}
           />
         </View>
@@ -76,24 +80,27 @@ export function CategoryCard({
             delta={data.delta}
             percentage={data.deltaPercentage}
             currency={currency}
-            locale="pt-BR"
+            locale={locale}
             hideValue
             lowerIsBetter={data.kind === 'expense'}
           />
           <Text variant="caption" tone="textMuted">
-            {`vs ${data.previousLabel}: ${formatNumber(data.previousValue)}`}
+            {t('category.vsPrevious', {
+              label: data.previousLabel,
+              value: formatNumber(data.previousValue),
+            })}
           </Text>
         </View>
       ) : null}
 
       {data.entryCount !== undefined && data.entryCount > 0 && !isEmpty ? (
         <Text variant="caption" tone="textMuted">
-          {`${data.entryCount} ${data.entryCount === 1 ? 'transação' : 'transações'}`}
+          {t('category.transactionCount', { count: data.entryCount })}
         </Text>
       ) : null}
 
       {isEmpty ? (
-        <Text variant="caption" tone="textMuted">Sem atividade neste período</Text>
+        <Text variant="caption" tone="textMuted">{t('category.noActivity')}</Text>
       ) : null}
     </Surface>
   );
@@ -109,13 +116,6 @@ export function CategoryCard({
       {Body}
     </Pressable>
   );
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
 }
 
 const styles = StyleSheet.create({

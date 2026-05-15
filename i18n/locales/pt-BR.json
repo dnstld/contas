@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "CONTAS",
+    "add": "Adicionar"
+  },
+  "tabs": {
+    "balance": "Balanço",
+    "transactions": "Transações",
+    "settings": "Ajustes",
+    "uiDemo": "UI Demo"
+  },
+  "balance": {
+    "empty": {
+      "title": "Sem dados para exibir",
+      "body": "Ative o Modo demo em Ajustes para ver dados de exemplo."
+    },
+    "demoBadge": {
+      "title": "Modo demo ativado",
+      "body": "Os valores exibidos são dados de exemplo. Desative em Ajustes."
+    }
+  },
+  "transactions": {
+    "title": "Transações",
+    "comingSoon": "Em breve"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "sections": {
+      "display": "Exibição",
+      "regional": "Idioma e moeda"
+    },
+    "revenueVisible": {
+      "title": "Mostrar receitas",
+      "description": "Exibe os valores de receita no resumo financeiro."
+    },
+    "demoMode": {
+      "title": "Modo demo",
+      "description": "Substitui todos os valores reais por dados de exemplo."
+    },
+    "languageRow": {
+      "title": "Idioma do app"
+    },
+    "languages": {
+      "en": "Inglês",
+      "pt-BR": "Português (Brasil)"
+    },
+    "currencyRow": {
+      "title": "Moeda de exibição"
+    },
+    "currencies": {
+      "BRL": "Real (R$)",
+      "USD": "Dólar (US$)",
+      "EUR": "Euro (€)"
+    }
+  },
+  "overview": {
+    "expenses": "Despesas",
+    "revenue": "Receitas",
+    "balance": "Saldo",
+    "allMonths": "TODOS OS MESES",
+    "modes": {
+      "month": "MÊS",
+      "year": "ANO",
+      "all": "TUDO"
+    },
+    "vsPrevious": "vs {{label}}: {{value}}"
+  },
+  "timeFilter": {
+    "fullYear": "Ano todo"
+  },
+  "category": {
+    "transactionCount_one": "{{count}} transação",
+    "transactionCount_other": "{{count}} transações",
+    "selectedCount_one": "{{count}} selecionada",
+    "selectedCount_other": "{{count}} selecionadas",
+    "noActivity": "Sem atividade neste período",
+    "vsPrevious": "vs {{label}}: {{value}}",
+    "perYear": "por ano",
+    "perMonth": "por mês",
+    "empty": {
+      "title": "Nenhuma categoria",
+      "body": "Ajuste os filtros para ver suas categorias."
+    },
+    "sort": {
+      "label": "Ordenar",
+      "highestExpense": "Maior despesa",
+      "mostUsed": "Mais usadas",
+      "overBudget": "Acima do orçamento"
+    }
+  }
+}

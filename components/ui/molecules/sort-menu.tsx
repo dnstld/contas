@@ -22,7 +22,7 @@ export interface SortMenuProps<T extends string> {
 }
 
 export function SortMenu<T extends string>({
-  label = "Ordenar",
+  label,
   options,
   value,
   onChange,
@@ -31,12 +31,13 @@ export function SortMenu<T extends string>({
   const surface = useThemeColor({}, "surface");
   const border = useThemeColor({}, "border");
   const current = options.find((o) => o.value === value)?.label ?? value;
+  const displayLabel = label ? `${label}: ${current}` : current;
 
   if (Platform.OS === "ios") {
     return (
       <SwiftUI.Host matchContents>
         <SwiftUI.Menu
-          label={`${label}: ${current}`}
+          label={displayLabel}
           systemImage="line.3.horizontal.decrease.circle"
           modifiers={[fixedSize()]}
         >
@@ -66,7 +67,7 @@ export function SortMenu<T extends string>({
           ]}
         >
           <Icon name="line.3.horizontal.decrease.circle" size={16} />
-          <Text variant="body" weight="medium">{`${label}: ${current}`}</Text>
+          <Text variant="body" weight="medium">{displayLabel}</Text>
           <Icon name="chevron.down" size={14} />
         </Pressable>
         <Compose.Host matchContents>

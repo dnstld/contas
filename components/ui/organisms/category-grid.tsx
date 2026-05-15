@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/atoms/text';
@@ -6,17 +7,12 @@ import { CategoryFilter, type CategoryFilterItem } from '@/components/ui/organis
 import { CategoryCard, type CategoryCardData } from '@/components/ui/organisms/category-card';
 import { EmptyState } from '@/components/ui/molecules/empty-state';
 import { SortMenu, type SortOption } from '@/components/ui/molecules/sort-menu';
+import { useFormatters } from '@/hooks/use-formatters';
 
 export type CategorySortMode =
   | 'highestExpense'
   | 'mostUsed'
   | 'overBudget';
-
-const SORT_OPTIONS: readonly SortOption<CategorySortMode>[] = [
-  { value: 'highestExpense', label: 'Maior despesa' },
-  { value: 'mostUsed', label: 'Mais usadas' },
-  { value: 'overBudget', label: 'Acima do orçamento' },
-];
 
 export interface CategoryGridProps {
   categories: readonly CategoryCardData[];
@@ -38,6 +34,17 @@ export function CategoryGrid({
 }: CategoryGridProps) {
   const [sort, setSort] = useState<CategorySortMode>('highestExpense');
   const [selected, setSelected] = useState<readonly string[]>([]);
+  const { t } = useTranslation();
+  const { formatCurrency } = useFormatters();
+
+  const sortOptions: readonly SortOption<CategorySortMode>[] = useMemo(
+    () => [
+      { value: 'highestExpense', label: t('category.sort.highestExpense') },
+      { value: 'mostUsed', label: t('category.sort.mostUsed') },
+      { value: 'overBudget', label: t('category.sort.overBudget') },
+    ],
+    [t],
+  );
 
   const filtered = useMemo(() => {
     if (selected.length === 0) return categories;
@@ -53,19 +60,24 @@ export function CategoryGrid({
       else expenseSum += c.total;
     }
     const count = selected.length;
-    const parts = [`${count} ${count === 1 ? 'selecionada' : 'selecionadas'}`];
+    const parts = [t('category.selectedCount', { count })];
     if (expenseSum > 0 && revenueSum > 0) {
-      parts.push(`Despesas ${formatCurrency(expenseSum, currency)}`);
-      parts.push(`Receitas ${formatCurrency(revenueSum, currency)}`);
+      parts.push(`${t('overview.expenses')} ${formatCurrency(expenseSum, currency)}`);
+      parts.push(`${t('overview.revenue')} ${formatCurrency(revenueSum, currency)}`);
     } else if (expenseSum > 0) {
       parts.push(formatCurrency(expenseSum, currency));
     } else if (revenueSum > 0) {
       parts.push(formatCurrency(revenueSum, currency));
     }
     const base = parts.join(' · ');
-    const suffix = period === 'year' ? ' por ano' : period === 'month' ? ' por mês' : '';
+    const suffix =
+      period === 'year'
+        ? ` ${t('category.perYear')}`
+        : period === 'month'
+          ? ` ${t('category.perMonth')}`
+          : '';
     return parts.length > 1 ? `${base}${suffix}` : base;
-  }, [filtered, selected, currency, period]);
+  }, [filtered, selected, currency, period, t, formatCurrency]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -89,7 +101,8 @@ export function CategoryGrid({
     <View style={styles.container}>
       <View style={styles.controls}>
         <SortMenu
-          options={SORT_OPTIONS}
+          label={t('category.sort.label')}
+          options={sortOptions}
           value={sort}
           onChange={setSort}
         />
@@ -109,8 +122,8 @@ export function CategoryGrid({
       {sorted.length === 0 ? (
         <EmptyState
           icon="line.3.horizontal.decrease.circle"
-          title="Nenhuma categoria"
-          body="Ajuste os filtros para ver suas categorias."
+          title={t('category.empty.title')}
+          body={t('category.empty.body')}
         />
       ) : (
         <View style={styles.grid}>
@@ -131,17 +144,8 @@ export function CategoryGrid({
 }
 
 function budgetRatio(c: CategoryCardData) {
-  // No-budget categories sink to the bottom of the "Acima do orçamento" sort.
   if (!c.budget || c.budget === 0) return Number.NEGATIVE_INFINITY;
   return c.total / c.budget;
-}
-
-function formatCurrency(value: number, currency: string) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value);
 }
 
 const styles = StyleSheet.create({

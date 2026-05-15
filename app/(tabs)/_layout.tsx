@@ -1,5 +1,6 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { Colors } from '@/constants/theme';
@@ -8,6 +9,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const palette = Colors[colorScheme ?? 'light'];
+  const { t } = useTranslation();
 
   return (
     <NativeTabs
@@ -16,12 +18,12 @@ export default function TabLayout() {
       disableTransparentOnScrollEdge
     >
       <NativeTabs.Trigger name="(balanco)">
-        <NativeTabs.Trigger.Label>Balanço</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('tabs.balance')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="house.fill" drawable="ic_menu_home" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="transactions">
-        <NativeTabs.Trigger.Label>Transações</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('tabs.transactions')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="arrow.left.arrow.right"
           drawable="ic_menu_recent_history"
@@ -29,7 +31,7 @@ export default function TabLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="settings">
-        <NativeTabs.Trigger.Label>Ajustes</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('tabs.settings')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="gearshape.fill"
           drawable="ic_menu_preferences"
@@ -39,7 +41,7 @@ export default function TabLayout() {
       <NativeTabs.Trigger name="explore" hidden />
 
       <NativeTabs.Trigger name="ui-demo" hidden={!__DEV__}>
-        <NativeTabs.Trigger.Label>UI Demo</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t('tabs.uiDemo')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="sparkles" drawable="ic_menu_view" />
       </NativeTabs.Trigger>
 

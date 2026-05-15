@@ -33,20 +33,10 @@ export interface DashboardData {
   filterItems: { id: string; label: string }[];
 }
 
-const MONTH_FULL: Record<Month, string> = {
-  jan: 'Janeiro',
-  feb: 'Fevereiro',
-  mar: 'Março',
-  apr: 'Abril',
-  may: 'Maio',
-  jun: 'Junho',
-  jul: 'Julho',
-  aug: 'Agosto',
-  sep: 'Setembro',
-  oct: 'Outubro',
-  nov: 'Novembro',
-  dec: 'Dezembro',
-};
+function monthFormatter(locale: string): (monthIndex: number) => string {
+  const fmt = new Intl.DateTimeFormat(locale, { month: 'long' });
+  return (monthIndex: number) => fmt.format(new Date(2024, monthIndex, 1));
+}
 
 function txDate(t: Transaction): Date | null {
   if (!t.date) return null;
@@ -125,12 +115,13 @@ function buildMonthMode(
   mock: FinanceMock,
   year: number,
   month: number,
+  locale: string,
 ): DashboardData {
-  const monthKey = MONTHS[month];
-  const monthLabel = `${MONTH_FULL[monthKey]} ${year}`;
+  const fmtMonth = monthFormatter(locale);
+  const monthLabel = `${fmtMonth(month)} ${year}`;
 
   const prev = previousMonth(year, month);
-  const prevMonthLabel = MONTH_FULL[MONTHS[prev.month]];
+  const prevMonthLabel = fmtMonth(prev.month);
 
   let monthExpenses = 0;
   let monthRevenue = 0;
@@ -293,6 +284,7 @@ export function buildDashboard(
   mock: FinanceMock,
   filter: TimeFilterState,
   now: Date = new Date(),
+  locale: string = 'en',
 ): DashboardData {
   const year = filter.years[0] ?? now.getFullYear();
 
@@ -300,5 +292,5 @@ export function buildDashboard(
 
   const monthKey = filter.months[0] ?? MONTHS[now.getMonth()];
   const month = MONTHS.indexOf(monthKey);
-  return buildMonthMode(mock, year, month);
+  return buildMonthMode(mock, year, month, locale);
 }

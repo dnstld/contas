@@ -41,6 +41,30 @@ function getCell(key: string): Cell {
   return cell;
 }
 
+/**
+ * Pre-load the given keys from kv-store into the in-memory cell cache so that
+ * the first render of `usePersistedState(key, ...)` returns the stored value
+ * synchronously (no hydration flicker). Safe to call before any consumer mounts.
+ */
+export async function prewarmPersistedState(keys: readonly string[]): Promise<void> {
+  const storage = await getStorage();
+  if (!storage) return;
+  await Promise.all(
+    keys.map(async (key) => {
+      const cell = getCell(key);
+      if (cell.hasValue) return;
+      try {
+        const raw = await storage.getItem(key);
+        if (raw == null) return;
+        cell.value = JSON.parse(raw);
+        cell.hasValue = true;
+      } catch {
+        // ignore corrupt entries
+      }
+    }),
+  );
+}
+
 export function usePersistedState<T>(
   key: string,
   defaultValue: T,

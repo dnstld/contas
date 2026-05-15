@@ -2,6 +2,8 @@
 
 A single tile inside the Category Grid. Display-only — not interactive in the current scope. Designed to be readable in a 2-column layout on phone widths.
 
+All labels are sourced from i18next; monetary values use the user-selected currency formatted with the active language. See the [Localization spec](localization.md) for the full contract.
+
 ## Scenarios
 
 ### Visual hierarchy
@@ -38,9 +40,11 @@ When the comparison row renders
 Then it must include, in order:
   - a directional indicator (arrow or minus)
   - a signed percentage with no decimals
-  - the text "vs <previous period label>: <previous absolute>"
-  (e.g. "↑ +32% vs Abril: 4.700,00" or "↑ +32% vs 2025: 50.000,00")
-And the previous absolute must be rendered as a plain number with the pt-BR thousand/decimal separators (no currency symbol)
+  - a phrase built from the i18next key "category.vsPrevious" with the placeholders {{label}} + {{value}}
+    (en: "vs April: 4,700.00" / pt-BR: "vs Abril: 4.700,00")
+And {{label}} in month mode must be the previous month's name produced by Intl.DateTimeFormat in the active language
+And {{label}} in year mode must be the previous year as a 4-digit string
+And {{value}} must be formatted via Intl.NumberFormat (plain number, no currency symbol) using the active language as the locale
 And the indicator's icon and tone must reflect the movement:
   - delta > 0 → up-right arrow, red tone (more spending is unfavorable)
   - delta < 0 → down-right arrow, green tone (less spending is favorable)
@@ -54,7 +58,10 @@ And signed percentages use "exceptZero" sign display (positives prefixed with "+
 ```
 Given that the category has at least one completed transaction in the period
 When the count caption is rendered
-Then it must read "<n> transação" for n=1 and "<n> transações" for n≥2
+Then it must come from the i18next key "category.transactionCount" with the {{count}} placeholder
+And i18next must apply the active language's plural rule:
+  - en: "1 transaction" (count=1) / "<n> transactions" (count≠1)
+  - pt-BR: "1 transação" (count=1) / "<n> transações" (count≠1)
 And the caption must use the muted secondary tone
 And it must sit below the comparison row
 ```
@@ -65,8 +72,9 @@ And it must sit below the comparison row
 Given that the category has zero activity in the period
 When the card is rendered
 Then the comparison row and transaction count must be omitted
-And a single line "Sem atividade neste período" must replace them
-And the header (name + share %) and total (R$ 0,00) must remain visible
+And the empty line must come from the i18next key "category.noActivity"
+  (en: "No activity in this period" / pt-BR: "Sem atividade neste período")
+And the header (name + share %) and total (formatted in the active currency, e.g. "R$ 0,00" / "$0.00" / "€0.00") must remain visible
 And the card must preserve the same overall structure to keep the grid visually balanced
 ```
 
@@ -93,13 +101,18 @@ And no drill-down navigation, route change, or contextual filter must be trigger
 ### Localization
 
 ```
-Given that the app is configured for Brazilian Portuguese
+Given that the active language is one of the supported languages
 When the card is rendered
-Then all labels must be in Portuguese:
-  - share %: "12%"
-  - comparison: "vs <month name in pt-BR>" in month mode, "vs <year>" in year mode
-  - transaction count: "1 transação" / "<n> transações"
-  - empty state: "Sem atividade neste período"
-And monetary totals must use the pt-BR locale (R$ X.XXX,XX)
-And percentages must always render as whole numbers (no decimals)
+Then every label must be sourced from i18next using these keys:
+  - comparison phrase:  "category.vsPrevious" with {{label}} + {{value}}
+  - transaction count:  "category.transactionCount" with {{count}} (uses i18next plural rules per language)
+  - empty state:        "category.noActivity"
+And the previous-period {{label}} in month mode must be the previous month's name produced by Intl.DateTimeFormat in the active language
+And {{value}} must be formatted via Intl.NumberFormat using the active language as the locale
+And the total at the top of the card must be formatted as a currency using the active language and the user-selected currency
+  (e.g. en + USD: "$1,234.56"; pt-BR + BRL: "R$ 1.234,56"; pt-BR + EUR: "€ 1.234,56")
+And percentages must always render as whole numbers (no decimals), with the active language's sign / separator conventions
+And the category name itself comes from stored data and is not translated
 ```
+
+See the [Localization spec](localization.md) for the broader language/currency contract.

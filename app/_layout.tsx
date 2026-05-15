@@ -9,6 +9,7 @@ import {
 } from "@react-navigation/native";
 import { withLayoutContext } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
 import Transition from "react-native-screen-transitions";
 import {
   createBlankStackNavigator,
@@ -17,6 +18,7 @@ import {
 } from "react-native-screen-transitions/blank-stack";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { initI18n } from "@/i18n";
 import { interpolate } from "react-native-reanimated";
 
 const { Navigator } = createBlankStackNavigator();
@@ -30,6 +32,19 @@ const Stack = withLayoutContext<
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [i18nReady, setI18nReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    initI18n().then(() => {
+      if (!cancelled) setI18nReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!i18nReady) return null;
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

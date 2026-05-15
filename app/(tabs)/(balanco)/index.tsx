@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
@@ -9,6 +10,7 @@ import {
   Text,
   TimeFilterBar,
 } from '@/components/ui';
+import { useCurrency } from '@/hooks/use-currency';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -17,6 +19,8 @@ import { useTimeFilter } from '@/hooks/use-time-filter';
 export default function HomeScreen() {
   const background = useThemeColor({}, 'background');
   const now = useMemo(() => new Date(), []);
+  const { t } = useTranslation();
+  const { currency } = useCurrency();
 
   const filterApi = useTimeFilter({ storageKey: 'dashboard:time-filter:v2', now });
   const [revenueVisible] = usePersistedState(
@@ -41,10 +45,10 @@ export default function HomeScreen() {
           <Icon name="sparkles" size={18} tone="tint" />
           <View style={styles.noticeText}>
             <Text variant="body" weight="semibold">
-              Sem dados para exibir
+              {t('balance.empty.title')}
             </Text>
             <Text variant="caption" tone="textMuted">
-              Ative o Modo demo em Ajustes para ver dados de exemplo.
+              {t('balance.empty.body')}
             </Text>
           </View>
         </Surface>
@@ -52,7 +56,7 @@ export default function HomeScreen() {
 
       <Overview
         {...dashboard.overview}
-        currency={dashboard.currency}
+        currency={currency}
         revenueVisible={revenueVisible}
       />
 
@@ -61,10 +65,10 @@ export default function HomeScreen() {
           <Icon name="sparkles" size={18} tone="tint" />
           <View style={styles.noticeText}>
             <Text variant="body" weight="semibold">
-              Modo demo ativado
+              {t('balance.demoBadge.title')}
             </Text>
             <Text variant="caption" tone="textMuted">
-              Os valores exibidos são dados de exemplo. Desative em Ajustes.
+              {t('balance.demoBadge.body')}
             </Text>
           </View>
         </Surface>
@@ -73,7 +77,7 @@ export default function HomeScreen() {
       <CategoryGrid
         categories={dashboard.categories}
         filterItems={dashboard.filterItems}
-        currency={dashboard.currency}
+        currency={currency}
         revenueVisible={revenueVisible}
         period={dashboard.mode}
       />

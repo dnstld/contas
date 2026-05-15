@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "CONTAS",
+    "add": "Add"
+  },
+  "tabs": {
+    "balance": "Balance",
+    "transactions": "Transactions",
+    "settings": "Settings",
+    "uiDemo": "UI Demo"
+  },
+  "balance": {
+    "empty": {
+      "title": "No data to display",
+      "body": "Enable Demo Mode in Settings to see sample data."
+    },
+    "demoBadge": {
+      "title": "Demo mode on",
+      "body": "Displayed values are sample data. Disable in Settings."
+    }
+  },
+  "transactions": {
+    "title": "Transactions",
+    "comingSoon": "Coming soon"
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "display": "Display",
+      "regional": "Language & Currency"
+    },
+    "revenueVisible": {
+      "title": "Show revenue",
+      "description": "Show revenue values in the financial summary."
+    },
+    "demoMode": {
+      "title": "Demo mode",
+      "description": "Replace all real values with sample data."
+    },
+    "languageRow": {
+      "title": "App language"
+    },
+    "languages": {
+      "en": "English",
+      "pt-BR": "Portuguese (Brazil)"
+    },
+    "currencyRow": {
+      "title": "Display currency"
+    },
+    "currencies": {
+      "BRL": "Brazilian Real (R$)",
+      "USD": "US Dollar ($)",
+      "EUR": "Euro (€)"
+    }
+  },
+  "overview": {
+    "expenses": "Expenses",
+    "revenue": "Revenue",
+    "balance": "Balance",
+    "allMonths": "ALL MONTHS",
+    "modes": {
+      "month": "MONTH",
+      "year": "YEAR",
+      "all": "ALL"
+    },
+    "vsPrevious": "vs {{label}}: {{value}}"
+  },
+  "timeFilter": {
+    "fullYear": "Full year"
+  },
+  "category": {
+    "transactionCount_one": "{{count}} transaction",
+    "transactionCount_other": "{{count}} transactions",
+    "selectedCount_one": "{{count}} selected",
+    "selectedCount_other": "{{count}} selected",
+    "noActivity": "No activity in this period",
+    "vsPrevious": "vs {{label}}: {{value}}",
+    "perYear": "per year",
+    "perMonth": "per month",
+    "empty": {
+      "title": "No categories",
+      "body": "Adjust the filters to see your categories."
+    },
+    "sort": {
+      "label": "Sort",
+      "highestExpense": "Highest expense",
+      "mostUsed": "Most used",
+      "overBudget": "Over budget"
+    }
+  }
+}

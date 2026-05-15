@@ -8,6 +8,7 @@ import {
   tint as tintMod,
 } from '@expo/ui/swift-ui/modifiers';
 import { Stack, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 
 import { Icon } from '@/components/ui/atoms/icon';
@@ -16,9 +17,10 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 function HeaderLogo() {
+  const { t } = useTranslation();
   return (
     <Text variant="subtitle" weight="bold" style={{ letterSpacing: 1.5 }}>
-      CONTAS
+      {t('common.appName')}
     </Text>
   );
 }
@@ -26,12 +28,14 @@ function HeaderLogo() {
 function HeaderCreateButton({ onPress }: { onPress: () => void }) {
   const scheme = useColorScheme() ?? 'light';
   const tintColor = Colors[scheme].positive;
+  const { t } = useTranslation();
+  const label = t('common.add');
 
   if (Platform.OS === 'ios') {
     return (
       <Host matchContents>
         <SwiftUIButton
-          label="Adicionar"
+          label={label}
           systemImage="plus"
           onPress={onPress}
           modifiers={[
@@ -58,7 +62,7 @@ function HeaderCreateButton({ onPress }: { onPress: () => void }) {
     >
       <Icon name="plus" size={16} color="#fff" />
       <Text variant="body" weight="semibold" style={{ color: '#fff' }}>
-        Adicionar
+        {label}
       </Text>
     </Pressable>
   );

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { PriceText } from '@/components/ui/atoms/price-text';
@@ -11,6 +12,7 @@ import {
   MonthlyTimeline,
   type MonthlyTimelinePoint,
 } from '@/components/ui/organisms/monthly-timeline';
+import { useFormatters } from '@/hooks/use-formatters';
 import { type Month } from '@/hooks/use-time-filter';
 
 export type OverviewMode = 'month' | 'year' | 'all';
@@ -36,12 +38,6 @@ export interface OverviewProps {
   currentMonth?: Month;
 }
 
-const LENS_OPTIONS = [
-  { value: 'expenses' as const, label: 'Despesas' },
-  { value: 'revenue' as const, label: 'Receitas' },
-  { value: 'net' as const, label: 'Saldo' },
-];
-
 function safePct(delta: number, base: number): number | undefined {
   if (delta === 0) return 0;
   if (base === 0) return undefined;
@@ -65,6 +61,17 @@ export function Overview({
   currentMonth,
 }: OverviewProps) {
   const [lens, setLens] = useState<OverviewLens>('expenses');
+  const { t } = useTranslation();
+  const { formatCurrency, formatNumber, locale } = useFormatters();
+
+  const lensOptions = useMemo(
+    () => [
+      { value: 'expenses' as const, label: t('overview.expenses') },
+      { value: 'revenue' as const, label: t('overview.revenue') },
+      { value: 'net' as const, label: t('overview.balance') },
+    ],
+    [t],
+  );
 
   const lensValue =
     lens === 'revenue' ? revenue ?? 0 : lens === 'net' ? net ?? 0 : primaryValue;
@@ -120,12 +127,13 @@ export function Overview({
           {primaryLabel.toUpperCase()}
         </Text>
         <Text variant="caption" tone="textMuted">
-          {modeBadge(mode)}
+          {t(`overview.modes.${mode}`)}
         </Text>
       </View>
       <PriceText
         value={revenueVisible ? lensValue : primaryValue}
         currency={currency}
+        locale={locale}
         tone={revenueVisible ? lensTone : 'neutral'}
         size="xl"
       />
@@ -135,13 +143,16 @@ export function Overview({
             delta={comparison.delta}
             percentage={comparison.deltaPct}
             currency={currency}
-            locale="pt-BR"
+            locale={locale}
             hideValue
             lowerIsBetter={comparison.lowerIsBetter}
           />
           {comparisonLabel ? (
             <Text variant="caption" tone="textMuted">
-              {`vs ${comparisonLabel}: ${formatNumber(comparison.prev)}`}
+              {t('overview.vsPrevious', {
+                label: comparisonLabel,
+                value: formatNumber(comparison.prev),
+              })}
             </Text>
           ) : null}
         </View>
@@ -150,14 +161,14 @@ export function Overview({
       {revenueVisible ? (
         <View style={styles.lens}>
           <SegmentedControl
-            options={LENS_OPTIONS}
+            options={lensOptions}
             value={lens}
             onChange={setLens}
           />
           <View style={styles.lensRows}>
-            <MetricRow label="Receitas" value={formatCurrency(revenue ?? 0, currency)} />
-            <MetricRow label="Despesas" value={formatCurrency(expenses ?? primaryValue, currency)} />
-            <MetricRow label="Saldo" value={formatCurrency(net ?? 0, currency)} emphasis="strong" />
+            <MetricRow label={t('overview.revenue')} value={formatCurrency(revenue ?? 0, currency)} />
+            <MetricRow label={t('overview.expenses')} value={formatCurrency(expenses ?? primaryValue, currency)} />
+            <MetricRow label={t('overview.balance')} value={formatCurrency(net ?? 0, currency)} emphasis="strong" />
           </View>
         </View>
       ) : null}
@@ -177,7 +188,7 @@ export function Overview({
       {(mode === 'all' || mode === 'year') && timeline && timeline.length > 0 ? (
         <View style={styles.timeline}>
           <Text variant="caption" tone="textMuted" weight="semibold">
-            TODOS OS MESES
+            {t('overview.allMonths')}
           </Text>
           <MonthlyTimeline
             points={timeline}
@@ -188,32 +199,6 @@ export function Overview({
       ) : null}
     </Surface>
   );
-}
-
-function modeBadge(mode: OverviewMode) {
-  switch (mode) {
-    case 'month':
-      return 'MÊS';
-    case 'year':
-      return 'ANO';
-    case 'all':
-      return 'TUDO';
-  }
-}
-
-function formatCurrency(value: number, currency: string) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
 }
 
 const styles = StyleSheet.create({
