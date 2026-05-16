@@ -230,10 +230,18 @@ And the currency cell must also be pre-warmed during this same await window
 And once initI18n resolves, the root layout must additionally gate on the auth context
   (the <AuthProvider> exposes `loading` while supabase.auth.getSession() resolves the persisted session)
 And while the auth context is still loading, the root stack must render null — no tab bar, no header, no auth screen flash
-And only after BOTH i18n and the auth context have resolved must the route gate run and place the user on:
+And once a session is known to exist, the root layout must additionally gate on the wallet context
+  (the <WalletProvider> exposes `loading: true` from when a session appears until walletId is resolved
+   via the persisted per-user cache or get_or_create_default_wallet — see the
+   [Authentication spec](authentication.md) → "Wallet provisioning after sign-in")
+And while wallet bootstrap is still pending, the root stack must continue to render null
+  (the gate is `if (authLoading || (session && walletLoading)) return null`)
+And only after i18n, the auth context, and (when applicable) the wallet context have resolved
+  must the route gate run and place the user on:
   - /authentication (if no session)
   - /(tabs)/(balanco) (if a session exists)
-And on that first eligible frame, the tab bar and global header must render with the correct, persisted language and currency
+And on that first eligible frame, the tab bar and global header must render with the correct,
+  persisted language and currency, and the dashboard's first paint is already scoped to the resolved walletId
 ```
 
 ### Authenticated context for the shell

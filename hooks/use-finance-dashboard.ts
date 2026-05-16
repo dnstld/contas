@@ -12,18 +12,19 @@ import { type TimeFilterState } from '@/hooks/use-time-filter';
 export interface UseFinanceDashboardResult extends DashboardData {
   mock: FinanceMock;
   currency: FinanceMock['currency'];
+  loading: boolean;
 }
 
 export function useFinanceDashboard(
   filter: TimeFilterState,
   now: Date,
 ): UseFinanceDashboardResult {
-  const { mock, currency } = useFinanceMock();
+  const { mock, currency, loading } = useFinanceMock();
   const { i18n } = useTranslation();
   const data = useMemo(
     () => buildDashboard(mock, filter, now, i18n.language),
     [mock, filter, now, i18n.language],
   );
 
-  return { mock, currency, ...data };
+  return { mock, currency, loading, ...data };
 }

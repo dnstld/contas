@@ -19,6 +19,7 @@ import {
 
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { WalletProvider, useWallet } from "@/hooks/use-wallet";
 import { initI18n } from "@/i18n";
 import { interpolate } from "react-native-reanimated";
 
@@ -70,19 +71,24 @@ const modalScreenOptions: BlankStackNavigationOptions = {
 };
 
 function RootStack() {
-  const { session, loading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const { loading: walletLoading } = useWallet();
   const segments = useSegments();
   const router = useRouter();
 
+  const booting = authLoading || (!!session && walletLoading);
+
   useEffect(() => {
-    if (loading) return;
+    if (booting) return;
     const inAuthRoute = segments[0] === "authentication";
     if (!session && !inAuthRoute) {
       router.replace("/authentication");
     } else if (session && inAuthRoute) {
       router.replace("/(tabs)/(balanco)");
     }
-  }, [session, loading, segments, router]);
+  }, [session, booting, segments, router]);
+
+  if (booting) return null;
 
   return (
     <Stack>
@@ -112,7 +118,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <RootStack />
+        <WalletProvider>
+          <RootStack />
+        </WalletProvider>
       </AuthProvider>
       <StatusBar style="auto" />
     </ThemeProvider>

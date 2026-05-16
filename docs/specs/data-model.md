@@ -60,6 +60,14 @@ And the trigger function runs SECURITY DEFINER with search_path = public
 Given that the client calls public.get_or_create_default_wallet(p_name text default 'Personal')
 When the function runs
 Then it must require auth.uid() to be non-null (raise "not authenticated" otherwise)
+And it must first self-heal the caller's profile row to defend against pre-trigger users:
+  INSERT INTO public.profiles (id, display_name, avatar_url)
+  SELECT u.id,
+         nullif(coalesce(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name'), ''),
+         nullif(coalesce(u.raw_user_meta_data->>'avatar_url', u.raw_user_meta_data->>'picture'), '')
+  FROM auth.users u WHERE u.id = auth.uid()
+  ON CONFLICT (id) DO NOTHING
+  (mirrors tg_profile_for_new_user; idempotent — no-op for users the trigger already handled)
 And it must return the oldest wallet_id (by joined_at ASC) the caller is a member of, if any
 And if the caller has no wallets, it must:
   1. Insert into wallets (name = p_name, created_by = auth.uid())

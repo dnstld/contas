@@ -31,7 +31,11 @@ export default function HomeScreen() {
 
   const dashboard = useFinanceDashboard(filterApi.state, now);
   const hasTransactions = dashboard.mock.transactions.length > 0;
-  const showEmptyNotice = !demoMode && !hasTransactions;
+  const showEmptyNotice = !demoMode && !dashboard.loading && !hasTransactions;
+
+  if (dashboard.loading && !hasTransactions) {
+    return <View style={{ flex: 1, backgroundColor: background }} />;
+  }
 
   return (
     <ScrollView

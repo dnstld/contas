@@ -141,16 +141,26 @@ And the filter and total card must still be visible above the empty state
   (so the user can change the filter without leaving the screen)
 ```
 
-### Demo mode coupling
+### Data source coupling
 
 ```
 Given that the Transactions screen is mounted
 When transaction data is read
-Then it must come from the useFinanceMock hook (the same hook the Balance screen uses)
-And when "settings:demo-mode" is true the seeded generator output is used (generateFinanceMock)
-And when "settings:demo-mode" is false the starter (empty-transactions) mock is used
+Then it must come from the useFinanceMock hook (the same hook the Balance screen uses),
+  which returns one of two FinanceMock-shaped sources depending on the demo toggle:
+  - when "settings:demo-mode" is true → the seeded generator output (generateFinanceMock())
+  - when "settings:demo-mode" is false → the live DB-backed result of useDbFinanceForCurrentWallet,
+    which fires two parallel queries (categories + transactions ordered by occurred_at desc)
+    scoped to the current walletId (see [Authentication spec](authentication.md) → "Wallet provisioning")
+    and adapts rows into the same FinanceMock shape (amount_cents / 100, denormalized
+    categoryName/type from the joined category, derived years from actual transaction dates)
+And the hook also returns `loading: boolean` (true while the DB fetch is in flight);
+  the screen must suppress the EmptyState while loading so the "No transactions" copy
+  does not flash before the fetch resolves
 And toggling Demo mode in Settings must update the Transactions screen on next render
-  without an app restart, consistent with the Balance screen's behavior
+  without an app restart, consistent with the Balance screen's behavior:
+  flipping demo on short-circuits the DB read and immediately renders the generator output;
+  flipping demo off re-engages the DB hook (which is already mounted and keeps its data)
 ```
 
 ### Mock data realism — no future-dated entries

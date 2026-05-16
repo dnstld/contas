@@ -9,6 +9,7 @@ export type Category = {
   name: string
   type: TransactionType
   monthlyBudget?: number
+  createdAt?: string
   behavior: {
     minEntriesPerMonth: number
     maxEntriesPerMonth: number

@@ -25,7 +25,9 @@
     "supabase:db:reset": "supabase db reset",
     "supabase:db:push": "supabase db push",
     "supabase:db:pull": "supabase db pull",
-    "supabase:migration:new": "supabase migration new"
+    "supabase:migration:new": "supabase migration new",
+    "supabase:types:gen": "supabase gen types typescript --project-id thmxekucuildkwijdiub --schema public > types/database.types.ts",
+    "supabase:types:gen:local": "supabase gen types typescript --local --schema public > types/database.types.ts"
   },
   "dependencies": {
     "@expo/ui": "~55.0.16",

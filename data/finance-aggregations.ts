@@ -59,6 +59,29 @@ function inYear(d: Date, year: number): boolean {
   return d.getFullYear() === year;
 }
 
+function isCategoryVisibleInYear(
+  category: Category,
+  year: number,
+  activeIds: Set<string>,
+): boolean {
+  if (activeIds.has(category.id)) return true;
+  if (category.createdAt && new Date(category.createdAt).getFullYear() === year) {
+    return true;
+  }
+  return false;
+}
+
+function yearActiveCategoryIds(mock: FinanceMock, year: number): Set<string> {
+  const ids = new Set<string>();
+  for (const t of mock.transactions) {
+    if (t.status !== 'completed') continue;
+    const d = txDate(t);
+    if (!d) continue;
+    if (d.getFullYear() === year) ids.add(t.categoryId);
+  }
+  return ids;
+}
+
 function previousMonth(year: number, month: number): { year: number; month: number } {
   if (month === 0) return { year: year - 1, month: 11 };
   return { year, month: month - 1 };
@@ -172,7 +195,10 @@ function buildMonthMode(
     net: monthRevenue - monthExpenses,
   };
 
-  const expenseCategories = mock.categories.filter((c) => c.type === 'expense');
+  const yearActive = yearActiveCategoryIds(mock, year);
+  const expenseCategories = mock.categories.filter(
+    (c) => c.type === 'expense' && isCategoryVisibleInYear(c, year, yearActive),
+  );
   const categories = expenseCategories.map((c) =>
     toCardData(
       c,
@@ -267,7 +293,10 @@ function buildYearMode(mock: FinanceMock, year: number, now: Date): DashboardDat
     currentMonth: year === now.getFullYear() ? MONTHS[now.getMonth()] : undefined,
   };
 
-  const expenseCategories = mock.categories.filter((c) => c.type === 'expense');
+  const yearActive = yearActiveCategoryIds(mock, year);
+  const expenseCategories = mock.categories.filter(
+    (c) => c.type === 'expense' && isCategoryVisibleInYear(c, year, yearActive),
+  );
   const categories = expenseCategories.map((c) =>
     toCardData(c, current[c.id], previous[c.id], yearExpenses, undefined, prevYearLabel),
   );

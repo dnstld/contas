@@ -180,8 +180,33 @@ And subsequent sign-ins of the same user must NOT re-fire the trigger (auth.user
 Given that an auth.users row exists from a sign-in that predates the data-model migration
 When the migration is first deployed to that environment
 Then the trigger does NOT retroactively create profile rows for existing users
-And a one-time backfill SQL must be run by an operator (see README.md → "Backfilling profiles")
-And after the backfill, the trigger continues to handle every future sign-up automatically
+And a one-time backfill SQL may be run by an operator for cleanliness (see README.md → "Backfilling profiles")
+But the absence of a backfill is no longer fatal:
+  public.get_or_create_default_wallet performs the same INSERT … ON CONFLICT DO NOTHING
+  for the calling user before creating their wallet, so the first post-auth wallet bootstrap
+  self-heals the missing profile row
+  (see the get_or_create_default_wallet RPC scenario in the data-model spec)
+And the trigger continues to handle every future sign-up automatically
+```
+
+### Wallet provisioning after sign-in
+
+```
+Given that the auth context has finished loading and a session exists
+When the root layout mounts
+Then the WalletProvider (hooks/use-wallet.tsx) must observe the new session and resolve the user's wallet:
+  1. Read the persisted wallet id from kv-store key `wallet:selected-id:<session.user.id>`
+     and apply it to context immediately if present (so the first paint reflects the last-known wallet)
+  2. Call supabase.rpc('get_or_create_default_wallet') unconditionally to reconcile
+     (returns the oldest wallet the user is a member of, or creates a new one named "Personal")
+  3. Replace the in-memory walletId with the RPC's answer and persist it under the same per-user key
+And the route gate in app/_layout.tsx must extend its splash to wait for wallet resolution:
+  `if (authLoading || (session && walletLoading)) return null`
+  (so the user never sees the tabs render before their wallet id is known — same posture
+   as the original "Initial route gate" guarantee, applied to the next step in the chain)
+And the persisted key is per-user so signing out and back in as a different account on the same device
+  finds no cached value and bootstraps a fresh wallet for the new uid; the previous account's key
+  remains in storage so re-signing back into it is instant
 ```
 
 ### Environment variables owned by this feature

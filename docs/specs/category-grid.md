@@ -99,6 +99,25 @@ And the body must come from key "category.empty.body"
   (en: "Adjust the filters to see your categories." / pt-BR: "Ajuste os filtros para ver suas categorias.")
 ```
 
+### Year-scoped category visibility
+
+```
+Given that the time filter selects a year (in either month mode or year mode)
+When the grid computes its list of cards
+Then a category must be visible for that year only if at least one of:
+  1. it has any completed transaction with occurred_at in the selected year, OR
+  2. its created_at year equals the selected year
+     (so a pre-created category appears in its creation year before its first transaction)
+And categories that satisfy neither rule must be omitted from both the card grid and the filter chip row
+And the same visibility rule applies in month mode and year mode — month selection narrows the totals,
+  not the eligible category set (a category active anywhere in the year keeps its card visible
+  even when the selected month happens to have zero activity for it, so the grid does not appear/disappear
+  while flipping through months within a year)
+And a category present in both years (e.g. an ongoing recurring bill) must appear in both years' grids
+And both filterItems (used by the multi-select chips) and the rendered grid must use the same
+  derived set — they cannot fall out of sync
+```
+
 ### Mode-aware behavior
 
 ```

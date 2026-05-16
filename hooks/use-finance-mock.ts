@@ -5,6 +5,7 @@ import {
   type Category,
   type FinanceMock,
 } from '@/data/finance-mock';
+import { useDbFinanceForCurrentWallet } from '@/hooks/use-db-finance';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 
 const STARTER_CATEGORIES: Category[] = [
@@ -27,11 +28,17 @@ const STARTER_MOCK: FinanceMock = {
 export interface UseFinanceMockResult {
   mock: FinanceMock;
   currency: FinanceMock['currency'];
+  loading: boolean;
 }
 
 export function useFinanceMock(): UseFinanceMockResult {
   const [demoMode] = usePersistedState('settings:demo-mode', false);
   const generatedMock = useMemo(() => generateFinanceMock(), []);
-  const mock = demoMode ? generatedMock : STARTER_MOCK;
-  return { mock, currency: mock.currency };
+  const db = useDbFinanceForCurrentWallet();
+
+  if (demoMode) {
+    return { mock: generatedMock, currency: generatedMock.currency, loading: false };
+  }
+  const mock = db.mock ?? STARTER_MOCK;
+  return { mock, currency: mock.currency, loading: db.loading };
 }

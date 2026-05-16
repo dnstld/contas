@@ -29,7 +29,7 @@ export default function TransactionsScreen() {
 
   const now = useMemo(() => new Date(), []);
   const filterApi = useFinanceTimeFilter(now);
-  const { mock } = useFinanceMock();
+  const { mock, loading } = useFinanceMock();
 
   const { sections, totals } = useMemo(
     () =>
@@ -41,6 +41,7 @@ export default function TransactionsScreen() {
   );
 
   const hasTransactions = sections.length > 0;
+  const showEmpty = !loading && !hasTransactions;
   const router = useRouter();
 
   const handlePressTransaction = useCallback(
@@ -94,7 +95,7 @@ export default function TransactionsScreen() {
           )}
           ItemSeparatorComponent={Divider}
         />
-      ) : (
+      ) : showEmpty ? (
         <View style={styles.emptyWrap}>
           <EmptyState
             icon="chart.bar.fill"
@@ -102,7 +103,7 @@ export default function TransactionsScreen() {
             body={t('transactions.empty.body')}
           />
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
