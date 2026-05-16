@@ -232,3 +232,22 @@ Then the only keys this feature reads or writes are:
   - "settings:currency" — string of a supported currency code, or absent
 And any other key remains untouched by the localization layer
 ```
+
+### Authentication surface keys
+
+```
+Given that the authentication screen and the Settings Account row are translatable surfaces
+When their labels are sourced
+Then they must come from i18next under these keys (added in the authentication feature):
+  - "auth.welcome.title"         — sign-in screen primary heading
+  - "auth.welcome.body"          — sign-in screen subtitle
+  - "auth.signInWithGoogle"      — sign-in button label
+  - "auth.signOut"               — sign-out button label (used in Settings → Account)
+  - "settings.sections.account"  — Account section title in Settings
+  - "settings.signOutRow.title"  — Sign-out row title in Settings
+  - "settings.signOutRow.description" — Sign-out row description in Settings
+And both en.json and pt-BR.json must define each of these keys (no missing-key fallback to en for these surfaces)
+And switching the active language while signed out must update the sign-in screen labels in place
+  (no app restart, no remount)
+See the [Authentication spec](authentication.md) for the full auth-flow contract.
+```

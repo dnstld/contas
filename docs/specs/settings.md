@@ -1,9 +1,10 @@
 # Component 8 — Settings (Ajustes)
 
-The Settings tab is the project's user-preferences surface. It exposes two sections:
+The Settings tab is the project's user-preferences surface. It exposes three sections:
 
 1. **Display** (pt-BR: "Exibição") — two persisted toggles that affect what the Balance screen renders.
 2. **Language & Currency** (pt-BR: "Idioma e moeda") — two picker rows that drive the i18n layer.
+3. **Account** (pt-BR: "Conta") — sign-out action; the user's entry point into the auth surface.
 
 The screen is designed to grow: more sections will be added over time without altering the section/row primitives.
 
@@ -33,6 +34,7 @@ When its sections are displayed top-to-bottom
 Then the order must be:
   1. Display (key: "settings.sections.display")
   2. Language & Currency (key: "settings.sections.regional")
+  3. Account (key: "settings.sections.account")
 And the page-level vertical gap between sections must be 24 points
 ```
 
@@ -207,6 +209,35 @@ And the "Demo mode on" notice only appears when demo is ON
 And the two banners must never appear simultaneously
 ```
 
+### "Account" section structure
+
+```
+Given that the Settings screen is rendered
+When the Account section is displayed
+Then it must use the SettingsSection molecule with title from key "settings.sections.account"
+  (en: "Account" / pt-BR: "Conta")
+And the section must contain exactly one row: the Sign out row
+And the section must render below the "Language & Currency" section, separated by the standard 24-point gap
+```
+
+### "Sign out" row
+
+```
+Given that the Account section is rendered
+When the Sign out row is displayed
+Then it must show a title from key "settings.signOutRow.title"
+  (en: "Sign out" / pt-BR: "Sair")
+And it must show a description from key "settings.signOutRow.description"
+  (en: "End your session on this device." / pt-BR: "Encerra sua sessão neste dispositivo.")
+And the trailing slot must contain a Button (design-system atom) with:
+  - label from key "auth.signOut" (en: "Sign out" / pt-BR: "Sair")
+  - variant="destructive"
+  - size="small"
+And tapping the Button must call useAuth().signOut()
+And after sign-out completes, the root layout's route gate must redirect the user to /authentication
+  (see the Authentication spec for the gate behavior)
+```
+
 ### Future sections
 
 ```
@@ -224,7 +255,7 @@ When the Settings screen and its companion banners (on the Balance screen) are r
 Then every label and description must come from i18next under the keys listed in the row scenarios above
 And no string must be hardcoded in the screen source
 And switching the language from the Settings → Language row must update every label on the screen in place, without a remount or restart
-And the section divider order (Display → Language & Currency) must remain consistent across languages
+And the section order (Display → Language & Currency → Account) must remain consistent across languages
 ```
 
 See the [Localization spec](localization.md) for the complete contract on language/currency resolution, persistence, and cross-screen synchronization.

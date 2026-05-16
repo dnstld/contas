@@ -227,5 +227,23 @@ Then it must call initI18n() and gate the entire UI tree (including the tab bar 
 And no tab bar, header, or screen content must render before i18next has resolved the initial language
 And the currency cell must also be pre-warmed during this same await window
   (so the first render of any monetary value already reflects the persisted choice)
-And once initI18n resolves, the tab bar and global header must render with the correct, persisted language and currency on the very first frame
+And once initI18n resolves, the root layout must additionally gate on the auth context
+  (the <AuthProvider> exposes `loading` while supabase.auth.getSession() resolves the persisted session)
+And while the auth context is still loading, the root stack must render null — no tab bar, no header, no auth screen flash
+And only after BOTH i18n and the auth context have resolved must the route gate run and place the user on:
+  - /authentication (if no session)
+  - /(tabs)/(balanco) (if a session exists)
+And on that first eligible frame, the tab bar and global header must render with the correct, persisted language and currency
+```
+
+### Authenticated context for the shell
+
+```
+Given that the tab bar and global header are rendered
+When their scenarios reference "the user is logged in"
+Then the precondition is satisfied whenever useAuth().session is non-null
+  (see the [Authentication spec](authentication.md) for the gate's full behavior)
+And whenever useAuth().session transitions to null (e.g. the user invokes signOut from Settings → Account)
+  the route gate in app/_layout.tsx must redirect to /authentication
+  and the tab bar and global header must no longer be visible until a new session exists
 ```

@@ -15,7 +15,17 @@
     "build:preview:android": "eas build --platform android --profile preview",
     "build:prod:ios": "eas build --platform ios --profile production",
     "build:prod:android": "eas build --platform android --profile production",
-    "build:prod:all": "eas build --platform all --profile production"
+    "build:prod:all": "eas build --platform all --profile production",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:functions:serve": "supabase functions serve",
+    "supabase:functions:deploy": "supabase functions deploy",
+    "supabase:functions:deploy:all": "supabase functions deploy --no-verify-jwt",
+    "supabase:db:reset": "supabase db reset",
+    "supabase:db:push": "supabase db push",
+    "supabase:db:pull": "supabase db pull",
+    "supabase:migration:new": "supabase migration new"
   },
   "dependencies": {
     "@expo/ui": "~55.0.16",
