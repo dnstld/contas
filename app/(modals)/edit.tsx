@@ -49,9 +49,7 @@ export default function EditScreen() {
 
   return (
     <TransactionForm
-      title={t('edit.title')}
       submitLabel={t('edit.save')}
-      autoFocusAmount={false}
       initialValues={initialValues}
       isSubmitting={updateMutation.isPending}
       isDeleting={deleteMutation.isPending}
@@ -74,7 +72,6 @@ export default function EditScreen() {
           setErrorMessage(e instanceof Error ? e.message : t('edit.deleteError'));
         }
       }}
-      onClose={() => router.back()}
     />
   );
 }

@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import * as Compose from '@expo/ui/jetpack-compose';
 import * as SwiftUI from '@expo/ui/swift-ui';
@@ -45,7 +45,7 @@ export function Chip({
 
   if (Platform.OS === 'ios') {
     return (
-      <SwiftUI.Host matchContents>
+      <SwiftUI.Host matchContents style={styles.host}>
         <SwiftUI.Button
           label={label}
           systemImage={selected && showCheckWhenSelected ? 'checkmark' : undefined}
@@ -86,3 +86,7 @@ export function Chip({
 
   return null;
 }
+
+const styles = StyleSheet.create({
+  host: { minHeight: 32 },
+});

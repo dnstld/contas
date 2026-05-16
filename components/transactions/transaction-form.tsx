@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Transition from 'react-native-screen-transitions';
 
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { Icon } from '@/components/ui/atoms/icon';
@@ -41,12 +41,9 @@ export type TransactionFormValues = {
 export interface TransactionFormProps {
   initialValues?: Partial<TransactionFormValues>;
   onSubmit: (values: TransactionFormValues) => void;
-  onClose?: () => void;
   onDelete?: () => void;
-  title?: string;
   submitLabel?: string;
   deleteLabel?: string;
-  autoFocusAmount?: boolean;
   isSubmitting?: boolean;
   isDeleting?: boolean;
   errorMessage?: string | null;
@@ -57,12 +54,9 @@ const DESCRIPTION_MAX_LENGTH = 100;
 export function TransactionForm({
   initialValues,
   onSubmit,
-  onClose,
   onDelete,
-  title,
   submitLabel,
   deleteLabel,
-  autoFocusAmount = true,
   isSubmitting = false,
   isDeleting = false,
   errorMessage = null,
@@ -70,11 +64,11 @@ export function TransactionForm({
   const { t } = useTranslation();
   const { data: categories = [] } = useCategories();
   const { currency } = useCurrency();
-  const { formatCurrency } = useFormatters();
+  const { formatDecimal, currencySymbol } = useFormatters();
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
-  const backgroundColor = useThemeColor({}, 'background');
+  const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
   const accentColor = useThemeColor({}, 'positive');
   const dangerColor = useThemeColor({}, 'negative');
@@ -93,13 +87,6 @@ export function TransactionForm({
     initialValues?.description ?? '',
   );
 
-  const amountRef = useRef<TextInput>(null);
-  useEffect(() => {
-    if (!autoFocusAmount) return;
-    const timer = setTimeout(() => amountRef.current?.focus(), 50);
-    return () => clearTimeout(timer);
-  }, [autoFocusAmount]);
-
   const typeOptions: SegmentedOption<TransactionType>[] = useMemo(
     () => [
       { value: 'expense', label: t('create.types.expense') },
@@ -116,7 +103,8 @@ export function TransactionForm({
     [categories, type],
   );
 
-  const formattedAmount = formatCurrency(amountCents / 100, currency);
+  const formattedAmount = formatDecimal(amountCents / 100);
+  const symbol = currencySymbol(currency);
 
   const handleAmountChange = (text: string) => {
     const digits = text.replace(/\D/g, '');
@@ -154,25 +142,19 @@ export function TransactionForm({
       edges={['top']}
       style={[styles.root, { backgroundColor }]}
     >
-      <View style={styles.header}>
-        <Pressable
-          onPress={onClose}
-          hitSlop={12}
-          accessibilityLabel={t('create.close')}
-        >
-          <Icon name="xmark" size={22} tone="text" />
-        </Pressable>
-        <Text variant="subtitle" weight="semibold">
-          {title ?? t('create.title')}
-        </Text>
-        <View style={styles.headerSpacer} />
+      <View
+        style={styles.dragHandleWrap}
+        accessibilityRole="adjustable"
+        accessibilityLabel={t('create.close')}
+      >
+        <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
       </View>
 
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView
+        <Transition.ScrollView
           style={styles.flex}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -187,23 +169,31 @@ export function TransactionForm({
           </View>
 
           <View style={styles.amountSection}>
-            <TextInput
-              ref={amountRef}
-              value={formattedAmount}
-              onChangeText={handleAmountChange}
-              keyboardType="number-pad"
-              inputMode="numeric"
-              autoFocus={autoFocusAmount}
-              accessibilityLabel={t('create.amountPlaceholder')}
-              selectionColor={textColor}
-              style={[
-                styles.amountInput,
-                {
-                  color: amountCents > 0 ? textColor : mutedColor,
-                  fontFamily: Fonts.rounded,
-                },
-              ]}
-            />
+            <View style={styles.amountRow}>
+              <Text
+                style={[
+                  styles.amountSymbol,
+                  { color: mutedColor, fontFamily: Fonts.rounded },
+                ]}
+              >
+                {symbol}
+              </Text>
+              <TextInput
+                value={formattedAmount}
+                onChangeText={handleAmountChange}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                accessibilityLabel={t('create.amountPlaceholder')}
+                selectionColor={textColor}
+                style={[
+                  styles.amountInput,
+                  {
+                    color: amountCents > 0 ? textColor : mutedColor,
+                    fontFamily: Fonts.rounded,
+                  },
+                ]}
+              />
+            </View>
           </View>
 
           <View style={styles.field}>
@@ -236,7 +226,7 @@ export function TransactionForm({
 
           <View style={styles.field}>
             <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('create.descriptionPlaceholder').toUpperCase()}
+              {t('create.descriptionLabel').toUpperCase()}
             </Text>
             <TextInput
               value={description}
@@ -262,7 +252,7 @@ export function TransactionForm({
               </Text>
             </View>
           </View>
-        </ScrollView>
+        </Transition.ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
           {errorMessage ? (
@@ -337,21 +327,22 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
+  dragHandleWrap: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 10,
+    paddingBottom: 6,
   },
-  headerSpacer: {
-    width: 22,
+  dragHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    opacity: 0.6,
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 24,
-    gap: 24,
+    gap: 32,
   },
   footer: {
     paddingHorizontal: 20,
@@ -363,16 +354,25 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   amountSection: {
-    paddingVertical: 24,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  amountSymbol: {
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: '600',
+    paddingBottom: 10,
   },
   amountInput: {
     fontSize: 56,
     lineHeight: 64,
     fontWeight: '700',
-    textAlign: 'center',
-    minWidth: '60%',
+    textAlign: 'left',
     padding: 0,
   },
   field: {

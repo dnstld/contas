@@ -24,7 +24,6 @@ export default function CreateScreen() {
           setErrorMessage(e instanceof Error ? e.message : t('create.error'));
         }
       }}
-      onClose={() => router.back()}
     />
   );
 }
