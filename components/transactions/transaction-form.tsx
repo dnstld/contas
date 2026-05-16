@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/molecules/chip-group';
 import { Fonts } from '@/constants/theme';
 import { useCurrency } from '@/hooks/use-currency';
-import { useFinanceMock } from '@/hooks/use-finance-mock';
+import { useCategories } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -47,6 +47,9 @@ export interface TransactionFormProps {
   submitLabel?: string;
   deleteLabel?: string;
   autoFocusAmount?: boolean;
+  isSubmitting?: boolean;
+  isDeleting?: boolean;
+  errorMessage?: string | null;
 }
 
 const DESCRIPTION_MAX_LENGTH = 100;
@@ -60,9 +63,12 @@ export function TransactionForm({
   submitLabel,
   deleteLabel,
   autoFocusAmount = true,
+  isSubmitting = false,
+  isDeleting = false,
+  errorMessage = null,
 }: TransactionFormProps) {
   const { t } = useTranslation();
-  const { mock } = useFinanceMock();
+  const { data: categories = [] } = useCategories();
   const { currency } = useCurrency();
   const { formatCurrency } = useFormatters();
 
@@ -104,10 +110,10 @@ export function TransactionForm({
 
   const categoryItems: ChipGroupItem<string>[] = useMemo(
     () =>
-      mock.categories
+      categories
         .filter((c) => c.type === type)
         .map((c) => ({ id: c.id, label: c.name })),
-    [mock.categories, type],
+    [categories, type],
   );
 
   const formattedAmount = formatCurrency(amountCents / 100, currency);
@@ -129,7 +135,8 @@ export function TransactionForm({
     setCategoryId(null);
   };
 
-  const canSubmit = amountCents > 0 && categoryId !== null;
+  const busy = isSubmitting || isDeleting;
+  const canSubmit = amountCents > 0 && categoryId !== null && !busy;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -258,11 +265,19 @@ export function TransactionForm({
         </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
+          {errorMessage ? (
+            <View style={[styles.errorBanner, { borderColor: dangerColor, backgroundColor: `${dangerColor}14` }]}>
+              <Text variant="caption" style={{ color: dangerColor }}>
+                {errorMessage}
+              </Text>
+            </View>
+          ) : null}
+
           <Pressable
             onPress={handleSubmit}
             disabled={!canSubmit}
             accessibilityRole="button"
-            accessibilityState={{ disabled: !canSubmit }}
+            accessibilityState={{ disabled: !canSubmit, busy: isSubmitting }}
             style={({ pressed }) => [
               styles.submit,
               {
@@ -287,13 +302,16 @@ export function TransactionForm({
           {onDelete ? (
             <Pressable
               onPress={onDelete}
+              disabled={busy}
               accessibilityRole="button"
+              accessibilityState={{ disabled: busy, busy: isDeleting }}
               style={({ pressed }) => [
                 styles.delete,
                 {
                   borderColor: dangerColor,
                   backgroundColor: pressed ? `${dangerColor}14` : 'transparent',
                   transform: [{ scale: pressed ? 0.98 : 1 }],
+                  opacity: busy ? 0.5 : 1,
                 },
               ]}
             >
@@ -398,6 +416,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  errorBanner: {
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
   },
 });

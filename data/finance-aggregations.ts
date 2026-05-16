@@ -6,7 +6,7 @@ import {
   type TimeFilterState,
 } from '@/hooks/use-time-filter';
 
-import type { Category, FinanceMock, Transaction } from './finance-mock';
+import type { Category, Finance, Transaction } from './finance-types';
 
 export type DashboardMode = 'month' | 'year';
 
@@ -71,7 +71,7 @@ function isCategoryVisibleInYear(
   return false;
 }
 
-function yearActiveCategoryIds(mock: FinanceMock, year: number): Set<string> {
+function yearActiveCategoryIds(mock: Finance, year: number): Set<string> {
   const ids = new Set<string>();
   for (const t of mock.transactions) {
     if (t.status !== 'completed') continue;
@@ -135,7 +135,7 @@ function toCardData(
 }
 
 function buildMonthMode(
-  mock: FinanceMock,
+  mock: Finance,
   year: number,
   month: number,
   locale: string,
@@ -218,7 +218,7 @@ function buildMonthMode(
   };
 }
 
-function buildYearMode(mock: FinanceMock, year: number, now: Date): DashboardData {
+function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
   const yearLabel = String(year);
   const prevYear = year - 1;
   const prevYearLabel = String(prevYear);
@@ -310,7 +310,7 @@ function buildYearMode(mock: FinanceMock, year: number, now: Date): DashboardDat
 }
 
 export function buildDashboard(
-  mock: FinanceMock,
+  mock: Finance,
   filter: TimeFilterState,
   now: Date = new Date(),
   locale: string = 'en',

@@ -1,29 +1,36 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
   TransactionForm,
   type TransactionFormValues,
 } from '@/components/transactions/transaction-form';
-import { useFinanceMock } from '@/hooks/use-finance-mock';
+import { useFinance } from '@/hooks/use-finance';
+import {
+  useDeleteTransaction,
+  useUpdateTransaction,
+} from '@/hooks/use-finance-mutations';
 
 export default function EditScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { mock } = useFinanceMock();
+  const { data } = useFinance();
+  const updateMutation = useUpdateTransaction();
+  const deleteMutation = useDeleteTransaction();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const transaction = useMemo(
-    () => mock.transactions.find((entry) => entry.id === id),
-    [mock.transactions, id],
+    () => data?.transactions.find((entry) => entry.id === id),
+    [data, id],
   );
 
   useEffect(() => {
-    if (!transaction) {
+    if (data && !transaction) {
       router.back();
     }
-  }, [transaction, router]);
+  }, [data, transaction, router]);
 
   if (!transaction) return null;
 
@@ -46,13 +53,26 @@ export default function EditScreen() {
       submitLabel={t('edit.save')}
       autoFocusAmount={false}
       initialValues={initialValues}
-      onSubmit={(values) => {
-        console.log('update transaction', transaction.id, values);
-        router.back();
+      isSubmitting={updateMutation.isPending}
+      isDeleting={deleteMutation.isPending}
+      errorMessage={errorMessage}
+      onSubmit={async (values) => {
+        setErrorMessage(null);
+        try {
+          await updateMutation.mutateAsync({ id: transaction.id, values });
+          router.back();
+        } catch (e) {
+          setErrorMessage(e instanceof Error ? e.message : t('edit.updateError'));
+        }
       }}
-      onDelete={() => {
-        console.log('delete transaction', transaction.id);
-        router.back();
+      onDelete={async () => {
+        setErrorMessage(null);
+        try {
+          await deleteMutation.mutateAsync(transaction.id);
+          router.back();
+        } catch (e) {
+          setErrorMessage(e instanceof Error ? e.message : t('edit.deleteError'));
+        }
       }}
       onClose={() => router.back()}
     />

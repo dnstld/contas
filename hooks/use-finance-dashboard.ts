@@ -5,26 +5,35 @@ import {
   buildDashboard,
   type DashboardData,
 } from '@/data/finance-aggregations';
-import { type FinanceMock } from '@/data/finance-mock';
-import { useFinanceMock } from '@/hooks/use-finance-mock';
+import type { Finance } from '@/data/finance-types';
+import { useFinance } from '@/hooks/use-finance';
 import { type TimeFilterState } from '@/hooks/use-time-filter';
 
+const EMPTY_FINANCE: Finance = {
+  generatedAt: '',
+  years: [],
+  currency: 'BRL',
+  categories: [],
+  transactions: [],
+};
+
 export interface UseFinanceDashboardResult extends DashboardData {
-  mock: FinanceMock;
-  currency: FinanceMock['currency'];
-  loading: boolean;
+  data: Finance | undefined;
+  currency: string;
+  isLoading: boolean;
+  isDemo: boolean;
 }
 
 export function useFinanceDashboard(
   filter: TimeFilterState,
   now: Date,
 ): UseFinanceDashboardResult {
-  const { mock, currency, loading } = useFinanceMock();
+  const { data, isLoading, isDemo, currency } = useFinance();
   const { i18n } = useTranslation();
-  const data = useMemo(
-    () => buildDashboard(mock, filter, now, i18n.language),
-    [mock, filter, now, i18n.language],
+  const dashboard = useMemo(
+    () => buildDashboard(data ?? EMPTY_FINANCE, filter, now, i18n.language),
+    [data, filter, now, i18n.language],
   );
 
-  return { mock, currency, loading, ...data };
+  return { data, currency, isLoading, isDemo, ...dashboard };
 }

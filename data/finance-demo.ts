@@ -1,15 +1,6 @@
-type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly'
+import type { Category, Finance, Transaction } from './finance-types'
 
-type TransactionStatus = 'completed' | 'scheduled'
-
-type TransactionType = 'expense' | 'income'
-
-export type Category = {
-  id: string
-  name: string
-  type: TransactionType
-  monthlyBudget?: number
-  createdAt?: string
+type DemoCategory = Category & {
   behavior: {
     minEntriesPerMonth: number
     maxEntriesPerMonth: number
@@ -17,28 +8,6 @@ export type Category = {
     maxAmount: number
     recurring?: boolean
   }
-}
-
-export type Transaction = {
-  id: string
-  type: TransactionType
-  categoryId: string
-  categoryName: string
-  amount: number
-  description: string
-  status: TransactionStatus
-  recurrence: Recurrence
-  date?: string
-  startDate?: string
-  nextOccurrence?: string
-}
-
-export type FinanceMock = {
-  generatedAt: string
-  years: number[]
-  currency: 'BRL'
-  categories: Category[]
-  transactions: Transaction[]
 }
 
 const CURRENT_DATE = new Date()
@@ -60,7 +29,7 @@ function maxDayForMonth(year: number, month: number): number {
   return 28
 }
 
-const categories: Category[] = [
+const categories: DemoCategory[] = [
   {
     id: 'mercado',
     name: 'Mercado',
@@ -267,7 +236,7 @@ function sumMonthExpenses(transactions: Transaction[], year: number, month: numb
   return sum
 }
 
-export function generateFinanceMock(): FinanceMock {
+export function generateDemoFinance(currency: string = 'BRL'): Finance {
   const transactions: Transaction[] = []
 
   let txIndex = 1
@@ -281,8 +250,6 @@ export function generateFinanceMock(): FinanceMock {
         const seed = year * 1000 + month * 100 + categoryIndex
 
         if (category.id === 'receitas') {
-          // Compute this month's expenses (already pushed by earlier categories)
-          // and size the salary so 8/12 months are surplus, 4/12 are deficit.
           const monthExpenses = sumMonthExpenses(transactions, year, month)
           const isDeficit = DEFICIT_MONTHS.has(month)
           const salary = formatAmount(
@@ -306,7 +273,6 @@ export function generateFinanceMock(): FinanceMock {
             })
           }
 
-          // Freelance only in surplus months — keeps deficit months actually negative.
           if (!isDeficit && maxDay >= 10) {
             const freelanceAmount = generateFreelanceAmount(seed)
 
@@ -395,11 +361,13 @@ export function generateFinanceMock(): FinanceMock {
     }
   })
 
+  const publicCategories: Category[] = categories.map(({ behavior: _behavior, ...rest }) => rest)
+
   return {
     generatedAt: new Date().toISOString(),
     years: YEARS,
-    currency: 'BRL',
-    categories,
+    currency,
+    categories: publicCategories,
     transactions: transactions.sort((a, b) => {
       const dateA = new Date(a.date || a.startDate || '').getTime()
       const dateB = new Date(b.date || b.startDate || '').getTime()

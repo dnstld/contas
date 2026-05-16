@@ -1,4 +1,4 @@
-import type { FinanceMock, Transaction } from '@/data/finance-mock';
+import type { Finance, Transaction } from '@/data/finance-types';
 import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter';
 
 export interface TransactionsSection {
@@ -60,7 +60,7 @@ function buildSectionLabeler(now: Date, locale: string, labels: DateLabels) {
 }
 
 export function buildTransactionsList(
-  mock: FinanceMock,
+  mock: Finance,
   filter: TimeFilterState,
   now: Date,
   locale: string,

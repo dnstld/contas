@@ -1,8 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { prewarmPersistedState } from '@/hooks/use-persisted-state';
-
 import en from './locales/en.json';
 import ptBR from './locales/pt-BR.json';
 
@@ -65,10 +63,7 @@ let initPromise: Promise<void> | null = null;
 export function initI18n(): Promise<void> {
   if (initPromise) return initPromise;
   initPromise = (async () => {
-    const [stored] = await Promise.all([
-      readStoredLanguage(),
-      prewarmPersistedState(['settings:currency']),
-    ]);
+    const stored = await readStoredLanguage();
     const initialLanguage = resolveInitialLanguage(stored);
     await i18n.use(initReactI18next).init({
       resources,

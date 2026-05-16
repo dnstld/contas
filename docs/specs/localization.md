@@ -1,17 +1,16 @@
-# Component 9 — Localization (Language & Currency)
+# Component 9 — Localization (Language)
 
-The app supports two independent user preferences that together define how text and money are presented:
+The app has one localization preference managed at the device level:
 
 - **Language** — drives every translatable label, plural form, and locale-aware date/number formatting. Supported values: `en` (default) and `pt-BR`.
-- **Currency** — drives the formatting of all monetary amounts displayed on screen (does not convert between currencies — only changes the symbol and number-formatting rules). Supported values: `BRL`, `USD`, `EUR`.
 
-The two preferences are decoupled: a user can run the UI in English while displaying amounts in BRL, or in Portuguese while displaying amounts in EUR.
+Currency is *not* a device preference — it belongs to the wallet. See the "Currency formatting" section below.
 
 Implementation stack:
 - `i18next` + `react-i18next` for translation, interpolation, and locale-aware plural rules.
 - `expo-localization` for reading the device's preferred language tag on first launch.
 - `Intl.NumberFormat` and `Intl.DateTimeFormat` for currency, number, and month-name formatting.
-- The existing `usePersistedState` hook backed by `expo-sqlite/kv-store` for persistence.
+- The existing `usePersistedState` hook backed by `expo-sqlite/kv-store` for language persistence.
 
 ## Scenarios
 
@@ -24,19 +23,6 @@ Then the only accepted values must be:
   - "en" (English, default)
   - "pt-BR" (Brazilian Portuguese)
 And any unsupported or malformed stored value must be ignored and replaced by the resolved default
-```
-
-### Supported currencies
-
-```
-Given that the app is running
-When the currency preference is read or set
-Then the only accepted values must be:
-  - "BRL" (Brazilian Real, formatted as R$ 1.234,56 in pt-BR / R$1,234.56 in en)
-  - "USD" (US Dollar, formatted as $1,234.56 in en / US$ 1.234,56 in pt-BR)
-  - "EUR" (Euro, formatted as €1,234.56 in en / € 1.234,56 in pt-BR)
-And the displayed grouping/decimal separators must follow the active language, not the currency
-  (Intl.NumberFormat is invoked with the active language as the locale and the chosen currency code)
 ```
 
 ### Initial language resolution
@@ -54,19 +40,6 @@ And no screen must render in a transitional / wrong language before initializati
   (the root layout returns null until initI18n resolves)
 ```
 
-### Initial currency resolution
-
-```
-Given that the app launches and the currency cell is being pre-warmed inside initI18n
-When the cell is loaded from kv-store
-Then if a value is stored under "settings:currency" and it is supported, it must be used as-is
-And if no value is stored, the device-derived default must be used:
-  - device language tag starts with "pt" (any region) → "BRL"
-  - any other device language (or no detectable device language) → "EUR"
-And "USD" must never be selected as the device-default — it is only available via explicit user choice
-And the device-derived default must be computed once per session and cached in memory
-```
-
 ### Native module unavailable (dev client not rebuilt)
 
 ```
@@ -76,9 +49,8 @@ When initI18n calls getDeviceLanguageTag()
 Then the helper must return null without throwing and without producing a LogBox error
   (the registry is probed before requiring the JS wrapper)
 And the language resolver must fall back to "en"
-And the currency resolver must fall back to "EUR"
 And the app must still boot and render in English
-And the user must still be able to override language and currency from the Settings screen
+And the user must still be able to override language from the Settings screen
 ```
 
 ### Persistence — language
@@ -96,44 +68,58 @@ Then the persisted language must be restored before the root layout renders
 And there must be no visible flash of the previous or default language
 ```
 
-### Persistence — currency
+## Currency formatting
+
+Currency is per-wallet (`wallets.currency` column). The active wallet's currency code flows to consumers via `useWallet().currency` (and the legacy `useCurrency()` wrapper that re-exports it). All members of a wallet see amounts formatted in that wallet's currency.
+
+### Supported currency codes
 
 ```
-Given that the user picks a currency from the Settings screen
-When the new value is committed
-Then every monetary amount on screen must reformat instantly to the new currency
-And the new value must be persisted to kv-store under the key "settings:currency"
-
-Given that the user kills and relaunches the app
-When initI18n runs
-Then it must pre-warm the currency cell (prewarmPersistedState) in parallel with the language read
-And the persisted currency must be available to the first render of every consumer of useCurrency
-And there must be no flash of the device-derived default before the stored value takes effect
+Given that a wallet's currency code is read or set
+Then the only accepted values must be:
+  - "BRL" (Brazilian Real, formatted as R$ 1.234,56 in pt-BR / R$1,234.56 in en)
+  - "USD" (US Dollar, formatted as $1,234.56 in en / US$ 1.234,56 in pt-BR)
+  - "EUR" (Euro, formatted as €1,234.56 in en / € 1.234,56 in pt-BR)
+And the wallet's currency column defaults to "BRL" at insert time
+And the displayed grouping/decimal separators must follow the active language, not the currency
+  (Intl.NumberFormat is invoked with the active language as the locale and the chosen currency code)
 ```
 
 ### Language and currency are independent
 
 ```
-Given that the user has selected a language and a currency
-When either preference changes
-Then changing the language must NOT alter the currency
-And changing the currency must NOT alter the language
-And the currency symbol always reflects the user's currency choice
+Given that the user has a wallet with a currency and an active language
+When either changes
+Then changing the language must NOT alter the wallet's currency
+And changing the wallet's currency must NOT alter the language
+And the currency symbol always reflects the wallet's currency
 And the number-formatting separators always reflect the user's language choice
-  (e.g. language="en" + currency="BRL" → "R$1,234.56")
-  (e.g. language="pt-BR" + currency="USD" → "US$ 1.234,56")
+  (e.g. language="en" + wallet.currency="BRL" → "R$1,234.56")
+  (e.g. language="pt-BR" + wallet.currency="USD" → "US$ 1.234,56")
 ```
 
 ### Currency does not convert amounts
 
 ```
-Given that the user changes the currency setting
+Given that a wallet's currency is changed
 When the dashboard re-renders
-Then the underlying numeric amounts must remain unchanged
+Then the underlying numeric amounts (stored as integer cents) must remain unchanged
 And only the currency symbol and number-formatting rules must change
 And no exchange-rate lookup, conversion, or rounding adjustment must occur
-  (e.g. an amount stored as 100 will render as R$ 100,00 or $100.00 or €100.00 depending on the chosen currency)
+  (e.g. an amount stored as 10000 cents will render as R$ 100,00 or $100.00 or €100.00 depending on the wallet's currency)
 ```
+
+### Cross-screen consistency
+
+```
+Given that the active wallet's currency is updated
+When the next render of any screen occurs
+Then every monetary amount across all screens must reformat to the new currency on next render
+And the dashboard's primaryValue, lens rows, category cards, transactions list, and timeline values must all update consistently
+And consistency is achieved via the wallet context update + TanStack Query cache invalidation, NOT via persisted-state broadcast
+```
+
+> Per-wallet currency selection UI (a picker that writes `wallets.currency`) is currently exposed by the Settings → Language → Display currency row for backwards compatibility. A dedicated "Wallet settings" surface is a future spec/UI task.
 
 ### Translation completeness
 
@@ -187,25 +173,7 @@ Affected surfaces:
   - CategoryCard previousLabel for month mode
 ```
 
-### Currency picker — Settings UI
-
-```
-Given that the Ajustes (Settings) screen is rendered
-When the user views the "Language & Currency" / "Idioma e moeda" section
-Then the section must contain two rows:
-  1. The language row (title: "App language" / "Idioma do app")
-  2. The currency row (title: "Display currency" / "Moeda de exibição")
-And each row's trailing slot must render a SortMenu (SwiftUI Picker on iOS, Compose DropdownMenu on Android)
-And the menu trigger must show only the current selection's label (no "Language: " or "Currency: " prefix)
-And the currency labels must read:
-  - en:  "Brazilian Real (R$)", "US Dollar ($)", "Euro (€)"
-  - pt-BR: "Real (R$)", "Dólar (US$)", "Euro (€)"
-And the language labels must read:
-  - en:  "English", "Portuguese (Brazil)"
-  - pt-BR: "Inglês", "Português (Brasil)"
-```
-
-### Live update on selection
+### Live update on language change
 
 ```
 Given that the user is on the Settings screen and switches the active language
@@ -214,12 +182,6 @@ Then the Settings screen itself must re-render in the new language immediately
   (section titles, row titles, and picker option labels all update)
 And navigating to any other tab must show that tab fully in the new language
 And the tab bar labels must reflect the new language
-
-Given that the user is on the Settings screen and switches the active currency
-When the new value is committed
-Then no language-level text must change
-And any other tab that displays monetary amounts must reformat them to the new currency on next render
-And the dashboard's primaryValue, lens rows, category cards, and timeline values must all update consistently
 ```
 
 ### Storage keys
@@ -229,8 +191,8 @@ Given that persistence is involved
 When kv-store is accessed
 Then the only keys this feature reads or writes are:
   - "settings:language" — string of a supported language code, or absent
-  - "settings:currency" — string of a supported currency code, or absent
 And any other key remains untouched by the localization layer
+And no "settings:currency" key is written or read (the currency lives on wallets.currency in the database)
 ```
 
 ### Authentication surface keys

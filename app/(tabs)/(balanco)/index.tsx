@@ -1,3 +1,4 @@
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -18,6 +19,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function HomeScreen() {
   const background = useThemeColor({}, 'background');
+  const headerHeight = useHeaderHeight();
   const now = useMemo(() => new Date(), []);
   const { t } = useTranslation();
   const { currency } = useCurrency();
@@ -27,69 +29,82 @@ export default function HomeScreen() {
     'dashboard:revenue-visible',
     false,
   );
-  const [demoMode] = usePersistedState('settings:demo-mode', false);
-
   const dashboard = useFinanceDashboard(filterApi.state, now);
-  const hasTransactions = dashboard.mock.transactions.length > 0;
-  const showEmptyNotice = !demoMode && !dashboard.loading && !hasTransactions;
+  const hasTransactions = (dashboard.data?.transactions.length ?? 0) > 0;
+  const demoMode = dashboard.isDemo;
+  const showEmptyNotice = !demoMode && !dashboard.isLoading && !hasTransactions;
 
-  if (dashboard.loading && !hasTransactions) {
-    return <View style={{ flex: 1, backgroundColor: background }} />;
+  if (dashboard.isLoading && !hasTransactions) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: background, paddingTop: headerHeight },
+        ]}
+      />
+    );
   }
 
   return (
-    <ScrollView
-      style={{ backgroundColor: background }}
-      contentContainerStyle={styles.content}
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: background, paddingTop: headerHeight },
+      ]}
     >
-      <FinanceTimeFilter api={filterApi} now={now} />
+      <ScrollView contentContainerStyle={styles.content}>
+        <FinanceTimeFilter api={filterApi} now={now} />
 
-      {showEmptyNotice ? (
-        <Surface variant="muted" padding={12} bordered style={styles.notice}>
-          <Icon name="sparkles" size={18} tone="tint" />
-          <View style={styles.noticeText}>
-            <Text variant="body" weight="semibold">
-              {t('balance.empty.title')}
-            </Text>
-            <Text variant="caption" tone="textMuted">
-              {t('balance.empty.body')}
-            </Text>
-          </View>
-        </Surface>
-      ) : null}
+        {showEmptyNotice ? (
+          <Surface variant="muted" padding={12} bordered style={styles.notice}>
+            <Icon name="sparkles" size={18} tone="tint" />
+            <View style={styles.noticeText}>
+              <Text variant="body" weight="semibold">
+                {t('balance.empty.title')}
+              </Text>
+              <Text variant="caption" tone="textMuted">
+                {t('balance.empty.body')}
+              </Text>
+            </View>
+          </Surface>
+        ) : null}
 
-      <Overview
-        {...dashboard.overview}
-        currency={currency}
-        revenueVisible={revenueVisible}
-      />
+        <Overview
+          {...dashboard.overview}
+          currency={currency}
+          revenueVisible={revenueVisible}
+        />
 
-      {demoMode ? (
-        <Surface variant="muted" padding={12} bordered style={styles.notice}>
-          <Icon name="sparkles" size={18} tone="tint" />
-          <View style={styles.noticeText}>
-            <Text variant="body" weight="semibold">
-              {t('balance.demoBadge.title')}
-            </Text>
-            <Text variant="caption" tone="textMuted">
-              {t('balance.demoBadge.body')}
-            </Text>
-          </View>
-        </Surface>
-      ) : null}
+        {demoMode ? (
+          <Surface variant="muted" padding={12} bordered style={styles.notice}>
+            <Icon name="sparkles" size={18} tone="tint" />
+            <View style={styles.noticeText}>
+              <Text variant="body" weight="semibold">
+                {t('balance.demoBadge.title')}
+              </Text>
+              <Text variant="caption" tone="textMuted">
+                {t('balance.demoBadge.body')}
+              </Text>
+            </View>
+          </Surface>
+        ) : null}
 
-      <CategoryGrid
-        categories={dashboard.categories}
-        filterItems={dashboard.filterItems}
-        currency={currency}
-        revenueVisible={revenueVisible}
-        period={dashboard.mode}
-      />
-    </ScrollView>
+        <CategoryGrid
+          categories={dashboard.categories}
+          filterItems={dashboard.filterItems}
+          currency={currency}
+          revenueVisible={revenueVisible}
+          period={dashboard.mode}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   content: {
     padding: 16,
     paddingTop: 0,

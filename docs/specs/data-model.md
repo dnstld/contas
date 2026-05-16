@@ -41,6 +41,21 @@ And the insert uses `on conflict (id) do nothing` so a re-run is idempotent
 And the trigger function runs SECURITY DEFINER with search_path = public
 ```
 
+### Wallets — currency column
+
+```
+Given that the wallets table is inspected
+When its columns are listed
+Then it must include a currency column:
+  - currency text NOT NULL DEFAULT 'BRL'
+  - CHECK (char_length(currency) = 3)
+And the supported values today are "BRL", "USD", and "EUR" (see the Localization spec)
+And every member of a wallet sees amounts formatted using that wallet's currency
+And there is no per-user / per-device currency preference; currency is wallet-scoped
+And changing wallets.currency reformats display only — no exchange rate or amount conversion occurs
+  (amount_cents columns are unchanged)
+```
+
 ### Wallets — bootstrap on insert
 
 ```
@@ -226,6 +241,18 @@ Then at minimum these performance-relevant indexes must exist:
   - transactions_wallet_occurred_idx              on transactions (wallet_id, occurred_at desc)
   - transactions_wallet_category_occurred_idx     on transactions (wallet_id, category_id, occurred_at)
 And the primary key columns (id) on every table provide their own indexes implicitly
+```
+
+### Realtime publication
+
+```
+Given that the client subscribes to per-wallet finance changes via Supabase Realtime
+When the publication `supabase_realtime` is inspected
+Then it must include `public.transactions` and `public.categories`
+And the client subscribes with the filter `wallet_id=eq.<active wallet id>` on each table
+And on any postgres_changes event, the corresponding TanStack Query cache key is invalidated
+  (finance:<wallet>:transactions or finance:<wallet>:categories)
+And the publication membership is established by the wallet_currency_and_realtime migration
 ```
 
 ### Money is integer cents

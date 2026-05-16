@@ -14,14 +14,17 @@ import { supabase } from '@/utils/supabase';
 
 type WalletContextValue = {
   walletId: string | null;
+  currency: string;
   loading: boolean;
   switchWallet: (id: string) => void;
   refresh: () => Promise<void>;
+  setCurrency: (next: string) => Promise<void>;
 };
 
 const WalletContext = createContext<WalletContextValue | null>(null);
 
 const KEY_PREFIX = 'wallet:selected-id:';
+const DEFAULT_CURRENCY = 'BRL';
 
 type KVStore = {
   getItem: (key: string) => Promise<string | null> | string | null;
@@ -41,9 +44,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
   const [walletId, setWalletId] = useState<string | null>(null);
+  const [currency, setCurrencyState] = useState<string>(DEFAULT_CURRENCY);
   const requestRef = useRef(0);
 
   const loading = userId != null && walletId == null;
+
+  const fetchCurrency = useCallback(async (wid: string, reqId: number) => {
+    const { data, error } = await supabase
+      .from('wallets')
+      .select('currency')
+      .eq('id', wid)
+      .single();
+    if (reqId !== requestRef.current) return;
+    if (error) {
+      console.error('[wallet] currency fetch failed', error);
+      return;
+    }
+    if (data?.currency) setCurrencyState(data.currency);
+  }, []);
 
   const resolve = useCallback(async (uid: string) => {
     const reqId = ++requestRef.current;
@@ -51,18 +69,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const storage = await getStorage();
     if (reqId !== requestRef.current) return;
 
+    let cachedId: string | null = null;
     if (storage) {
       try {
         const raw = await storage.getItem(key);
         if (reqId !== requestRef.current) return;
         if (raw) {
-          const cached = JSON.parse(raw) as string;
-          if (typeof cached === 'string') setWalletId(cached);
+          const parsed = JSON.parse(raw) as string;
+          if (typeof parsed === 'string') {
+            cachedId = parsed;
+            setWalletId(parsed);
+          }
         }
       } catch {
         // ignore corrupt entries; fall through to RPC
       }
     }
+
+    if (cachedId) fetchCurrency(cachedId, reqId);
 
     const { data, error } = await supabase.rpc('get_or_create_default_wallet');
     if (reqId !== requestRef.current) return;
@@ -79,20 +103,41 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         // swallow — next launch will reconcile via RPC again
       }
     }
-  }, []);
+    if (data !== cachedId) fetchCurrency(data, reqId);
+  }, [fetchCurrency]);
 
   useEffect(() => {
     if (!userId) {
       requestRef.current++;
       setWalletId(null);
+      setCurrencyState(DEFAULT_CURRENCY);
       return;
     }
     resolve(userId);
   }, [userId, resolve]);
 
+  const setCurrency = useCallback(
+    async (next: string) => {
+      if (!walletId) return;
+      const previous = currency;
+      setCurrencyState(next);
+      const { error } = await supabase
+        .from('wallets')
+        .update({ currency: next })
+        .eq('id', walletId);
+      if (error) {
+        console.error('[wallet] setCurrency failed', error);
+        setCurrencyState(previous);
+        throw error;
+      }
+    },
+    [walletId, currency],
+  );
+
   const value = useMemo<WalletContextValue>(
     () => ({
       walletId,
+      currency,
       loading,
       async refresh() {
         if (userId) await resolve(userId);
@@ -100,12 +145,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       switchWallet(id) {
         if (!userId) return;
         setWalletId(id);
+        setCurrencyState(DEFAULT_CURRENCY);
         getStorage().then((storage) => {
           storage?.setItem(KEY_PREFIX + userId, JSON.stringify(id));
         });
+        fetchCurrency(id, requestRef.current);
       },
+      setCurrency,
     }),
-    [walletId, loading, userId, resolve],
+    [walletId, currency, loading, userId, resolve, setCurrency, fetchCurrency],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

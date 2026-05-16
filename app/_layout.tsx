@@ -19,6 +19,8 @@ import {
 
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useFinanceRealtime } from "@/hooks/use-finance-realtime";
+import { FinanceQueryProvider } from "@/hooks/use-query-client";
 import { WalletProvider, useWallet } from "@/hooks/use-wallet";
 import { initI18n } from "@/i18n";
 import { interpolate } from "react-native-reanimated";
@@ -76,6 +78,8 @@ function RootStack() {
   const segments = useSegments();
   const router = useRouter();
 
+  useFinanceRealtime();
+
   const booting = authLoading || (!!session && walletLoading);
 
   useEffect(() => {
@@ -118,9 +122,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <WalletProvider>
-          <RootStack />
-        </WalletProvider>
+        <FinanceQueryProvider>
+          <WalletProvider>
+            <RootStack />
+          </WalletProvider>
+        </FinanceQueryProvider>
       </AuthProvider>
       <StatusBar style="auto" />
     </ThemeProvider>

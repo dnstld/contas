@@ -101,12 +101,15 @@
     "descriptionPlaceholder": "Description",
     "descriptionCaption": "Appears in transactions",
     "descriptionCounter": "{{count}}/100",
-    "save": "Save"
+    "save": "Save",
+    "error": "Could not save the transaction. Please try again."
   },
   "edit": {
     "title": "Edit transaction",
     "save": "Save changes",
-    "delete": "Delete"
+    "delete": "Delete",
+    "updateError": "Could not update the transaction. Please try again.",
+    "deleteError": "Could not delete the transaction. Please try again."
   },
   "category": {
     "transactionCount_one": "{{count}} transaction",

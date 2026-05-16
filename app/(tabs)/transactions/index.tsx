@@ -13,12 +13,21 @@ import {
   Text,
   TransactionRow,
 } from '@/components/ui';
+import type { Finance } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';
 import { useCurrency } from '@/hooks/use-currency';
-import { useFinanceMock } from '@/hooks/use-finance-mock';
+import { useFinance } from '@/hooks/use-finance';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
+
+const EMPTY_FINANCE: Finance = {
+  generatedAt: '',
+  years: [],
+  currency: 'BRL',
+  categories: [],
+  transactions: [],
+};
 
 export default function TransactionsScreen() {
   const background = useThemeColor({}, 'background');
@@ -29,19 +38,19 @@ export default function TransactionsScreen() {
 
   const now = useMemo(() => new Date(), []);
   const filterApi = useFinanceTimeFilter(now);
-  const { mock, loading } = useFinanceMock();
+  const { data, isLoading } = useFinance();
 
   const { sections, totals } = useMemo(
     () =>
-      buildTransactionsList(mock, filterApi.state, now, locale, {
+      buildTransactionsList(data ?? EMPTY_FINANCE, filterApi.state, now, locale, {
         today: t('transactions.today'),
         yesterday: t('transactions.yesterday'),
       }),
-    [mock, filterApi.state, now, locale, t],
+    [data, filterApi.state, now, locale, t],
   );
 
   const hasTransactions = sections.length > 0;
-  const showEmpty = !loading && !hasTransactions;
+  const showEmpty = !isLoading && !hasTransactions;
   const router = useRouter();
 
   const handlePressTransaction = useCallback(

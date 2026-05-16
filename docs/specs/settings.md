@@ -3,12 +3,14 @@
 The Settings tab is the project's user-preferences surface. It exposes three sections:
 
 1. **Display** (pt-BR: "Exibição") — two persisted toggles that affect what the Balance screen renders.
-2. **Language & Currency** (pt-BR: "Idioma e moeda") — two picker rows that drive the i18n layer.
+2. **Language** (pt-BR: "Idioma") — language picker that drives the i18n layer.
 3. **Account** (pt-BR: "Conta") — sign-out action; the user's entry point into the auth surface.
 
 The screen is designed to grow: more sections will be added over time without altering the section/row primitives.
 
-The "Show revenue" toggle previously lived on the Balance screen and was relocated here. The "Demo mode" toggle controls whether the dashboard renders a generated demo dataset or the real (currently empty / starter) state. The Language and Currency rows are the public surface of the [Localization](localization.md) feature.
+The "Show revenue" toggle previously lived on the Balance screen and was relocated here. The "Demo mode" toggle controls whether the dashboard renders a generated demo dataset or the real per-wallet state from Supabase. The Language row is the public surface of the [Localization](localization.md) feature.
+
+> **Currency note:** currency is per-wallet (`wallets.currency`), not a device preference. The Settings screen currently exposes a Display currency picker as a transitional surface that writes to the active wallet's currency column; a dedicated **Wallet settings** surface is planned for a future iteration and is out of scope here. The associated i18n keys (`settings.sections.regional`, `settings.currencyRow.*`, `settings.currencies.*`) are intentionally retained for the transitional UI.
 
 > Note on language: this spec uses the English copy because English is the default language. Equivalent Portuguese strings are listed alongside where they're material to the contract. The full string contract lives in `i18n/locales/en.json` and `i18n/locales/pt-BR.json`.
 
@@ -33,7 +35,7 @@ Given that the Settings screen is rendered
 When its sections are displayed top-to-bottom
 Then the order must be:
   1. Display (key: "settings.sections.display")
-  2. Language & Currency (key: "settings.sections.regional")
+  2. Language (key: "settings.sections.regional" — retained for backwards compatibility while a transitional currency row is present)
   3. Account (key: "settings.sections.account")
 And the page-level vertical gap between sections must be 24 points
 ```
@@ -75,23 +77,22 @@ And the trailing slot must contain a Toggle bound to the persisted-state key "se
 And the default value (when no persisted state exists) must be false
 ```
 
-### "Language & Currency" section structure
+### "Language" section structure
 
 ```
 Given that the Settings screen is rendered
-When the Language & Currency section is displayed
+When the Language section is displayed
 Then it must use the SettingsSection molecule with title from key "settings.sections.regional"
-  (en: "Language & Currency" / pt-BR: "Idioma e moeda")
-And the section must contain exactly two rows, in this order:
-  1. App language row
-  2. Display currency row
+  (en: "Language" / pt-BR: "Idioma" — the underlying i18n key is retained while the transitional currency row is present)
+And the section must contain the App language row
+And during the transitional period the section may additionally contain a Display currency row (see "Transitional currency row" below)
 And rows must be separated by a horizontal hairline divider, inset 16 points from the left edge
 ```
 
 ### "App language" row
 
 ```
-Given that the Language & Currency section is rendered
+Given that the Language section is rendered
 When the language row is displayed
 Then the title must come from key "settings.languageRow.title"
   (en: "App language" / pt-BR: "Idioma do app")
@@ -106,40 +107,44 @@ And the available options must be, in this order:
 And selecting an option must call i18n.changeLanguage(value) and persist under "settings:language"
 ```
 
-### "Display currency" row
+### Transitional "Display currency" row
 
 ```
-Given that the Language & Currency section is rendered
-When the currency row is displayed
-Then the title must come from key "settings.currencyRow.title"
+Given that the Wallet settings surface has not yet been implemented
+When the Language section is rendered
+Then the section may include a Display currency row whose trailing slot is a SortMenu picker
+And the title must come from key "settings.currencyRow.title"
   (en: "Display currency" / pt-BR: "Moeda de exibição")
 And the row must have no description
-And the trailing slot must contain a SortMenu picker (same platform implementation as the language row)
-And the picker must NOT prepend any "Currency: " prefix; only the active option's label must be shown
 And the available options must be, in this order:
   1. value "BRL" — en: "Brazilian Real (R$)" / pt-BR: "Real (R$)"
   2. value "USD" — en: "US Dollar ($)" / pt-BR: "Dólar (US$)"
   3. value "EUR" — en: "Euro (€)" / pt-BR: "Euro (€)"
-And selecting an option must update useCurrency state and persist under "settings:currency"
+And selecting an option must update the active wallet's currency column (wallets.currency) via Supabase
+And NO value must be written to a "settings:currency" persisted-state key (the key is retired)
+And on success every monetary amount on screen must reformat (via the wallet context update + TanStack Query cache)
+And when the Wallet settings surface lands, this row must be moved there and removed from the Settings screen
 ```
 
 ### Persistence
 
 ```
-Given that the user toggles any toggle or picks a new value in any picker on this screen
+Given that the user toggles any toggle or picks a new value on this screen
 When the change is committed
-Then it must be persisted to local storage immediately (expo-sqlite KV store)
+Then any device-scoped preference must be persisted to local storage immediately (expo-sqlite KV store)
 And the storage keys owned by this screen are:
   - "dashboard:revenue-visible"   (boolean)
   - "settings:demo-mode"          (boolean)
   - "settings:language"           (supported language code: "en" or "pt-BR")
-  - "settings:currency"           (supported currency code: "BRL", "USD", or "EUR")
+And currency selections from the transitional Display currency row must NOT be persisted to kv-store;
+  they are written to the database (wallets.currency) and propagate via the wallet context
 
 Given that the user kills and relaunches the app
 When the Settings screen mounts
-Then every toggle and picker must restore to the values persisted before relaunch
-And there must be no visible "wrong default first, then correct value" flash for language or currency
-  (i18n bootstrap awaits the language read and pre-warms the currency cell via prewarmPersistedState before the root layout renders)
+Then every toggle and the language picker must restore to the values persisted before relaunch
+And there must be no visible "wrong default first, then correct value" flash for language
+  (i18n bootstrap awaits the language read before the root layout renders)
+And the currency picker must restore to the wallet's currency once the wallet context resolves
 ```
 
 ### Cross-screen synchronization
@@ -150,7 +155,12 @@ When the user changes any persisted preference on the Settings screen
 Then the Balance screen must reflect the new value without requiring an app restart or tab remount
   (the persisted-state hook broadcasts to all subscribers of the same key)
 And when the language changes, every translatable string and every locale-formatted value (currency, number, month name) must update on every visible screen
-And when the currency changes, every monetary amount must reformat without changing any other label
+
+Given that the user changes the wallet's currency from the transitional Display currency row
+When the update completes
+Then every monetary amount on every visible screen must reformat to the new currency on next render
+  (consistency is achieved via the wallet context update + TanStack Query cache, NOT via persisted-state broadcast)
+And no language-level text must change
 ```
 
 ### Demo mode — ON: generated dataset
@@ -168,19 +178,16 @@ And a notice banner must appear between the Overview and the CategoryGrid with:
 And the banner must use a muted, bordered Surface
 ```
 
-### Demo mode — OFF: starter state
+### Demo mode — OFF: live wallet state
 
 ```
 Given that the "Demo mode" toggle is off
 When the Balance screen renders
-Then the dashboard data must come from the starter mock (no transactions, the four seeded categories)
-And the four starter categories must be:
-  1. Bar / Restaurante (id "bar_restaurante", type expense)
-  2. Mercado (id "mercado", type expense)
-  3. Farmácia (id "farmacia", type expense)
-  4. Viagens (id "viagens", type expense)
-And each category card must render with total 0 (formatted in the active currency, e.g. "R$ 0,00" / "$0.00" / "€0.00") and the empty-card state from key "category.noActivity"
-  (Category names themselves are seeded data and remain in their stored form regardless of the active language.)
+Then the dashboard data must come from the active wallet via Supabase (categories + transactions queries scoped to wallets.id)
+And during the initial fetch the dashboard must render its loading state (no transactions, no placeholder categories)
+And on a brand-new wallet the seeded category from the wallets_after_insert trigger (currently "Bar / Café", type expense) must render with total 0 and the empty-card state from key "category.noActivity"
+  (Category names are user-editable data stored in the categories table and remain in their stored form regardless of the active language.)
+> Pre-existing drift: an earlier draft of this section listed four starter categories. The DB trigger today seeds only one. Reconciling that mismatch is tracked separately.
 ```
 
 ### Empty-state notice (demo off, no transactions)
@@ -217,7 +224,7 @@ When the Account section is displayed
 Then it must use the SettingsSection molecule with title from key "settings.sections.account"
   (en: "Account" / pt-BR: "Conta")
 And the section must contain exactly one row: the Sign out row
-And the section must render below the "Language & Currency" section, separated by the standard 24-point gap
+And the section must render below the "Language" section, separated by the standard 24-point gap
 ```
 
 ### "Sign out" row
@@ -255,7 +262,7 @@ When the Settings screen and its companion banners (on the Balance screen) are r
 Then every label and description must come from i18next under the keys listed in the row scenarios above
 And no string must be hardcoded in the screen source
 And switching the language from the Settings → Language row must update every label on the screen in place, without a remount or restart
-And the section order (Display → Language & Currency → Account) must remain consistent across languages
+And the section order (Display → Language → Account) must remain consistent across languages
 ```
 
-See the [Localization spec](localization.md) for the complete contract on language/currency resolution, persistence, and cross-screen synchronization.
+See the [Localization spec](localization.md) for the complete contract on language resolution, persistence, and cross-screen synchronization. See the [Data model spec](data-model.md) for the wallet currency contract.

@@ -101,12 +101,15 @@
     "descriptionPlaceholder": "Descrição",
     "descriptionCaption": "Aparece nas transações",
     "descriptionCounter": "{{count}}/100",
-    "save": "Salvar"
+    "save": "Salvar",
+    "error": "Não foi possível salvar a transação. Tente novamente."
   },
   "edit": {
     "title": "Editar transação",
     "save": "Salvar alterações",
-    "delete": "Excluir"
+    "delete": "Excluir",
+    "updateError": "Não foi possível atualizar a transação. Tente novamente.",
+    "deleteError": "Não foi possível excluir a transação. Tente novamente."
   },
   "category": {
     "transactionCount_one": "{{count}} transação",

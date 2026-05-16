@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { PriceText } from '@/components/ui/atoms/price-text';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
-import type { Transaction } from '@/data/finance-mock';
+import type { Transaction } from '@/data/finance-types';
 import { useFormatters } from '@/hooks/use-formatters';
 
 export interface TransactionRowProps {
