@@ -14,17 +14,13 @@
     },
     "preview": {
       "distribution": "internal",
-      "environment": "preview",
-      "env": {
-        "SENTRY_AUTH_TOKEN": "$SENTRY_AUTH_TOKEN"
-      }
+      "environment": "preview"
     },
     "production": {
       "autoIncrement": true,
       "environment": "production",
       "env": {
-        "APP_VARIANT": "production",
-        "SENTRY_AUTH_TOKEN": "$SENTRY_AUTH_TOKEN"
+        "APP_VARIANT": "production"
       }
     }
   },

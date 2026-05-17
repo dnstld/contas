@@ -64,6 +64,7 @@ const config: ExpoConfig = {
       {
         organization: 'contas',
         project: 'contas',
+        url: 'https://de.sentry.io/',
       },
     ],
   ],
