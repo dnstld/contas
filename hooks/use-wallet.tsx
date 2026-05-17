@@ -89,8 +89,46 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    if (cachedId) fetchWalletData(cachedId, reqId);
+    // Fetch all wallet_members rows visible to this user (RLS lets us see all
+    // co-members of wallets we belong to). Pick the wallet with the most
+    // members; ties broken by most-recent join. For a couples app, this means
+    // a shared wallet always wins over an empty personal one.
+    const { data: rows } = await supabase
+      .from('wallet_members')
+      .select('wallet_id, user_id, joined_at');
+    if (reqId !== requestRef.current) return;
 
+    if (rows && rows.length > 0) {
+      const stats = new Map<string, { count: number; myJoinedAt: string }>();
+      for (const row of rows) {
+        const entry = stats.get(row.wallet_id) ?? { count: 0, myJoinedAt: '' };
+        entry.count += 1;
+        if (row.user_id === uid) entry.myJoinedAt = row.joined_at;
+        stats.set(row.wallet_id, entry);
+      }
+
+      const mine = [...stats.entries()].filter(([, v]) => v.myJoinedAt);
+      if (mine.length > 0) {
+        mine.sort((a, b) => {
+          if (b[1].count !== a[1].count) return b[1].count - a[1].count;
+          return b[1].myJoinedAt.localeCompare(a[1].myJoinedAt);
+        });
+        const preferred = mine[0][0];
+        setWalletId(preferred);
+        if (storage) {
+          try {
+            await storage.setItem(key, JSON.stringify(preferred));
+          } catch {
+            // swallow — next launch will reconcile again
+          }
+        }
+        if (preferred !== cachedId) fetchWalletData(preferred, reqId);
+        else if (cachedId) fetchWalletData(cachedId, reqId);
+        return;
+      }
+    }
+
+    // No memberships yet — bootstrap a personal wallet.
     const { data, error } = await supabase.rpc('get_or_create_default_wallet');
     if (reqId !== requestRef.current) return;
     if (error) {

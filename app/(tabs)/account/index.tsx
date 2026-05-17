@@ -1,9 +1,11 @@
+import { useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
+  Divider,
   SettingsRow,
   SettingsSection,
   SortMenu,
@@ -12,11 +14,15 @@ import {
   Toggle,
 } from '@/components/ui';
 import { EditDisplayNameModal } from '@/components/settings/edit-display-name-modal';
+import { InvitationSection } from '@/components/settings/invitation-section';
 import { useAuth } from '@/hooks/use-auth';
 import { useCurrency, type SupportedCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/hooks/use-language';
+import { useLeaveWallet } from '@/hooks/use-leave-wallet';
+import { useMyProfile } from '@/hooks/use-my-profile';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useWalletMembers } from '@/hooks/use-wallet-members';
 import { type SupportedLanguage } from '@/i18n';
 
 function userInitials(name: string | null): string {
@@ -35,9 +41,13 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const { signOut, session } = useAuth();
 
-  const avatarUrl = session?.user?.user_metadata?.avatar_url ?? null;
-  const displayName = session?.user?.user_metadata?.full_name ?? null;
+  const { displayName: profileName, avatarUrl: profileAvatar } = useMyProfile();
+  const avatarUrl =
+    profileAvatar ?? session?.user?.user_metadata?.avatar_url ?? null;
+  const displayName =
+    profileName ?? session?.user?.user_metadata?.full_name ?? null;
   const email = session?.user?.email ?? null;
+  const currentUserId = session?.user?.id ?? null;
 
   const [editNameVisible, setEditNameVisible] = useState(false);
 
@@ -55,6 +65,18 @@ export default function SettingsScreen() {
     'settings:demo-mode',
     false,
   );
+
+  const { members, isLoading: membersLoading, refetch: refetchMembers } = useWalletMembers();
+  const leaveWallet = useLeaveWallet();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchMembers();
+    }, [refetchMembers]),
+  );
+
+  const partner = members.find((m) => m.userId !== currentUserId) ?? null;
+  const isSolo = !membersLoading && members.length <= 1;
 
   const languageOptions = useMemo(
     () =>
@@ -74,14 +96,39 @@ export default function SettingsScreen() {
     [supportedCurrencies, t],
   );
 
+  const handleLeave = () => {
+    Alert.alert(
+      t('wallet.leave.confirmTitle'),
+      t('wallet.leave.confirmBody'),
+      [
+        { text: t('wallet.leave.confirmCancel'), style: 'cancel' },
+        {
+          text: t('wallet.leave.confirmLeave'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await leaveWallet.mutateAsync();
+            } catch {
+              Alert.alert(t('wallet.leave.errorToast'));
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleRedeemSuccess = () => {
+    // members query refreshes via invalidation in useRedeemInvitation
+  };
+
   return (
     <>
       <ScrollView
         style={{ backgroundColor: background }}
         contentContainerStyle={styles.content}
       >
-        <Surface variant="muted" padding={16} radius={16} style={styles.profileCard}>
-          <View style={styles.profileTop}>
+        <Surface padding={0} radius={16} bordered>
+          <View style={styles.profileRow}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
             ) : (
@@ -103,6 +150,29 @@ export default function SettingsScreen() {
             </View>
           </View>
 
+          {partner ? (
+            <>
+              <Divider inset={16} />
+              <View style={styles.profileRow}>
+                {partner.avatarUrl ? (
+                  <Image source={{ uri: partner.avatarUrl }} style={styles.avatar} />
+                ) : (
+                  <Surface variant="elevated" padding={0} radius={22} style={[styles.avatar, styles.avatarFallback]}>
+                    <Text variant="subtitle" weight="semibold">
+                      {userInitials(partner.displayName)}
+                    </Text>
+                  </Surface>
+                )}
+                <View style={styles.profileText}>
+                  <Text variant="subtitle" weight="semibold" numberOfLines={1}>
+                    {partner.displayName ?? t('wallet.partner.unnamed')}
+                  </Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+
+          <Divider inset={16} />
           <View style={styles.profileActions}>
             <Pressable
               onPress={() => setEditNameVisible(true)}
@@ -128,6 +198,10 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
         </Surface>
+
+        {!partner ? (
+          <InvitationSection onRedeemSuccess={handleRedeemSuccess} />
+        ) : null}
 
         <SettingsSection title={t('settings.sections.display')}>
           <SettingsRow
@@ -166,6 +240,32 @@ export default function SettingsScreen() {
             }
           />
         </SettingsSection>
+
+        <View style={styles.leaveSection}>
+          <Pressable
+            onPress={isSolo ? undefined : handleLeave}
+            disabled={isSolo || leaveWallet.isPending}
+            style={({ pressed }) => [
+              styles.leaveBtn,
+              { borderColor: isSolo ? borderColor : dangerColor },
+              (isSolo || leaveWallet.isPending) && styles.leaveBtnDisabled,
+              !isSolo && pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Text
+              variant="caption"
+              weight="medium"
+              style={{ color: isSolo ? mutedColor : dangerColor }}
+            >
+              {t('wallet.leave.button')}
+            </Text>
+          </Pressable>
+          {isSolo ? (
+            <Text variant="caption" tone="textMuted" style={styles.leaveCaption}>
+              {t('wallet.leave.disabledCaption')}
+            </Text>
+          ) : null}
+        </View>
       </ScrollView>
 
       <EditDisplayNameModal
@@ -184,13 +284,12 @@ const styles = StyleSheet.create({
     paddingBottom: 64,
     gap: 24,
   },
-  profileCard: {
-    gap: 14,
-  },
-  profileTop: {
+  profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   avatar: {
     width: 44,
@@ -208,6 +307,8 @@ const styles = StyleSheet.create({
   profileActions: {
     flexDirection: 'row',
     gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   actionBtn: {
     flex: 1,
@@ -215,5 +316,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
+  },
+  leaveSection: {
+    gap: 8,
+    alignItems: 'center',
+  },
+  leaveBtn: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  leaveBtnDisabled: {
+    opacity: 0.5,
+  },
+  leaveCaption: {
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
 });

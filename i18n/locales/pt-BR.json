@@ -126,6 +126,35 @@
     "updateError": "Não foi possível atualizar a transação. Tente novamente.",
     "deleteError": "Não foi possível excluir a transação. Tente novamente."
   },
+  "wallet": {
+    "partner": {
+      "unnamed": "Parceiro(a)"
+    },
+    "invitation": {
+      "sectionTitle": "Convidar parceiro(a)",
+      "inviteButton": "Convidar parceiro(a)",
+      "haveCodeButton": "Tenho um código",
+      "codeLabel": "Compartilhe este código",
+      "shareCode": "Compartilhar código",
+      "codeExpiry": "Expira em 7 dias · uso único",
+      "haveCodeLink": "Tenho um código",
+      "redeemTitle": "Inserir código de convite",
+      "codeInputPlaceholder": "Cole ou digite seu código",
+      "redeemButton": "Entrar na carteira",
+      "redeeming": "Entrando…",
+      "redeemError": "Código inválido ou expirado. Tente novamente.",
+      "redeemCancel": "Cancelar"
+    },
+    "leave": {
+      "button": "Sair da carteira",
+      "disabledCaption": "Você é o único membro desta carteira.",
+      "confirmTitle": "Sair da carteira?",
+      "confirmBody": "Seu parceiro(a) continuará com acesso. Você começará uma nova carteira pessoal.",
+      "confirmLeave": "Sair",
+      "confirmCancel": "Cancelar",
+      "errorToast": "Não foi possível sair da carteira. Tente novamente."
+    }
+  },
   "category": {
     "create": {
       "chipLabel": "+ Criar",

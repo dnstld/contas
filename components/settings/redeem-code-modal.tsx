@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,30 +12,19 @@ import {
 
 import { Text } from '@/components/ui/atoms/text';
 import { Fonts } from '@/constants/theme';
-import { useAuth } from '@/hooks/use-auth';
-import { myProfileKey } from '@/hooks/use-my-profile';
+import { useRedeemInvitation } from '@/hooks/use-wallet-invitation';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useWallet } from '@/hooks/use-wallet';
-import { walletMemberKeys } from '@/hooks/use-wallet-members';
-import { supabase } from '@/utils/supabase';
 
-export interface EditDisplayNameModalProps {
+interface RedeemCodeModalProps {
   visible: boolean;
-  currentName: string | null;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-export function EditDisplayNameModal({
-  visible,
-  currentName,
-  onClose,
-}: EditDisplayNameModalProps) {
+export function RedeemCodeModal({ visible, onClose, onSuccess }: RedeemCodeModalProps) {
   const { t } = useTranslation();
-  const { session } = useAuth();
-  const { walletId } = useWallet();
-  const queryClient = useQueryClient();
-  const [name, setName] = useState('');
-  const [isPending, setIsPending] = useState(false);
+  const [code, setCode] = useState('');
+  const [error, setError] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const textColor = useThemeColor({}, 'text');
@@ -44,36 +32,33 @@ export function EditDisplayNameModal({
   const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
   const accentColor = useThemeColor({}, 'positive');
+  const dangerColor = useThemeColor({}, 'negative');
   const inputBackground = useThemeColor({}, 'surfaceMuted');
+
+  const redeem = useRedeemInvitation();
 
   useEffect(() => {
     if (visible) {
-      setName(currentName ?? '');
-      setIsPending(false);
+      setCode('');
+      setError(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [visible]);
 
-  const handleSave = async () => {
-    const trimmed = name.trim();
-    if (!trimmed || isPending) return;
-    setIsPending(true);
-    const userId = session?.user.id;
-    const [authResult, profileResult] = await Promise.all([
-      supabase.auth.updateUser({ data: { full_name: trimmed } }),
-      userId
-        ? supabase.from('profiles').update({ display_name: trimmed }).eq('id', userId)
-        : Promise.resolve({ error: null }),
-    ]);
-    setIsPending(false);
-    if (!authResult.error && !profileResult.error) {
-      if (userId) queryClient.invalidateQueries({ queryKey: myProfileKey(userId) });
-      if (walletId) queryClient.invalidateQueries({ queryKey: walletMemberKeys.list(walletId) });
+  const handleJoin = async () => {
+    const trimmed = code.trim();
+    if (!trimmed || redeem.isPending) return;
+    setError(false);
+    try {
+      await redeem.mutateAsync(trimmed);
+      onSuccess();
       onClose();
+    } catch {
+      setError(true);
     }
   };
 
-  const canSave = name.trim().length > 0 && !isPending;
+  const canJoin = code.trim().length > 0 && !redeem.isPending;
 
   return (
     <Modal
@@ -90,27 +75,36 @@ export function EditDisplayNameModal({
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={[styles.sheet, { backgroundColor, borderColor }]}>
           <Text variant="subtitle" weight="semibold" style={styles.title}>
-            {t('profile.editName.title')}
+            {t('wallet.invitation.redeemTitle')}
           </Text>
 
           <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('profile.editName.nameLabel').toUpperCase()}
-            </Text>
             <TextInput
               ref={inputRef}
-              value={name}
-              onChangeText={setName}
-              placeholder={t('profile.editName.namePlaceholder')}
+              value={code}
+              onChangeText={(v) => { setCode(v); setError(false); }}
+              placeholder={t('wallet.invitation.codeInputPlaceholder')}
               placeholderTextColor={mutedColor}
-              maxLength={80}
+              autoCapitalize="none"
+              autoCorrect={false}
               returnKeyType="done"
-              onSubmitEditing={handleSave}
+              onSubmitEditing={handleJoin}
               style={[
                 styles.input,
-                { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
+                {
+                  color: textColor,
+                  backgroundColor: inputBackground,
+                  fontFamily: Fonts.sans,
+                  borderColor: error ? dangerColor : 'transparent',
+                  borderWidth: error ? 1 : 0,
+                },
               ]}
             />
+            {error ? (
+              <Text variant="caption" style={{ color: dangerColor }}>
+                {t('wallet.invitation.redeemError')}
+              </Text>
+            ) : null}
           </View>
 
           <View style={styles.actions}>
@@ -122,22 +116,24 @@ export function EditDisplayNameModal({
               ]}
             >
               <Text variant="body" weight="medium" style={{ color: mutedColor }}>
-                {t('profile.editName.cancel')}
+                {t('wallet.invitation.redeemCancel')}
               </Text>
             </Pressable>
             <Pressable
-              onPress={handleSave}
-              disabled={!canSave}
+              onPress={handleJoin}
+              disabled={!canJoin}
               style={({ pressed }) => [
-                styles.saveBtn,
+                styles.joinBtn,
                 {
                   backgroundColor: accentColor,
-                  opacity: canSave ? (pressed ? 0.8 : 1) : 0.4,
+                  opacity: canJoin ? (pressed ? 0.8 : 1) : 0.4,
                 },
               ]}
             >
-              <Text variant="body" weight="semibold" style={styles.saveBtnLabel}>
-                {isPending ? t('profile.editName.saving') : t('profile.editName.save')}
+              <Text variant="body" weight="semibold" style={styles.joinBtnLabel}>
+                {redeem.isPending
+                  ? t('wallet.invitation.redeeming')
+                  : t('wallet.invitation.redeemButton')}
               </Text>
             </Pressable>
           </View>
@@ -174,9 +170,6 @@ const styles = StyleSheet.create({
   field: {
     gap: 6,
   },
-  label: {
-    letterSpacing: 0.8,
-  },
   input: {
     fontSize: 15,
     lineHeight: 21,
@@ -197,14 +190,14 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  saveBtn: {
+  joinBtn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 999,
   },
-  saveBtnLabel: {
+  joinBtnLabel: {
     color: '#fff',
   },
 });

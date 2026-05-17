@@ -126,6 +126,35 @@
     "updateError": "Could not update the transaction. Please try again.",
     "deleteError": "Could not delete the transaction. Please try again."
   },
+  "wallet": {
+    "partner": {
+      "unnamed": "Partner"
+    },
+    "invitation": {
+      "sectionTitle": "Invite your partner",
+      "inviteButton": "Invite your partner",
+      "haveCodeButton": "I have a code",
+      "codeLabel": "Share this code",
+      "shareCode": "Share code",
+      "codeExpiry": "Expires in 7 days · single use",
+      "haveCodeLink": "I have a code instead",
+      "redeemTitle": "Enter invitation code",
+      "codeInputPlaceholder": "Paste or type your code",
+      "redeemButton": "Join wallet",
+      "redeeming": "Joining…",
+      "redeemError": "Code is invalid or expired. Please try again.",
+      "redeemCancel": "Cancel"
+    },
+    "leave": {
+      "button": "Leave wallet",
+      "disabledCaption": "You are the only member of this wallet.",
+      "confirmTitle": "Leave wallet?",
+      "confirmBody": "Your partner will keep access. You'll start a new personal wallet.",
+      "confirmLeave": "Leave",
+      "confirmCancel": "Cancel",
+      "errorToast": "Could not leave the wallet. Please try again."
+    }
+  },
   "category": {
     "create": {
       "chipLabel": "+ Add",
