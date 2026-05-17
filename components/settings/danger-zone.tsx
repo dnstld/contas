@@ -41,42 +41,34 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
   const displayPartner = partnerName ?? t('wallet.partner.unnamed');
 
   function handleLeave() {
-    Alert.alert(
-      t('wallet.leave.confirmTitle'),
-      t('wallet.leave.confirmBody'),
-      [
-        { text: t('wallet.leave.confirmCancel'), style: 'cancel' },
-        {
-          text: t('wallet.leave.confirmLeave'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await leaveWallet.mutateAsync();
-            } catch {
-              Alert.alert(t('wallet.leave.errorToast'));
-            }
-          },
+    Alert.alert(t('wallet.leave.confirmTitle'), t('wallet.leave.confirmBody'), [
+      { text: t('wallet.leave.confirmCancel'), style: 'cancel' },
+      {
+        text: t('wallet.leave.confirmLeave'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await leaveWallet.mutateAsync();
+          } catch {
+            Alert.alert(t('wallet.leave.errorToast'));
+          }
         },
-      ],
-    );
+      },
+    ]);
   }
 
   function handleDeletePress() {
     if (!walletId) return;
 
     if (memberCount <= 1) {
-      Alert.alert(
-        t('dangerZone.delete.soloTitle'),
-        t('dangerZone.delete.soloMessage'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('dangerZone.delete.confirmAction'),
-            style: 'destructive',
-            onPress: () => requestOrDelete.mutate(walletId),
-          },
-        ],
-      );
+      Alert.alert(t('dangerZone.delete.soloTitle'), t('dangerZone.delete.soloMessage'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('dangerZone.delete.confirmAction'),
+          style: 'destructive',
+          onPress: () => requestOrDelete.mutate(walletId),
+        },
+      ]);
     } else {
       Alert.alert(
         t('dangerZone.delete.partnerTitle'),
@@ -95,18 +87,14 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
 
   function handleApprove() {
     if (!walletId) return;
-    Alert.alert(
-      t('dangerZone.delete.approveTitle'),
-      t('dangerZone.delete.approveMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('dangerZone.delete.approveAction'),
-          style: 'destructive',
-          onPress: () => confirmDeletion.mutate(walletId),
-        },
-      ],
-    );
+    Alert.alert(t('dangerZone.delete.approveTitle'), t('dangerZone.delete.approveMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('dangerZone.delete.approveAction'),
+        style: 'destructive',
+        onPress: () => confirmDeletion.mutate(walletId),
+      },
+    ]);
   }
 
   function handleCancel() {
@@ -116,7 +104,11 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
 
   return (
     <View style={styles.container}>
-      <Text variant="caption" weight="semibold" style={[styles.sectionLabel, { color: dangerColor }]}>
+      <Text
+        variant="caption"
+        weight="semibold"
+        style={[styles.sectionLabel, { color: dangerColor }]}
+      >
         {t('dangerZone.title').toUpperCase()}
       </Text>
 
@@ -173,7 +165,10 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               disabled={requestOrDelete.isPending}
               style={({ pressed }) => [
                 styles.actionBtn,
-                { borderColor: dangerColor, opacity: pressed || requestOrDelete.isPending ? 0.5 : 1 },
+                {
+                  borderColor: dangerColor,
+                  opacity: pressed || requestOrDelete.isPending ? 0.5 : 1,
+                },
               ]}
             >
               {requestOrDelete.isPending ? (
@@ -194,7 +189,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               <Text variant="body" weight="medium">
                 {t('dangerZone.delete.title')}
               </Text>
-              <View style={[styles.waitingBadge, { backgroundColor: dangerColor + '18', borderColor: dangerColor + '33' }]}>
+              <View
+                style={[
+                  styles.waitingBadge,
+                  { backgroundColor: dangerColor + '18', borderColor: dangerColor + '33' },
+                ]}
+              >
                 <Text variant="caption" weight="medium" style={{ color: dangerColor }}>
                   {t('dangerZone.delete.waitingBadge')}
                 </Text>
@@ -212,7 +212,11 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               {cancelDeletion.isPending ? (
                 <ActivityIndicator size="small" color={mutedColor} />
               ) : (
-                <Text variant="caption" weight="medium" style={{ color: mutedColor, textDecorationLine: 'underline' }}>
+                <Text
+                  variant="caption"
+                  weight="medium"
+                  style={{ color: mutedColor, textDecorationLine: 'underline' }}
+                >
                   {t('dangerZone.delete.cancelRequest')}
                 </Text>
               )}
@@ -236,7 +240,10 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
                 disabled={confirmDeletion.isPending || cancelDeletion.isPending}
                 style={({ pressed }) => [
                   styles.approveBtn,
-                  { backgroundColor: dangerColor, opacity: pressed || confirmDeletion.isPending ? 0.6 : 1 },
+                  {
+                    backgroundColor: dangerColor,
+                    opacity: pressed || confirmDeletion.isPending ? 0.6 : 1,
+                  },
                 ]}
               >
                 {confirmDeletion.isPending ? (
@@ -253,7 +260,10 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
                 disabled={cancelDeletion.isPending || confirmDeletion.isPending}
                 style={({ pressed }) => [
                   styles.cancelBtn,
-                  { backgroundColor: surfaceMuted, opacity: pressed || cancelDeletion.isPending ? 0.6 : 1 },
+                  {
+                    backgroundColor: surfaceMuted,
+                    opacity: pressed || cancelDeletion.isPending ? 0.6 : 1,
+                  },
                 ]}
               >
                 {cancelDeletion.isPending ? (

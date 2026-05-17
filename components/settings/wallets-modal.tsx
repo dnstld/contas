@@ -50,7 +50,11 @@ export function WalletsModal({ visible, onClose }: WalletsModalProps) {
   const inputBackground = useThemeColor({}, 'surfaceMuted');
 
   const currencyOptions = useMemo(
-    () => SUPPORTED_CURRENCIES.map((code) => ({ value: code, label: t(`settings.currencies.${code}`) })),
+    () =>
+      SUPPORTED_CURRENCIES.map((code) => ({
+        value: code,
+        label: t(`settings.currencies.${code}`),
+      })),
     [t],
   );
 
@@ -96,7 +100,13 @@ export function WalletsModal({ visible, onClose }: WalletsModalProps) {
           {/* Header */}
           <View style={styles.header}>
             {view === 'create' ? (
-              <Pressable onPress={() => { setView('list'); setNewName(''); }} hitSlop={8}>
+              <Pressable
+                onPress={() => {
+                  setView('list');
+                  setNewName('');
+                }}
+                hitSlop={8}
+              >
                 <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
                   ← {t('common.back')}
                 </Text>
@@ -107,7 +117,11 @@ export function WalletsModal({ visible, onClose }: WalletsModalProps) {
             <Text variant="subtitle" weight="semibold">
               {view === 'create' ? t('wallets.createTitle') : t('wallets.modalTitle')}
             </Text>
-            <Pressable onPress={handleClose} hitSlop={8} style={{ width: 48, alignItems: 'flex-end' }}>
+            <Pressable
+              onPress={handleClose}
+              hitSlop={8}
+              style={{ width: 48, alignItems: 'flex-end' }}
+            >
               <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
                 {t('common.done')}
               </Text>
@@ -117,9 +131,17 @@ export function WalletsModal({ visible, onClose }: WalletsModalProps) {
           {/* List view */}
           {view === 'list' && (
             <>
-              <ScrollView style={styles.list} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+              <ScrollView
+                style={styles.list}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+              >
                 {isLoading ? (
-                  <Text variant="caption" tone="textMuted" style={{ textAlign: 'center', paddingVertical: 24 }}>
+                  <Text
+                    variant="caption"
+                    tone="textMuted"
+                    style={{ textAlign: 'center', paddingVertical: 24 }}
+                  >
                     {t('common.loading')}
                   </Text>
                 ) : (
@@ -147,7 +169,11 @@ export function WalletsModal({ visible, onClose }: WalletsModalProps) {
                   { borderColor, opacity: atLimit ? 0.4 : pressed ? 0.7 : 1 },
                 ]}
               >
-                <Text variant="body" weight="medium" style={{ color: atLimit ? mutedColor : positiveColor }}>
+                <Text
+                  variant="body"
+                  weight="medium"
+                  style={{ color: atLimit ? mutedColor : positiveColor }}
+                >
                   {atLimit ? t('wallets.freeTierLimit') : `+ ${t('wallets.createTitle')}`}
                 </Text>
               </Pressable>
@@ -194,7 +220,10 @@ export function WalletsModal({ visible, onClose }: WalletsModalProps) {
 
               <View style={styles.formActions}>
                 <Pressable
-                  onPress={() => { setView('list'); setNewName(''); }}
+                  onPress={() => {
+                    setView('list');
+                    setNewName('');
+                  }}
                   style={({ pressed }) => [
                     styles.cancelBtn,
                     { borderColor, opacity: pressed ? 0.6 : 1 },

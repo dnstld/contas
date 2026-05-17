@@ -3,13 +3,7 @@ import { Text as RNText, StyleSheet, type TextProps as RNTextProps } from 'react
 import { Colors, Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
-export type TextVariant =
-  | 'display'
-  | 'title'
-  | 'subtitle'
-  | 'body'
-  | 'caption'
-  | 'mono';
+export type TextVariant = 'display' | 'title' | 'subtitle' | 'body' | 'caption' | 'mono';
 
 export type TextTone = keyof typeof Colors.light;
 
@@ -48,11 +42,7 @@ export function Text({
   return (
     <RNText
       {...rest}
-      style={[
-        { color, fontFamily, fontWeight: WEIGHT_MAP[weight] },
-        VARIANT_STYLE[variant],
-        style,
-      ]}
+      style={[{ color, fontFamily, fontWeight: WEIGHT_MAP[weight] }, VARIANT_STYLE[variant], style]}
     />
   );
 }

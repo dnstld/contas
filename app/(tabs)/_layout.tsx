@@ -18,18 +18,12 @@ export default function TabLayout() {
 
       <NativeTabs.Trigger name="transactions">
         <NativeTabs.Trigger.Label>{t('tabs.transactions')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          sf="arrow.left.arrow.right"
-          drawable="ic_menu_recent_history"
-        />
+        <NativeTabs.Trigger.Icon sf="arrow.left.arrow.right" drawable="ic_menu_recent_history" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="account">
         <NativeTabs.Trigger.Label>{t('tabs.settings')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          sf="person.crop.circle.fill"
-          drawable="ic_menu_manage"
-        />
+        <NativeTabs.Trigger.Icon sf="person.crop.circle.fill" drawable="ic_menu_manage" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="explore" hidden />

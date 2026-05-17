@@ -12,12 +12,7 @@ export interface SettingsSectionProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function SettingsSection({
-  title,
-  subtitle,
-  children,
-  style,
-}: SettingsSectionProps) {
+export function SettingsSection({ title, subtitle, children, style }: SettingsSectionProps) {
   const rows = Children.toArray(children).filter(Boolean);
 
   return (

@@ -29,11 +29,7 @@ export function Checkbox({ value, onValueChange, label, disabled }: CheckboxProp
   if (Platform.OS === 'android') {
     return (
       <Compose.Host matchContents>
-        <Compose.Checkbox
-          value={value}
-          enabled={!disabled}
-          onCheckedChange={onValueChange}
-        />
+        <Compose.Checkbox value={value} enabled={!disabled} onCheckedChange={onValueChange} />
       </Compose.Host>
     );
   }

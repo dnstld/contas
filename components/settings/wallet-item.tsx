@@ -35,7 +35,12 @@ export function WalletItem({ wallet, isActive, onSwitch, isSwitchPending }: Wall
         </View>
 
         {isActive ? (
-          <View style={[styles.activeBadge, { backgroundColor: positiveColor + '22', borderColor: positiveColor + '44' }]}>
+          <View
+            style={[
+              styles.activeBadge,
+              { backgroundColor: positiveColor + '22', borderColor: positiveColor + '44' },
+            ]}
+          >
             <Text variant="caption" weight="semibold" style={{ color: positiveColor }}>
               {t('wallets.activeLabel')}
             </Text>

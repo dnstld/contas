@@ -26,9 +26,13 @@ export function EmptyState({
     <View style={styles.container}>
       <Icon name={icon} size={36} color={muted} />
       <View style={styles.text}>
-        <Text variant="subtitle" weight="semibold">{title}</Text>
+        <Text variant="subtitle" weight="semibold">
+          {title}
+        </Text>
         {body ? (
-          <Text variant="body" tone="textMuted" style={styles.body}>{body}</Text>
+          <Text variant="body" tone="textMuted" style={styles.body}>
+            {body}
+          </Text>
         ) : null}
       </View>
       {actionLabel && onAction ? (

@@ -38,9 +38,7 @@ export function useWalletMembers() {
 
       if (profileErr) throw profileErr;
 
-      const profileById = new Map(
-        (profileRows ?? []).map((p) => [p.id, p] as const),
-      );
+      const profileById = new Map((profileRows ?? []).map((p) => [p.id, p] as const));
 
       return memberRows.map<WalletMember>((row) => {
         const profile = profileById.get(row.user_id);

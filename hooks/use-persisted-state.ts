@@ -137,8 +137,7 @@ export function usePersistedState<T>(
     (next: T | ((prev: T) => T)) => {
       const cell = getCell(key);
       const prev = (cell.hasValue ? cell.value : value) as T;
-      const resolved =
-        typeof next === 'function' ? (next as (p: T) => T)(prev) : next;
+      const resolved = typeof next === 'function' ? (next as (p: T) => T)(prev) : next;
       cell.value = resolved;
       cell.hasValue = true;
       cell.subscribers.forEach((fn) => fn(resolved));

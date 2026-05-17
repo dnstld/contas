@@ -44,9 +44,7 @@ export function useFormatters() {
           ...options,
         }).format(value),
       monthName: (monthIndex0: number, style: 'long' | 'short' = 'long') =>
-        new Intl.DateTimeFormat(locale, { month: style }).format(
-          new Date(2024, monthIndex0, 1),
-        ),
+        new Intl.DateTimeFormat(locale, { month: style }).format(new Date(2024, monthIndex0, 1)),
     }),
     [locale, userCurrency],
   );

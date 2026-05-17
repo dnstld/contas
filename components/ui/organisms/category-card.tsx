@@ -100,7 +100,9 @@ export function CategoryCard({
       ) : null}
 
       {isEmpty ? (
-        <Text variant="caption" tone="textMuted">{t('category.noActivity')}</Text>
+        <Text variant="caption" tone="textMuted">
+          {t('category.noActivity')}
+        </Text>
       ) : null}
     </Surface>
   );

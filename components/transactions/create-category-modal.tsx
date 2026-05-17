@@ -75,9 +75,7 @@ export function CategoryFormModal({
     if (visible) {
       setName(editCategory?.name ?? '');
       setBudgetCents(
-        editCategory?.monthlyBudget != null
-          ? Math.round(editCategory.monthlyBudget * 100)
-          : 0,
+        editCategory?.monthlyBudget != null ? Math.round(editCategory.monthlyBudget * 100) : 0,
       );
       setDeleteWarning(null);
       if (!isEdit) setTimeout(() => nameInputRef.current?.focus(), 100);
@@ -86,7 +84,10 @@ export function CategoryFormModal({
 
   const handleBudgetChange = (text: string) => {
     const digits = text.replace(/\D/g, '');
-    if (digits.length === 0) { setBudgetCents(0); return; }
+    if (digits.length === 0) {
+      setBudgetCents(0);
+      return;
+    }
     const parsed = Number.parseInt(digits, 10);
     if (Number.isFinite(parsed)) setBudgetCents(parsed);
   };
@@ -130,9 +131,7 @@ export function CategoryFormModal({
       },
       onError: (err) => {
         if (isCategoryHasTransactionsError(err)) {
-          setDeleteWarning(
-            t('category.edit.hasTransactions', { count: err.transactionCount }),
-          );
+          setDeleteWarning(t('category.edit.hasTransactions', { count: err.transactionCount }));
         }
       },
     });
@@ -232,8 +231,12 @@ export function CategoryFormModal({
             >
               <Text variant="body" weight="semibold" style={styles.saveBtnLabel}>
                 {isEdit
-                  ? (isUpdating ? t('category.edit.saving') : t('category.edit.saveButton'))
-                  : (isCreating ? t('category.create.creating') : t('category.create.createButton'))}
+                  ? isUpdating
+                    ? t('category.edit.saving')
+                    : t('category.edit.saveButton')
+                  : isCreating
+                    ? t('category.create.creating')
+                    : t('category.create.createButton')}
               </Text>
             </Pressable>
           </View>

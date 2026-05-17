@@ -103,10 +103,7 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
 
             <Pressable
               onPress={() => setRedeemVisible(true)}
-              style={({ pressed }) => [
-                styles.pill,
-                { borderColor, opacity: pressed ? 0.7 : 1 },
-              ]}
+              style={({ pressed }) => [styles.pill, { borderColor, opacity: pressed ? 0.7 : 1 }]}
             >
               <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
                 {t('wallet.invitation.haveCodeButton')}

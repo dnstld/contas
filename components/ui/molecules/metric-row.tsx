@@ -13,13 +13,12 @@ export interface MetricRowProps {
 export function MetricRow({ label, value, trailing, emphasis = 'subtle' }: MetricRowProps) {
   return (
     <View style={styles.row}>
-      <Text variant="body" tone="textMuted">{label}</Text>
+      <Text variant="body" tone="textMuted">
+        {label}
+      </Text>
       <View style={styles.right}>
         {value !== undefined ? (
-          <Text
-            variant="body"
-            weight={emphasis === 'strong' ? 'semibold' : 'medium'}
-          >
+          <Text variant="body" weight={emphasis === 'strong' ? 'semibold' : 'medium'}>
             {value}
           </Text>
         ) : null}

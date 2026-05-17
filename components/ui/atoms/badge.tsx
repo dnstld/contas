@@ -44,7 +44,9 @@ export function Badge({ label, tone = 'neutral', variant = 'soft' }: BadgeProps)
 }
 
 function withAlpha(hex: string, alpha: number) {
-  const a = Math.round(alpha * 255).toString(16).padStart(2, '0');
+  const a = Math.round(alpha * 255)
+    .toString(16)
+    .padStart(2, '0');
   if (hex.startsWith('#') && (hex.length === 7 || hex.length === 4)) {
     if (hex.length === 4) {
       const r = hex[1];

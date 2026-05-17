@@ -65,13 +65,9 @@ export function useWalletRealtime() {
           qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
         },
       )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'wallet_members' },
-        () => {
-          qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
-        },
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_members' }, () => {
+        qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
+      })
       .subscribe();
 
     return () => {

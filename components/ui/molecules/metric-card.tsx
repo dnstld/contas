@@ -39,7 +39,9 @@ export function MetricCard({
           <TrendIndicator delta={delta} percentage={deltaPercentage} currency={currency} />
         ) : null}
         {caption ? (
-          <Text variant="caption" tone="textMuted">{caption}</Text>
+          <Text variant="caption" tone="textMuted">
+            {caption}
+          </Text>
         ) : null}
       </View>
     </Surface>

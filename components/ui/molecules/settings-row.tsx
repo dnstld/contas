@@ -10,12 +10,7 @@ export interface SettingsRowProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function SettingsRow({
-  title,
-  description,
-  trailing,
-  style,
-}: SettingsRowProps) {
+export function SettingsRow({ title, description, trailing, style }: SettingsRowProps) {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.text}>

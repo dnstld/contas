@@ -29,11 +29,7 @@ export function TimelineItem({
       bordered={!current}
       style={styles.card}
     >
-      <Text
-        variant="caption"
-        tone={current ? 'tint' : 'textMuted'}
-        weight="semibold"
-      >
+      <Text variant="caption" tone={current ? 'tint' : 'textMuted'} weight="semibold">
         {label.toUpperCase()}
       </Text>
       <PriceText value={value} currency={currency} tone={tone} size="md" />

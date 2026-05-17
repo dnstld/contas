@@ -13,14 +13,13 @@ export interface TransactionRowProps {
 }
 
 function initials(name: string): string {
-  return name.replace(/[^\p{L}\p{N}]/gu, '').slice(0, 2).toUpperCase();
+  return name
+    .replace(/[^\p{L}\p{N}]/gu, '')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
-export function TransactionRow({
-  transaction,
-  currency,
-  onPress,
-}: TransactionRowProps) {
+export function TransactionRow({ transaction, currency, onPress }: TransactionRowProps) {
   const { locale } = useFormatters();
   const isIncome = transaction.type === 'income';
   const signedAmount = isIncome ? transaction.amount : -transaction.amount;

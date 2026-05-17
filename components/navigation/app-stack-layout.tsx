@@ -83,9 +83,7 @@ export default function AppStackLayout() {
         headerTitle: '',
         headerLeft: () => <HeaderLogo />,
         headerShadowVisible: false,
-        headerRight: () => (
-          <HeaderCreateButton onPress={() => router.push('/create')} />
-        ),
+        headerRight: () => <HeaderCreateButton onPress={() => router.push('/create')} />,
       }}
     />
   );

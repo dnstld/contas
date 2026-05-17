@@ -14,11 +14,7 @@ export function Toggle({ value, onValueChange, label, disabled }: ToggleProps) {
   if (Platform.OS === 'ios') {
     return (
       <SwiftUI.Host matchContents>
-        <SwiftUI.Toggle
-          isOn={value}
-          label={label ?? ''}
-          onIsOnChange={onValueChange}
-        />
+        <SwiftUI.Toggle isOn={value} label={label ?? ''} onIsOnChange={onValueChange} />
       </SwiftUI.Host>
     );
   }
@@ -26,11 +22,7 @@ export function Toggle({ value, onValueChange, label, disabled }: ToggleProps) {
   if (Platform.OS === 'android') {
     return (
       <Compose.Host matchContents>
-        <Compose.Switch
-          value={value}
-          enabled={!disabled}
-          onCheckedChange={onValueChange}
-        />
+        <Compose.Switch value={value} enabled={!disabled} onCheckedChange={onValueChange} />
       </Compose.Host>
     );
   }

@@ -9,10 +9,7 @@ import { EmptyState } from '@/components/ui/molecules/empty-state';
 import { SortMenu, type SortOption } from '@/components/ui/molecules/sort-menu';
 import { useFormatters } from '@/hooks/use-formatters';
 
-export type CategorySortMode =
-  | 'highestExpense'
-  | 'mostUsed'
-  | 'overBudget';
+export type CategorySortMode = 'highestExpense' | 'mostUsed' | 'overBudget';
 
 export interface CategoryGridProps {
   categories: readonly CategoryCardData[];

@@ -3,14 +3,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import {
-  CategoryGrid,
-  FinanceTimeFilter,
-  Icon,
-  Overview,
-  Surface,
-  Text,
-} from '@/components/ui';
+import { CategoryGrid, FinanceTimeFilter, Icon, Overview, Surface, Text } from '@/components/ui';
 import { useCurrency } from '@/hooks/use-currency';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
@@ -25,10 +18,7 @@ export default function HomeScreen() {
   const { currency } = useCurrency();
 
   const filterApi = useFinanceTimeFilter(now);
-  const [revenueVisible] = usePersistedState(
-    'dashboard:revenue-visible',
-    false,
-  );
+  const [revenueVisible] = usePersistedState('dashboard:revenue-visible', false);
   const dashboard = useFinanceDashboard(filterApi.state, now);
   const hasTransactions = (dashboard.data?.transactions.length ?? 0) > 0;
   const demoMode = dashboard.isDemo;
@@ -36,22 +26,12 @@ export default function HomeScreen() {
 
   if (dashboard.isLoading && !hasTransactions) {
     return (
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: background, paddingTop: headerHeight },
-        ]}
-      />
+      <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]} />
     );
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: background, paddingTop: headerHeight },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <FinanceTimeFilter api={filterApi} now={now} />
 
@@ -69,11 +49,7 @@ export default function HomeScreen() {
           </Surface>
         ) : null}
 
-        <Overview
-          {...dashboard.overview}
-          currency={currency}
-          revenueVisible={revenueVisible}
-        />
+        <Overview {...dashboard.overview} currency={currency} revenueVisible={revenueVisible} />
 
         {demoMode ? (
           <Surface variant="muted" padding={12} bordered style={styles.notice}>

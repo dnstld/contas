@@ -74,14 +74,9 @@ export function Overview({
   );
 
   const lensValue =
-    lens === 'revenue' ? revenue ?? 0 : lens === 'net' ? net ?? 0 : primaryValue;
+    lens === 'revenue' ? (revenue ?? 0) : lens === 'net' ? (net ?? 0) : primaryValue;
 
-  const lensTone =
-    lens === 'net'
-      ? lensValue >= 0
-        ? 'positive'
-        : 'negative'
-      : 'neutral';
+  const lensTone = lens === 'net' ? (lensValue >= 0 ? 'positive' : 'negative') : 'neutral';
 
   // Per-lens comparison: pick which previous-period value + delta + tone semantics to use.
   const comparison = (() => {
@@ -160,15 +155,21 @@ export function Overview({
 
       {revenueVisible ? (
         <View style={styles.lens}>
-          <SegmentedControl
-            options={lensOptions}
-            value={lens}
-            onChange={setLens}
-          />
+          <SegmentedControl options={lensOptions} value={lens} onChange={setLens} />
           <View style={styles.lensRows}>
-            <MetricRow label={t('overview.revenue')} value={formatCurrency(revenue ?? 0, currency)} />
-            <MetricRow label={t('overview.expenses')} value={formatCurrency(expenses ?? primaryValue, currency)} />
-            <MetricRow label={t('overview.balance')} value={formatCurrency(net ?? 0, currency)} emphasis="strong" />
+            <MetricRow
+              label={t('overview.revenue')}
+              value={formatCurrency(revenue ?? 0, currency)}
+            />
+            <MetricRow
+              label={t('overview.expenses')}
+              value={formatCurrency(expenses ?? primaryValue, currency)}
+            />
+            <MetricRow
+              label={t('overview.balance')}
+              value={formatCurrency(net ?? 0, currency)}
+              emphasis="strong"
+            />
           </View>
         </View>
       ) : null}
@@ -190,11 +191,7 @@ export function Overview({
           <Text variant="caption" tone="textMuted" weight="semibold">
             {t('overview.allMonths')}
           </Text>
-          <MonthlyTimeline
-            points={timeline}
-            currency={currency}
-            currentMonth={currentMonth}
-          />
+          <MonthlyTimeline points={timeline} currency={currency} currentMonth={currentMonth} />
         </View>
       ) : null}
     </Surface>

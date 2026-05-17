@@ -30,7 +30,13 @@ export function PriceText({
   fractionDigits = 2,
 }: PriceTextProps) {
   const resolvedTone =
-    tone === 'auto' ? (value > 0 ? 'positive' : value < 0 ? 'negative' : 'text') : toneToColor(tone);
+    tone === 'auto'
+      ? value > 0
+        ? 'positive'
+        : value < 0
+          ? 'negative'
+          : 'text'
+      : toneToColor(tone);
 
   const formatter = new Intl.NumberFormat(locale, {
     style: 'currency',

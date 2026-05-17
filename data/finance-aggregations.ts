@@ -1,10 +1,6 @@
 import { type CategoryCardData } from '@/components/ui/organisms/category-card';
 import { type MonthlyTimelinePoint } from '@/components/ui/organisms/monthly-timeline';
-import {
-  MONTHS,
-  type Month,
-  type TimeFilterState,
-} from '@/hooks/use-time-filter';
+import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter';
 
 import type { Category, Finance, Transaction } from './finance-types';
 
@@ -134,12 +130,7 @@ function toCardData(
   };
 }
 
-function buildMonthMode(
-  mock: Finance,
-  year: number,
-  month: number,
-  locale: string,
-): DashboardData {
+function buildMonthMode(mock: Finance, year: number, month: number, locale: string): DashboardData {
   const fmtMonth = monthFormatter(locale);
   const monthLabel = `${fmtMonth(month)} ${year}`;
 

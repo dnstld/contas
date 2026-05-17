@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { TransactionFormValues, TransactionType } from '@/components/transactions/transaction-form';
+import type {
+  TransactionFormValues,
+  TransactionType,
+} from '@/components/transactions/transaction-form';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
@@ -79,7 +82,11 @@ export function useCreateCategory() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (values: { name: string; type: TransactionType; monthlyBudgetCents?: number }) => {
+    mutationFn: async (values: {
+      name: string;
+      type: TransactionType;
+      monthlyBudgetCents?: number;
+    }) => {
       if (!walletId) throw new Error('no wallet');
       const { data, error } = await supabase
         .from('categories')
@@ -87,7 +94,9 @@ export function useCreateCategory() {
           name: values.name,
           type: values.type,
           wallet_id: walletId,
-          ...(values.monthlyBudgetCents != null && { monthly_budget_cents: values.monthlyBudgetCents }),
+          ...(values.monthlyBudgetCents != null && {
+            monthly_budget_cents: values.monthlyBudgetCents,
+          }),
         })
         .select('id')
         .single();
@@ -102,7 +111,10 @@ export function useCreateCategory() {
   });
 }
 
-export type CategoryHasTransactionsError = Error & { code: 'has_transactions'; transactionCount: number };
+export type CategoryHasTransactionsError = Error & {
+  code: 'has_transactions';
+  transactionCount: number;
+};
 
 export function isCategoryHasTransactionsError(e: unknown): e is CategoryHasTransactionsError {
   return e instanceof Error && (e as CategoryHasTransactionsError).code === 'has_transactions';

@@ -9,8 +9,7 @@ export function getDeviceLanguageTag(): string | null {
   // after `npx expo install`, the native side isn't present. Probe the expo
   // module registry before requiring the JS wrapper, so we never touch a
   // module that would throw "Cannot find native module 'ExpoLocalization'".
-  const registry = (globalThis as { expo?: { modules?: Record<string, unknown> } })
-    .expo?.modules;
+  const registry = (globalThis as { expo?: { modules?: Record<string, unknown> } }).expo?.modules;
   if (!registry || !registry.ExpoLocalization) return null;
   try {
     const Localization = require('expo-localization') as typeof import('expo-localization');

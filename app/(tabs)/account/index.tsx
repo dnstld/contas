@@ -44,10 +44,8 @@ export default function SettingsScreen() {
   const { signOut, session } = useAuth();
 
   const { displayName: profileName, avatarUrl: profileAvatar } = useMyProfile();
-  const avatarUrl =
-    profileAvatar ?? session?.user?.user_metadata?.avatar_url ?? null;
-  const displayName =
-    profileName ?? session?.user?.user_metadata?.full_name ?? null;
+  const avatarUrl = profileAvatar ?? session?.user?.user_metadata?.avatar_url ?? null;
+  const displayName = profileName ?? session?.user?.user_metadata?.full_name ?? null;
   const email = session?.user?.email ?? null;
   const currentUserId = session?.user?.id ?? null;
 
@@ -56,19 +54,9 @@ export default function SettingsScreen() {
   const { name: walletName } = useWallet();
 
   const { language, setLanguage, supported } = useLanguage();
-  const {
-    currency,
-    setCurrency,
-    supported: supportedCurrencies,
-  } = useCurrency();
-  const [revenueVisible, setRevenueVisible] = usePersistedState(
-    'dashboard:revenue-visible',
-    false,
-  );
-  const [demoMode, setDemoMode] = usePersistedState(
-    'settings:demo-mode',
-    false,
-  );
+  const { currency, setCurrency, supported: supportedCurrencies } = useCurrency();
+  const [revenueVisible, setRevenueVisible] = usePersistedState('dashboard:revenue-visible', false);
+  const [demoMode, setDemoMode] = usePersistedState('settings:demo-mode', false);
 
   const { members, refetch: refetchMembers } = useWalletMembers();
 
@@ -100,16 +88,18 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <ScrollView
-        style={{ backgroundColor: background }}
-        contentContainerStyle={styles.content}
-      >
+      <ScrollView style={{ backgroundColor: background }} contentContainerStyle={styles.content}>
         <Surface padding={0} radius={16} bordered>
           <View style={styles.profileRow}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
             ) : (
-              <Surface variant="elevated" padding={0} radius={22} style={[styles.avatar, styles.avatarFallback]}>
+              <Surface
+                variant="elevated"
+                padding={0}
+                radius={22}
+                style={[styles.avatar, styles.avatarFallback]}
+              >
                 <Text variant="subtitle" weight="semibold">
                   {userInitials(displayName)}
                 </Text>
@@ -134,7 +124,12 @@ export default function SettingsScreen() {
                 {partner.avatarUrl ? (
                   <Image source={{ uri: partner.avatarUrl }} style={styles.avatar} />
                 ) : (
-                  <Surface variant="elevated" padding={0} radius={22} style={[styles.avatar, styles.avatarFallback]}>
+                  <Surface
+                    variant="elevated"
+                    padding={0}
+                    radius={22}
+                    style={[styles.avatar, styles.avatarFallback]}
+                  >
                     <Text variant="subtitle" weight="semibold">
                       {userInitials(partner.displayName)}
                     </Text>
@@ -176,17 +171,13 @@ export default function SettingsScreen() {
           </View>
         </Surface>
 
-        {!partner ? (
-          <InvitationSection onRedeemSuccess={() => {}} />
-        ) : null}
+        {!partner ? <InvitationSection onRedeemSuccess={() => {}} /> : null}
 
         <SettingsSection title={t('settings.sections.display')}>
           <SettingsRow
             title={t('settings.revenueVisible.title')}
             description={t('settings.revenueVisible.description')}
-            trailing={
-              <Toggle value={revenueVisible} onValueChange={setRevenueVisible} />
-            }
+            trailing={<Toggle value={revenueVisible} onValueChange={setRevenueVisible} />}
           />
           <SettingsRow
             title={t('settings.demoMode.title')}
@@ -244,10 +235,7 @@ export default function SettingsScreen() {
         currentName={displayName}
         onClose={() => setEditNameVisible(false)}
       />
-      <WalletsModal
-        visible={walletsVisible}
-        onClose={() => setWalletsVisible(false)}
-      />
+      <WalletsModal visible={walletsVisible} onClose={() => setWalletsVisible(false)} />
     </>
   );
 }

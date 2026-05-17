@@ -7,10 +7,7 @@ import {
   type TransactionFormValues,
 } from '@/components/transactions/transaction-form';
 import { useFinance } from '@/hooks/use-finance';
-import {
-  useDeleteTransaction,
-  useUpdateTransaction,
-} from '@/hooks/use-finance-mutations';
+import { useDeleteTransaction, useUpdateTransaction } from '@/hooks/use-finance-mutations';
 
 export default function EditScreen() {
   const router = useRouter();
@@ -38,10 +35,7 @@ export default function EditScreen() {
     type: transaction.type,
     amountCents: Math.round(transaction.amount * 100),
     date: new Date(
-      transaction.date ??
-        transaction.startDate ??
-        transaction.nextOccurrence ??
-        Date.now(),
+      transaction.date ?? transaction.startDate ?? transaction.nextOccurrence ?? Date.now(),
     ),
     categoryId: transaction.categoryId,
     description: transaction.description,

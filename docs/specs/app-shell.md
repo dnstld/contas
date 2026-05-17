@@ -5,6 +5,7 @@ The app shell consists of the bottom tab navigation and the **global** stack hea
 Implementation is platform-aware: on iOS 26+ the tab bar uses Apple's liquid-glass material; on older iOS / Android it falls back to the system tab bar.
 
 The header is implemented as a shared Stack layout (`components/navigation/app-stack-layout.tsx`) reused by every visible tab's `_layout.tsx`. The shared layout exposes:
+
 - a transparent stack header,
 - a left wordmark showing the active wallet's name (falls back to "CONTAS" while loading),
 - a right "Add" button that pushes the `/create` modal.

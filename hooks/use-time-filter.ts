@@ -3,12 +3,32 @@ import { useCallback, useMemo } from 'react';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 
 export type Month =
-  | 'jan' | 'feb' | 'mar' | 'apr' | 'may' | 'jun'
-  | 'jul' | 'aug' | 'sep' | 'oct' | 'nov' | 'dec';
+  | 'jan'
+  | 'feb'
+  | 'mar'
+  | 'apr'
+  | 'may'
+  | 'jun'
+  | 'jul'
+  | 'aug'
+  | 'sep'
+  | 'oct'
+  | 'nov'
+  | 'dec';
 
 export const MONTHS: readonly Month[] = [
-  'jan', 'feb', 'mar', 'apr', 'may', 'jun',
-  'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
 ] as const;
 
 /**

@@ -14,15 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CategoryFormModal } from '@/components/transactions/create-category-modal';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { Icon } from '@/components/ui/atoms/icon';
-import {
-  SegmentedControl,
-  type SegmentedOption,
-} from '@/components/ui/atoms/segmented-control';
+import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
 import { Text } from '@/components/ui/atoms/text';
-import {
-  ChipGroup,
-  type ChipGroupItem,
-} from '@/components/ui/molecules/chip-group';
+import { ChipGroup, type ChipGroupItem } from '@/components/ui/molecules/chip-group';
 import { Fonts } from '@/constants/theme';
 import { useCurrency } from '@/hooks/use-currency';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
@@ -76,19 +70,11 @@ export function TransactionForm({
   const dangerColor = useThemeColor({}, 'negative');
   const surfaceMutedColor = useThemeColor({}, 'surfaceMuted');
 
-  const [type, setType] = useState<TransactionType>(
-    initialValues?.type ?? 'expense',
-  );
-  const [amountCents, setAmountCents] = useState<number>(
-    initialValues?.amountCents ?? 0,
-  );
+  const [type, setType] = useState<TransactionType>(initialValues?.type ?? 'expense');
+  const [amountCents, setAmountCents] = useState<number>(initialValues?.amountCents ?? 0);
   const [date, setDate] = useState<Date>(initialValues?.date ?? new Date());
-  const [categoryId, setCategoryId] = useState<string | null>(
-    initialValues?.categoryId ?? null,
-  );
-  const [description, setDescription] = useState<string>(
-    initialValues?.description ?? '',
-  );
+  const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
+  const [description, setDescription] = useState<string>(initialValues?.description ?? '');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCategoryId, setNewCategoryId] = useState<string | null>(
     initialValues?.categoryId ?? null,
@@ -183,10 +169,7 @@ export function TransactionForm({
   };
 
   return (
-    <SafeAreaView
-      edges={['bottom']}
-      style={[styles.root, { backgroundColor }]}
-    >
+    <SafeAreaView edges={['bottom']} style={[styles.root, { backgroundColor }]}>
       <View style={styles.dragHandleWrap}>
         <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
       </View>
@@ -211,12 +194,7 @@ export function TransactionForm({
 
           <View style={styles.amountSection}>
             <View style={styles.amountRow}>
-              <Text
-                style={[
-                  styles.amountSymbol,
-                  { color: mutedColor, fontFamily: Fonts.rounded },
-                ]}
-              >
+              <Text style={[styles.amountSymbol, { color: mutedColor, fontFamily: Fonts.rounded }]}>
                 {symbol}
               </Text>
               <TextInput
@@ -251,9 +229,7 @@ export function TransactionForm({
             <ChipGroup<string>
               items={categoryItems}
               selectedIds={categoryId ? [categoryId] : []}
-              onToggle={(id) =>
-                setCategoryId((current) => (current === id ? null : id))
-              }
+              onToggle={(id) => setCategoryId((current) => (current === id ? null : id))}
               onLongPress={handleCategoryLongPress}
               multiSelect={false}
               showCheckWhenSelected
@@ -281,7 +257,10 @@ export function TransactionForm({
           <CategoryFormModal
             visible={showCreateModal}
             type={type}
-            onCreated={(id) => { setCategoryId(id); setNewCategoryId(id); }}
+            onCreated={(id) => {
+              setCategoryId(id);
+              setNewCategoryId(id);
+            }}
             onClose={() => setShowCreateModal(false)}
           />
           <CategoryFormModal
@@ -290,7 +269,10 @@ export function TransactionForm({
             editCategory={editingCategory ?? undefined}
             onCreated={() => {}}
             onDeleted={(id) => {
-              if (categoryId === id) { setCategoryId(null); setNewCategoryId(null); }
+              if (categoryId === id) {
+                setCategoryId(null);
+                setNewCategoryId(null);
+              }
             }}
             onClose={() => setEditingCategory(null)}
           />
@@ -327,7 +309,12 @@ export function TransactionForm({
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
           {errorMessage ? (
-            <View style={[styles.errorBanner, { borderColor: dangerColor, backgroundColor: `${dangerColor}14` }]}>
+            <View
+              style={[
+                styles.errorBanner,
+                { borderColor: dangerColor, backgroundColor: `${dangerColor}14` },
+              ]}
+            >
               <Text variant="caption" style={{ color: dangerColor }}>
                 {errorMessage}
               </Text>
@@ -351,11 +338,7 @@ export function TransactionForm({
             ]}
           >
             <Icon name="checkmark" size={18} color="#fff" />
-            <Text
-              variant="subtitle"
-              weight="bold"
-              style={styles.submitLabel}
-            >
+            <Text variant="subtitle" weight="bold" style={styles.submitLabel}>
               {submitLabel ?? t('create.save')}
             </Text>
           </Pressable>
@@ -376,11 +359,7 @@ export function TransactionForm({
                 },
               ]}
             >
-              <Text
-                variant="subtitle"
-                weight="semibold"
-                style={{ color: dangerColor }}
-              >
+              <Text variant="subtitle" weight="semibold" style={{ color: dangerColor }}>
                 {deleteLabel ?? t('edit.delete')}
               </Text>
             </Pressable>

@@ -17,11 +17,7 @@ export interface TimeFilterBarProps extends UseTimeFilterOptions {
   yearsRange?: number;
   /** Optional controlled API. When provided, the bar does not own its state. */
   api?: TimeFilterApi;
-  onChange?: (state: {
-    years: number[];
-    months: Month[];
-    all: boolean;
-  }) => void;
+  onChange?: (state: { years: number[]; months: Month[]; all: boolean }) => void;
 }
 
 export function TimeFilterBar({ api, ...rest }: TimeFilterBarProps) {
@@ -36,14 +32,7 @@ function TimeFilterBarUncontrolled({
   ...filterOptions
 }: Omit<TimeFilterBarProps, 'api'>) {
   const api = useTimeFilter({ now, ...filterOptions });
-  return (
-    <TimeFilterBarView
-      api={api}
-      now={now}
-      yearsRange={yearsRange}
-      onChange={onChange}
-    />
-  );
+  return <TimeFilterBarView api={api} now={now} yearsRange={yearsRange} onChange={onChange} />;
 }
 
 interface ViewProps {
@@ -53,12 +42,7 @@ interface ViewProps {
   onChange?: TimeFilterBarProps['onChange'];
 }
 
-function TimeFilterBarView({
-  api,
-  now = new Date(),
-  yearsRange = 4,
-  onChange,
-}: ViewProps) {
+function TimeFilterBarView({ api, now = new Date(), yearsRange = 4, onChange }: ViewProps) {
   const { state, selectAll, toggleYear, toggleMonth } = api;
   const { t } = useTranslation();
   const { monthName } = useFormatters();

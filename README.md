@@ -13,13 +13,13 @@ A personal-and-shared finance app built with Expo Router (file-based routing), S
 
 ## Required tooling
 
-| Tool | Why |
-|---|---|
-| **Node 20+** | Expo SDK 55 |
-| **Xcode 16+** (macOS) | iOS dev builds — Google sign-in is a native module, Expo Go won't work |
-| **Android Studio + JDK 17** | Android dev builds |
-| **Docker Desktop** | Local Supabase stack (`supabase start`) |
-| **Supabase CLI** ≥ 2.90 | Migrations (`supabase db reset`, `supabase db push`) |
+| Tool                        | Why                                                                    |
+| --------------------------- | ---------------------------------------------------------------------- |
+| **Node 20+**                | Expo SDK 55                                                            |
+| **Xcode 16+** (macOS)       | iOS dev builds — Google sign-in is a native module, Expo Go won't work |
+| **Android Studio + JDK 17** | Android dev builds                                                     |
+| **Docker Desktop**          | Local Supabase stack (`supabase start`)                                |
+| **Supabase CLI** ≥ 2.90     | Migrations (`supabase db reset`, `supabase db push`)                   |
 
 > The app cannot run in **Expo Go**. The Google sign-in native module is only registered in dev / preview / production builds.
 
@@ -48,7 +48,7 @@ In **Authentication → Providers → Google**:
 - Enable the provider
 - Paste the **Web Client ID** and **Web Client Secret**
 - Add the **iOS** and **Android** Client IDs to **Authorized Client IDs** (comma-separated, **web first**)
-- Toggle **Skip nonce check** ON *(required for the iOS native flow — without this, sign-in fails with `AuthApiError: Passed nonce and nonce in id_token should either both exist or not`)*
+- Toggle **Skip nonce check** ON _(required for the iOS native flow — without this, sign-in fails with `AuthApiError: Passed nonce and nonce in id_token should either both exist or not`)_
 
 ### 4. Populate `.env.local`
 
@@ -75,10 +75,10 @@ Open `app.json` and replace the `iosUrlScheme` placeholder under the `@react-nat
       // …
       [
         "@react-native-google-signin/google-signin",
-        { "iosUrlScheme": "com.googleusercontent.apps.<your-id>" }
-      ]
-    ]
-  }
+        { "iosUrlScheme": "com.googleusercontent.apps.<your-id>" },
+      ],
+    ],
+  },
 }
 ```
 
@@ -213,4 +213,4 @@ You're either running in Expo Go (not supported) or you rebuilt the JS without r
 
 ### The auth screen flashes briefly then jumps to the tabs (or vice versa)
 
-The root layout returns `null` while `useAuth().loading` is true *and* while i18n is initializing. If you see a flash, check that both gates are still in place in [app/_layout.tsx](app/_layout.tsx).
+The root layout returns `null` while `useAuth().loading` is true _and_ while i18n is initializing. If you see a flash, check that both gates are still in place in [app/\_layout.tsx](app/_layout.tsx).

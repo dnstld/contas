@@ -4,9 +4,10 @@ The app has one localization preference managed at the device level:
 
 - **Language** — drives every translatable label, plural form, and locale-aware date/number formatting. Supported values: `en` (default) and `pt-BR`.
 
-Currency is *not* a device preference — it belongs to the wallet. See the "Currency formatting" section below.
+Currency is _not_ a device preference — it belongs to the wallet. See the "Currency formatting" section below.
 
 Implementation stack:
+
 - `i18next` + `react-i18next` for translation, interpolation, and locale-aware plural rules.
 - `expo-localization` for reading the device's preferred language tag on first launch.
 - `Intl.NumberFormat` and `Intl.DateTimeFormat` for currency, number, and month-name formatting.

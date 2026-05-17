@@ -82,7 +82,10 @@ export function RedeemCodeModal({ visible, onClose, onSuccess }: RedeemCodeModal
             <TextInput
               ref={inputRef}
               value={code}
-              onChangeText={(v) => { setCode(v); setError(false); }}
+              onChangeText={(v) => {
+                setCode(v);
+                setError(false);
+              }}
               placeholder={t('wallet.invitation.codeInputPlaceholder')}
               placeholderTextColor={mutedColor}
               autoCapitalize="none"

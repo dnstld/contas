@@ -26,7 +26,8 @@ export function Surface({
   children,
 }: SurfaceProps) {
   const surfaceTone =
-    tone ?? (variant === 'muted' ? 'surfaceMuted' : variant === 'elevated' ? 'background' : 'surface');
+    tone ??
+    (variant === 'muted' ? 'surfaceMuted' : variant === 'elevated' ? 'background' : 'surface');
   const backgroundColor = useThemeColor({}, surfaceTone);
   const borderColor = useThemeColor({}, 'border');
 

@@ -14,14 +14,7 @@ export interface StepperProps {
   max?: number;
 }
 
-export function Stepper({
-  value,
-  onValueChange,
-  label = '',
-  step = 1,
-  min,
-  max,
-}: StepperProps) {
+export function Stepper({ value, onValueChange, label = '', step = 1, min, max }: StepperProps) {
   if (Platform.OS === 'ios') {
     return (
       <SwiftUI.Host matchContents>

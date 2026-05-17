@@ -1,4 +1,3 @@
-
 ## Supabase Docs
 
 Before working on a Supabase feature, check the docs via `ssh supabase.sh <command>`.

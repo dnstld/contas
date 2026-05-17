@@ -26,11 +26,7 @@ export interface EditDisplayNameModalProps {
   onClose: () => void;
 }
 
-export function EditDisplayNameModal({
-  visible,
-  currentName,
-  onClose,
-}: EditDisplayNameModalProps) {
+export function EditDisplayNameModal({ visible, currentName, onClose }: EditDisplayNameModalProps) {
   const { t } = useTranslation();
   const { session } = useAuth();
   const { walletId } = useWallet();

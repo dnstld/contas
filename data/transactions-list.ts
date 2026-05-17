@@ -53,9 +53,7 @@ function buildSectionLabeler(now: Date, locale: string, labels: DateLabels) {
     const key = dayKey(d);
     if (key === todayKey) return labels.today;
     if (key === yesterdayKey) return labels.yesterday;
-    return d.getFullYear() === currentYear
-      ? sameYearFmt.format(d)
-      : otherYearFmt.format(d);
+    return d.getFullYear() === currentYear ? sameYearFmt.format(d) : otherYearFmt.format(d);
   };
 }
 
@@ -67,9 +65,7 @@ export function buildTransactionsList(
   labels: DateLabels,
 ): TransactionsListResult {
   const year = filter.years[0] ?? now.getFullYear();
-  const monthKey = filter.all
-    ? undefined
-    : filter.months[0] ?? MONTHS[now.getMonth()];
+  const monthKey = filter.all ? undefined : (filter.months[0] ?? MONTHS[now.getMonth()]);
   const monthIndex = monthKey ? MONTHS.indexOf(monthKey) : undefined;
 
   const filtered: { tx: Transaction; date: Date }[] = [];

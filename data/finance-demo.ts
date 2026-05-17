@@ -1,32 +1,32 @@
-import type { Category, Finance, Transaction } from './finance-types'
+import type { Category, Finance, Transaction } from './finance-types';
 
 type DemoCategory = Category & {
   behavior: {
-    minEntriesPerMonth: number
-    maxEntriesPerMonth: number
-    minAmount: number
-    maxAmount: number
-    recurring?: boolean
-  }
-}
+    minEntriesPerMonth: number;
+    maxEntriesPerMonth: number;
+    minAmount: number;
+    maxAmount: number;
+    recurring?: boolean;
+  };
+};
 
-const CURRENT_DATE = new Date()
-const CURRENT_YEAR = CURRENT_DATE.getFullYear()
-const CURRENT_MONTH = CURRENT_DATE.getMonth()
-const CURRENT_DAY = CURRENT_DATE.getDate()
-const PREVIOUS_YEAR = CURRENT_YEAR - 1
+const CURRENT_DATE = new Date();
+const CURRENT_YEAR = CURRENT_DATE.getFullYear();
+const CURRENT_MONTH = CURRENT_DATE.getMonth();
+const CURRENT_DAY = CURRENT_DATE.getDate();
+const PREVIOUS_YEAR = CURRENT_YEAR - 1;
 
-const YEARS = [PREVIOUS_YEAR, CURRENT_YEAR]
+const YEARS = [PREVIOUS_YEAR, CURRENT_YEAR];
 
 function isFutureMonth(year: number, month: number): boolean {
-  if (year > CURRENT_YEAR) return true
-  if (year === CURRENT_YEAR && month > CURRENT_MONTH) return true
-  return false
+  if (year > CURRENT_YEAR) return true;
+  if (year === CURRENT_YEAR && month > CURRENT_MONTH) return true;
+  return false;
 }
 
 function maxDayForMonth(year: number, month: number): number {
-  if (year === CURRENT_YEAR && month === CURRENT_MONTH) return CURRENT_DAY
-  return 28
+  if (year === CURRENT_YEAR && month === CURRENT_MONTH) return CURRENT_DAY;
+  return 28;
 }
 
 const categories: DemoCategory[] = [
@@ -151,7 +151,7 @@ const categories: DemoCategory[] = [
       maxAmount: 2250,
     },
   },
-]
+];
 
 const descriptions: Record<string, string[]> = {
   mercado: ['Carrefour', 'Assaí', 'Pão de Açúcar', 'Atacadão'],
@@ -164,101 +164,99 @@ const descriptions: Record<string, string[]> = {
   trabalho_ferramentas: ['ChatGPT', 'Figma', 'Apple', 'Grammarly'],
   viagens: ['LATAM', 'Booking', 'Airbnb'],
   receitas: ['Salário', 'Freelance'],
-}
+};
 
 function seededRandom(seed: number) {
-  const x = Math.sin(seed) * 10000
-  return x - Math.floor(x)
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
 }
 
 function randomBetween(min: number, max: number, seed: number) {
-  return min + seededRandom(seed) * (max - min)
+  return min + seededRandom(seed) * (max - min);
 }
 
 function randomInt(min: number, max: number, seed: number) {
-  return Math.floor(randomBetween(min, max + 1, seed))
+  return Math.floor(randomBetween(min, max + 1, seed));
 }
 
 function pickRandom<T>(array: T[], seed: number): T {
-  return array[Math.floor(seededRandom(seed) * array.length)]
+  return array[Math.floor(seededRandom(seed) * array.length)];
 }
 
 function formatAmount(value: number) {
-  return Number(value.toFixed(2))
+  return Number(value.toFixed(2));
 }
 
 function createTransactionId(index: number) {
-  return `txn_${String(index).padStart(6, '0')}`
+  return `txn_${String(index).padStart(6, '0')}`;
 }
 
 function generateFreelanceAmount(seed: number) {
-  const chance = seededRandom(seed)
+  const chance = seededRandom(seed);
 
   if (chance < 0.3) {
-    return null
+    return null;
   }
 
-  return formatAmount(randomBetween(75, 600, seed + 99))
+  return formatAmount(randomBetween(75, 600, seed + 99));
 }
 
 // Months in which expenses outpace revenue. The remaining 8 months are surplus.
 // Spread across the year so deficits don't cluster.
-const DEFICIT_MONTHS = new Set<number>([2, 5, 8, 11]) // Mar, Jun, Sep, Dec
+const DEFICIT_MONTHS = new Set<number>([2, 5, 8, 11]); // Mar, Jun, Sep, Dec
 
-const SURPLUS_RATIO = 1.2 // salary covers 120% of that month's expenses
-const DEFICIT_RATIO = 0.7 // salary covers 70% of that month's expenses
+const SURPLUS_RATIO = 1.2; // salary covers 120% of that month's expenses
+const DEFICIT_RATIO = 0.7; // salary covers 70% of that month's expenses
 
 // Per-month expense scaling. Designed so that most month-over-month comparisons
 // trend down (green). The few up-ticks (Apr, Aug) provide realistic variety.
 // Index = month (0=Jan ... 11=Dec).
 const MONTH_INTENSITY = [
   1.0, 0.9, 0.85, 1.1, 0.9, 0.85, 0.95, 1.05, 0.85, 0.95, 0.9, 0.85,
-] as const
+] as const;
 
 // Year-over-year scaling. The previous year's baseline is higher so the current
 // year's totals look better in year-mode comparisons.
 const YEAR_INTENSITY: Record<number, number> = {
   [PREVIOUS_YEAR]: 1.2,
   [CURRENT_YEAR]: 1.0,
-}
+};
 
 function expenseScale(year: number, month: number): number {
-  return MONTH_INTENSITY[month] * (YEAR_INTENSITY[year] ?? 1)
+  return MONTH_INTENSITY[month] * (YEAR_INTENSITY[year] ?? 1);
 }
 
 function sumMonthExpenses(transactions: Transaction[], year: number, month: number): number {
-  let sum = 0
+  let sum = 0;
   for (const t of transactions) {
-    if (t.status !== 'completed' || t.type !== 'expense' || !t.date) continue
-    const d = new Date(t.date)
-    if (d.getFullYear() === year && d.getMonth() === month) sum += t.amount
+    if (t.status !== 'completed' || t.type !== 'expense' || !t.date) continue;
+    const d = new Date(t.date);
+    if (d.getFullYear() === year && d.getMonth() === month) sum += t.amount;
   }
-  return sum
+  return sum;
 }
 
 export function generateDemoFinance(currency: string = 'BRL'): Finance {
-  const transactions: Transaction[] = []
+  const transactions: Transaction[] = [];
 
-  let txIndex = 1
+  let txIndex = 1;
 
   YEARS.forEach((year) => {
     for (let month = 0; month < 12; month++) {
-      if (isFutureMonth(year, month)) continue
-      const maxDay = maxDayForMonth(year, month)
+      if (isFutureMonth(year, month)) continue;
+      const maxDay = maxDayForMonth(year, month);
 
       categories.forEach((category, categoryIndex) => {
-        const seed = year * 1000 + month * 100 + categoryIndex
+        const seed = year * 1000 + month * 100 + categoryIndex;
 
         if (category.id === 'receitas') {
-          const monthExpenses = sumMonthExpenses(transactions, year, month)
-          const isDeficit = DEFICIT_MONTHS.has(month)
-          const salary = formatAmount(
-            monthExpenses * (isDeficit ? DEFICIT_RATIO : SURPLUS_RATIO),
-          )
+          const monthExpenses = sumMonthExpenses(transactions, year, month);
+          const isDeficit = DEFICIT_MONTHS.has(month);
+          const salary = formatAmount(monthExpenses * (isDeficit ? DEFICIT_RATIO : SURPLUS_RATIO));
 
-          const salaryMaxDay = Math.min(5, maxDay)
+          const salaryMaxDay = Math.min(5, maxDay);
           if (salaryMaxDay >= 1) {
-            const salaryDate = new Date(year, month, randomInt(1, salaryMaxDay, seed))
+            const salaryDate = new Date(year, month, randomInt(1, salaryMaxDay, seed));
 
             transactions.push({
               id: createTransactionId(txIndex++),
@@ -270,15 +268,19 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
               status: 'completed',
               recurrence: 'monthly',
               date: salaryDate.toISOString(),
-            })
+            });
           }
 
           if (!isDeficit && maxDay >= 10) {
-            const freelanceAmount = generateFreelanceAmount(seed)
+            const freelanceAmount = generateFreelanceAmount(seed);
 
             if (freelanceAmount) {
-              const freelanceMaxDay = Math.min(28, maxDay)
-              const freelanceDate = new Date(year, month, randomInt(10, freelanceMaxDay, seed + 20))
+              const freelanceMaxDay = Math.min(28, maxDay);
+              const freelanceDate = new Date(
+                year,
+                month,
+                randomInt(10, freelanceMaxDay, seed + 20),
+              );
 
               transactions.push({
                 id: createTransactionId(txIndex++),
@@ -290,37 +292,30 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
                 status: 'completed',
                 recurrence: 'none',
                 date: freelanceDate.toISOString(),
-              })
+              });
             }
           }
 
-          return
+          return;
         }
 
-        const scale = expenseScale(year, month)
+        const scale = expenseScale(year, month);
 
         const entryCount = randomInt(
           category.behavior.minEntriesPerMonth,
           category.behavior.maxEntriesPerMonth,
           seed,
-        )
+        );
 
-        const expenseMaxDay = Math.min(28, maxDay)
+        const expenseMaxDay = Math.min(28, maxDay);
 
         for (let i = 0; i < entryCount; i++) {
           const amount = formatAmount(
-            randomBetween(
-              category.behavior.minAmount,
-              category.behavior.maxAmount,
-              seed + i,
-            ) * scale,
-          )
+            randomBetween(category.behavior.minAmount, category.behavior.maxAmount, seed + i) *
+              scale,
+          );
 
-          const transactionDate = new Date(
-            year,
-            month,
-            randomInt(1, expenseMaxDay, seed + i + 10),
-          )
+          const transactionDate = new Date(year, month, randomInt(1, expenseMaxDay, seed + i + 10));
 
           transactions.push({
             id: createTransactionId(txIndex++),
@@ -332,11 +327,11 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
             status: 'completed',
             recurrence: 'none',
             date: transactionDate.toISOString(),
-          })
+          });
         }
 
         if (category.behavior.recurring && maxDay >= 5) {
-          const scheduledDate = new Date(year, month, 5)
+          const scheduledDate = new Date(year, month, 5);
 
           transactions.push({
             id: createTransactionId(txIndex++),
@@ -344,24 +339,21 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
             categoryId: category.id,
             categoryName: category.name,
             amount: formatAmount(
-              randomBetween(
-                category.behavior.minAmount,
-                category.behavior.maxAmount,
-                seed + 999,
-              ) * scale,
+              randomBetween(category.behavior.minAmount, category.behavior.maxAmount, seed + 999) *
+                scale,
             ),
             description: `${category.name} recorrente`,
             status: 'scheduled',
             recurrence: 'monthly',
             startDate: scheduledDate.toISOString(),
             nextOccurrence: new Date(year, month + 1, 5).toISOString(),
-          })
+          });
         }
-      })
+      });
     }
-  })
+  });
 
-  const publicCategories: Category[] = categories.map(({ behavior: _behavior, ...rest }) => rest)
+  const publicCategories: Category[] = categories.map(({ behavior: _behavior, ...rest }) => rest);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -369,10 +361,10 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
     currency,
     categories: publicCategories,
     transactions: transactions.sort((a, b) => {
-      const dateA = new Date(a.date || a.startDate || '').getTime()
-      const dateB = new Date(b.date || b.startDate || '').getTime()
+      const dateA = new Date(a.date || a.startDate || '').getTime();
+      const dateB = new Date(b.date || b.startDate || '').getTime();
 
-      return dateB - dateA
+      return dateB - dateA;
     }),
-  }
+  };
 }

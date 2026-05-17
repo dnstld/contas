@@ -133,12 +133,11 @@ export default function UiDemoScreen() {
   }
 
   return (
-    <ScrollView
-      style={{ backgroundColor: background }}
-      contentContainerStyle={styles.container}
-    >
+    <ScrollView style={{ backgroundColor: background }} contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Text variant="display" weight="bold">Design System</Text>
+        <Text variant="display" weight="bold">
+          Design System
+        </Text>
         <Text variant="body" tone="textMuted">
           {Platform.OS === 'ios'
             ? 'Rendered with SwiftUI on iOS.'
@@ -154,7 +153,9 @@ export default function UiDemoScreen() {
         <Text variant="title">Title 24</Text>
         <Text variant="subtitle">Subtitle 18</Text>
         <Text variant="body">Body 15 — quick brown fox</Text>
-        <Text variant="caption" tone="textMuted">Caption 12 — muted</Text>
+        <Text variant="caption" tone="textMuted">
+          Caption 12 — muted
+        </Text>
         <Text variant="mono">Mono 14 — 1.2345</Text>
       </DemoBlock>
 
@@ -231,7 +232,9 @@ export default function UiDemoScreen() {
 
       <DemoBlock title="Slider">
         <Slider value={slider} onValueChange={setSlider} />
-        <Text variant="caption" tone="textMuted">{slider.toFixed(2)}</Text>
+        <Text variant="caption" tone="textMuted">
+          {slider.toFixed(2)}
+        </Text>
       </DemoBlock>
 
       <DemoBlock title="TextField">
@@ -293,12 +296,7 @@ export default function UiDemoScreen() {
       </DemoBlock>
 
       <DemoBlock title="MetricCard">
-        <MetricCard
-          label="May expenses"
-          value={1240.62}
-          delta={-82.4}
-          deltaPercentage={-0.062}
-        />
+        <MetricCard label="May expenses" value={1240.62} delta={-82.4} deltaPercentage={-0.062} />
       </DemoBlock>
 
       <DemoBlock title="MetricRow">

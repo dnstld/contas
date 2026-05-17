@@ -1,18 +1,14 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
-import { Stack, useRouter, useSegments } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useFinanceRealtime, useWalletRealtime } from "@/hooks/use-finance-realtime";
-import { FinanceQueryProvider } from "@/hooks/use-query-client";
-import { WalletProvider, useWallet } from "@/hooks/use-wallet";
-import { initI18n } from "@/i18n";
+import { AuthProvider, useAuth } from '@/hooks/use-auth';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useFinanceRealtime, useWalletRealtime } from '@/hooks/use-finance-realtime';
+import { FinanceQueryProvider } from '@/hooks/use-query-client';
+import { WalletProvider, useWallet } from '@/hooks/use-wallet';
+import { initI18n } from '@/i18n';
 
 function RootStack() {
   const { session, loading: authLoading } = useAuth();
@@ -27,11 +23,11 @@ function RootStack() {
 
   useEffect(() => {
     if (booting) return;
-    const inAuthRoute = segments[0] === "authentication";
+    const inAuthRoute = segments[0] === 'authentication';
     if (!session && !inAuthRoute) {
-      router.replace("/authentication");
+      router.replace('/authentication');
     } else if (session && inAuthRoute) {
-      router.replace("/(tabs)/(status)");
+      router.replace('/(tabs)/(status)');
     }
   }, [session, booting, segments, router]);
 
@@ -63,7 +59,7 @@ export default function RootLayout() {
   if (!i18nReady) return null;
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
         <FinanceQueryProvider>
           <WalletProvider>
