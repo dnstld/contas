@@ -15,12 +15,14 @@ import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useWallet } from '@/hooks/use-wallet';
 
 function HeaderLogo() {
   const { t } = useTranslation();
+  const { name } = useWallet();
   return (
     <Text variant="subtitle" weight="bold" style={{ letterSpacing: 1.5 }}>
-      {t('common.appName')}
+      {name ?? t('common.appName')}
     </Text>
   );
 }

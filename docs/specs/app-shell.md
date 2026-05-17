@@ -6,10 +6,10 @@ Implementation is platform-aware: on iOS 26+ the tab bar uses Apple's liquid-gla
 
 The header is implemented as a shared Stack layout (`components/navigation/app-stack-layout.tsx`) reused by every visible tab's `_layout.tsx`. The shared layout exposes:
 - a transparent stack header,
-- a left "CONTAS" wordmark,
+- a left wordmark showing the active wallet's name (falls back to "CONTAS" while loading),
 - a right "Add" button that pushes the `/create` modal.
 
-All user-visible labels in the shell (tab labels, the "Add" button) are sourced from i18next and follow the active language — see the [Localization spec](localization.md). The "CONTAS" wordmark is intentionally not translated; it is the app's brand mark.
+All user-visible labels in the shell (tab labels, the "Add" button) are sourced from i18next and follow the active language — see the [Localization spec](localization.md).
 
 ## Scenarios
 
@@ -20,14 +20,14 @@ Given that the user is logged in
 And the app launches in a development build (__DEV__ is true)
 When the bottom tab bar is rendered
 Then it must show exactly four visible tabs, in this order:
-  1. Balance — label from key "tabs.balance"; SF Symbol "house.fill" / drawable "ic_menu_home"
-     (en: "Balance" / pt-BR: "Balanço")
+  1. Status — label from key "tabs.balance"; SF Symbol "chart.bar.fill" / drawable "ic_menu_sort_by_size"
+     (en: "Status" / pt-BR: "Status")
   2. Transactions — label from key "tabs.transactions"; SF Symbol "arrow.left.arrow.right" / drawable "ic_menu_recent_history"
      (en: "Transactions" / pt-BR: "Transações")
-  3. Settings — label from key "tabs.settings"; SF Symbol "gearshape.fill" / drawable "ic_menu_preferences"
-     (en: "Settings" / pt-BR: "Ajustes")
+  3. Account — label from key "tabs.settings"; SF Symbol "person.crop.circle.fill" / drawable "ic_menu_manage"
+     (en: "Account" / pt-BR: "Conta")
   4. UI Demo — label from key "tabs.uiDemo"; SF Symbol "sparkles" / drawable "ic_menu_view"
-And the Balance tab must be selected by default
+And the Status tab must be selected by default
 And each label must come from i18next via useTranslation, so the bar re-renders when the active language changes
 ```
 
@@ -37,7 +37,7 @@ And each label must come from i18next via useTranslation, so the bar re-renders 
 Given that the app is built in production mode (__DEV__ is false)
 When the bottom tab bar is rendered
 Then the "UI Demo" tab must NOT be visible
-And the bar must show exactly three tabs: Balance, Transactions, and Settings (sourced from the same i18next keys)
+And the bar must show exactly three tabs: Status, Transactions, and Account (sourced from the same i18next keys)
 And no navigation to /ui-demo must be possible from the tab bar
 ```
 
@@ -69,7 +69,7 @@ Given that the app is running on iOS < 26 or on Android
 When the bottom tab bar is rendered
 Then it must render with the platform's default native tab bar style
 And no app crash or rendering error must occur due to liquid-glass-only props
-And the same tabs (Balance, Transactions, Settings — plus UI Demo when __DEV__) must be present, with the same i18next-driven labels
+And the same tabs (Status, Transactions, Account — plus UI Demo when __DEV__) must be present, with the same i18next-driven labels
 And the selected tab must reflect the theme's primary tint
 ```
 
@@ -90,7 +90,7 @@ Then the screen must not change
 ### Global header — placement and visibility
 
 ```
-Given that any visible tab is selected (Balance, Transactions, Settings, or UI Demo)
+Given that any visible tab is selected (Status, Transactions, Account, or UI Demo)
 When that tab's screen is rendered
 Then a native stack header must be visible at the top of the screen
 And the header must have a transparent background
@@ -115,13 +115,13 @@ And the explicit hidden /explore route is exempt — it has no _layout and there
 ```
 Given that the global header is rendered on any tab
 When the left header item is displayed
-Then it must display the text wordmark from key "common.appName" — value "CONTAS" — in uppercase
+Then it must display the active wallet's name sourced from useWallet().name
+And while the wallet is still loading (name is null), it must fall back to the text from key "common.appName" — value "CONTAS"
 And the text must use the design-system Text atom with variant="subtitle" and weight="bold"
 And the text must inherit the theme's primary text color (Colors[scheme].text)
 And letter-spacing of 1.5 must be applied for a logo-like appearance
 And no image asset must be rendered as the logo
-And the wordmark string must be identical in every supported language (it is the app's brand mark, not a translated label)
-And the wordmark must look and behave identically on every tab (Balance, Transactions, Settings, UI Demo)
+And the wordmark must look and behave identically on every tab (Status, Transactions, Account, UI Demo)
 ```
 
 ### Global header — "Add" button (right) on iOS
@@ -165,10 +165,10 @@ And the currently active tab's screen must remain in the stack underneath the mo
 And after the modal is dismissed, the user must return to the same tab and the same screen state they were on before
 ```
 
-### Balance screen — top spacing under the global header
+### Status screen — top spacing under the global header
 
 ```
-Given that the Balance screen is rendered with the transparent global header
+Given that the Status screen is rendered with the transparent global header
 When the screen's primary scrollable content is positioned
 Then the first content element (TimeFilterBar) must appear immediately below the header
   with no extra padding beyond the system content-inset adjustment
@@ -178,7 +178,7 @@ And the content must scroll under the transparent header (so the header overlays
 ### Other tabs — content under the global header
 
 ```
-Given that any non-Balance visible tab is rendered (Transactions, Settings, UI Demo)
+Given that any non-Status visible tab is rendered (Transactions, Account, UI Demo)
 When the screen's primary content is laid out
 Then it must respect the system content-inset adjustment so its content is not occluded by the transparent header
 And on tabs whose root content is a ScrollView, the scrollable content must scroll under the header (the header overlays it visually)
@@ -239,7 +239,7 @@ And while wallet bootstrap is still pending, the root stack must continue to ren
 And only after i18n, the auth context, and (when applicable) the wallet context have resolved
   must the route gate run and place the user on:
   - /authentication (if no session)
-  - /(tabs)/(balanco) (if a session exists)
+  - /(tabs)/(status) (if a session exists)
 And on that first eligible frame, the tab bar and global header must render with the correct,
   persisted language and currency, and the dashboard's first paint is already scoped to the resolved walletId
 ```
@@ -251,7 +251,7 @@ Given that the tab bar and global header are rendered
 When their scenarios reference "the user is logged in"
 Then the precondition is satisfied whenever useAuth().session is non-null
   (see the [Authentication spec](authentication.md) for the gate's full behavior)
-And whenever useAuth().session transitions to null (e.g. the user invokes signOut from Settings → Account)
+And whenever useAuth().session transitions to null (e.g. the user invokes signOut from the Account tab's profile card)
   the route gate in app/_layout.tsx must redirect to /authentication
   and the tab bar and global header must no longer be visible until a new session exists
 ```

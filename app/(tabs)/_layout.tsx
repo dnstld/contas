@@ -17,9 +17,9 @@ export default function TabLayout() {
       minimizeBehavior="never"
       disableTransparentOnScrollEdge
     >
-      <NativeTabs.Trigger name="(balanco)">
+      <NativeTabs.Trigger name="(status)">
         <NativeTabs.Trigger.Label>{t('tabs.balance')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="house.fill" drawable="ic_menu_home" />
+        <NativeTabs.Trigger.Icon sf="chart.bar.fill" drawable="ic_menu_sort_by_size" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="transactions">
@@ -30,11 +30,11 @@ export default function TabLayout() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="settings">
+      <NativeTabs.Trigger name="account">
         <NativeTabs.Trigger.Label>{t('tabs.settings')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          sf="gearshape.fill"
-          drawable="ic_menu_preferences"
+          sf="person.crop.circle.fill"
+          drawable="ic_menu_manage"
         />
       </NativeTabs.Trigger>
 

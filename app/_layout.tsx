@@ -88,7 +88,7 @@ function RootStack() {
     if (!session && !inAuthRoute) {
       router.replace("/authentication");
     } else if (session && inAuthRoute) {
-      router.replace("/(tabs)/(balanco)");
+      router.replace("/(tabs)/(status)");
     }
   }, [session, booting, segments, router]);
 

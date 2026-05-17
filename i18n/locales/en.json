@@ -4,7 +4,7 @@
     "add": "Add"
   },
   "tabs": {
-    "balance": "Balance",
+    "balance": "Status",
     "transactions": "Transactions",
     "settings": "Settings",
     "uiDemo": "UI Demo"
@@ -37,6 +37,20 @@
     "signInWithGoogle": "Sign in with Google",
     "signOut": "Sign out"
   },
+  "profile": {
+    "actions": {
+      "editName": "Edit",
+      "signOut": "Sign out"
+    },
+    "editName": {
+      "title": "Edit name",
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    }
+  },
   "settings": {
     "title": "Settings",
     "sections": {
@@ -57,14 +71,14 @@
       "description": "Replace all real values with sample data."
     },
     "languageRow": {
-      "title": "App language"
+      "title": "Language"
     },
     "languages": {
       "en": "English",
       "pt-BR": "Portuguese (Brazil)"
     },
     "currencyRow": {
-      "title": "Display currency"
+      "title": "Currency"
     },
     "currencies": {
       "BRL": "Brazilian Real (R$)",

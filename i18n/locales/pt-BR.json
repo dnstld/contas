@@ -4,9 +4,9 @@
     "add": "Adicionar"
   },
   "tabs": {
-    "balance": "Balanço",
+    "balance": "Status",
     "transactions": "Transações",
-    "settings": "Ajustes",
+    "settings": "Conta",
     "uiDemo": "UI Demo"
   },
   "balance": {
@@ -37,8 +37,22 @@
     "signInWithGoogle": "Entrar com o Google",
     "signOut": "Sair"
   },
+  "profile": {
+    "actions": {
+      "editName": "Editar",
+      "signOut": "Sair"
+    },
+    "editName": {
+      "title": "Editar nome",
+      "nameLabel": "Nome",
+      "namePlaceholder": "Seu nome",
+      "save": "Salvar",
+      "saving": "Salvando…",
+      "cancel": "Cancelar"
+    }
+  },
   "settings": {
-    "title": "Ajustes",
+    "title": "Conta",
     "sections": {
       "display": "Exibição",
       "regional": "Idioma e moeda",
@@ -57,14 +71,14 @@
       "description": "Substitui todos os valores reais por dados de exemplo."
     },
     "languageRow": {
-      "title": "Idioma do app"
+      "title": "Idioma"
     },
     "languages": {
       "en": "Inglês",
       "pt-BR": "Português (Brasil)"
     },
     "currencyRow": {
-      "title": "Moeda de exibição"
+      "title": "Moeda"
     },
     "currencies": {
       "BRL": "Real (R$)",

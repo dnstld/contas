@@ -45,7 +45,7 @@ And the authentication screen must become the visible screen
 Given that auth context has finished loading
 And a session exists
 When the user is currently on /authentication
-Then the root layout must call router.replace('/(tabs)/(balanco)')
+Then the root layout must call router.replace('/(tabs)/(status)')
 And the Balance tab must become the visible screen
 ```
 
@@ -90,7 +90,7 @@ And signInWithGoogle() must run the following sequence:
   4. await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
   5. throw on any returned Supabase error
 And on success, the onAuthStateChange listener in <AuthProvider> must receive a SIGNED_IN event
-And the route gate must observe the new session and redirect to /(tabs)/(balanco)
+And the route gate must observe the new session and redirect to /(tabs)/(status)
 And on failure, the button must return to its enabled state and the error must be logged to console.error
   (no UI surfacing yet — error surfacing is out of scope for this iteration)
 ```
