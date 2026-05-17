@@ -4,12 +4,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Transition from 'react-native-screen-transitions';
 
 import { CategoryFormModal } from '@/components/transactions/create-category-modal';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
@@ -184,14 +184,10 @@ export function TransactionForm({
 
   return (
     <SafeAreaView
-      edges={['top']}
+      edges={['bottom']}
       style={[styles.root, { backgroundColor }]}
     >
-      <View
-        style={styles.dragHandleWrap}
-        accessibilityRole="adjustable"
-        accessibilityLabel={t('create.close')}
-      >
+      <View style={styles.dragHandleWrap}>
         <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
       </View>
 
@@ -199,7 +195,7 @@ export function TransactionForm({
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Transition.ScrollView
+        <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -327,7 +323,7 @@ export function TransactionForm({
               </Text>
             </View>
           </View>
-        </Transition.ScrollView>
+        </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
           {errorMessage ? (

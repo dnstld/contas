@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
+    paddingTop: 16,
     gap: 32,
   },
   totalCard: {

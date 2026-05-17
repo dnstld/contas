@@ -1,7 +1,5 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -12,11 +10,7 @@ export default function TabLayout() {
   const { t } = useTranslation();
 
   return (
-    <NativeTabs
-      tintColor={palette.tint}
-      minimizeBehavior="never"
-      disableTransparentOnScrollEdge
-    >
+    <NativeTabs tintColor={palette.tint}>
       <NativeTabs.Trigger name="(status)">
         <NativeTabs.Trigger.Label>{t('tabs.balance')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="chart.bar.fill" drawable="ic_menu_sort_by_size" />
@@ -44,13 +38,6 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>{t('tabs.uiDemo')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="sparkles" drawable="ic_menu_view" />
       </NativeTabs.Trigger>
-
-      {/* iOS 26 renders the tab bar as a Liquid Glass floating pill only when a
-          BottomAccessory is present. Empty content keeps the glass without
-          showing a real accessory bar. */}
-      <NativeTabs.BottomAccessory>
-        <View style={{ width: 1, height: 1, opacity: 0 }} />
-      </NativeTabs.BottomAccessory>
     </NativeTabs>
   );
 }

@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "CONTAS",
-    "add": "Adicionar"
+    "add": "Lançar"
   },
   "tabs": {
     "balance": "Status",

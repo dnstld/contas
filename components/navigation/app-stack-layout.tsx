@@ -22,7 +22,7 @@ function HeaderLogo() {
   const { name } = useWallet();
   return (
     <Text variant="subtitle" weight="bold" style={{ letterSpacing: 1.5 }}>
-      {name ?? t('common.appName')}
+      {name ? `Contas: ${name}` : t('common.appName')}
     </Text>
   );
 }
@@ -72,13 +72,16 @@ function HeaderCreateButton({ onPress }: { onPress: () => void }) {
 
 export default function AppStackLayout() {
   const router = useRouter();
+  const scheme = useColorScheme() ?? 'light';
+  const backgroundColor = Colors[scheme].background;
 
   return (
     <Stack
       screenOptions={{
         headerTransparent: true,
-        headerTitle: () => <HeaderLogo />,
-        headerTitleAlign: 'left',
+        headerStyle: { backgroundColor },
+        headerTitle: '',
+        headerLeft: () => <HeaderLogo />,
         headerShadowVisible: false,
         headerRight: () => (
           <HeaderCreateButton onPress={() => router.push('/create')} />
