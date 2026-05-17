@@ -13,13 +13,14 @@ All amounts are stored as **integer cents** (`bigint`) — no floating-point mon
 ```
 Given that the migration has been applied
 When the public schema is inspected
-Then exactly these six tables must exist:
+Then exactly these seven tables must exist:
   1. profiles            — 1:1 mirror of auth.users with display info
   2. wallets             — a financial space owned by one or more users
   3. wallet_members      — many-to-many membership: which users belong to which wallets
   4. wallet_invitations  — single-use codes that grant membership when redeemed
   5. categories          — per-wallet category list (expense or income)
   6. transactions        — the ledger; each row belongs to a wallet and a category
+  7. wallet_delete_requests — pending wallet-deletion requests requiring partner confirmation
 And every table must have created_at and updated_at columns where mutation is expected
   (profiles, wallets, categories, transactions); wallet_members and wallet_invitations are append/delete only
 And the trigger function public.tg_set_updated_at must maintain updated_at on UPDATE for those tables
@@ -93,6 +94,28 @@ And if the caller has no wallets, it must:
 And the function runs SECURITY DEFINER with search_path = public
 ```
 
+### Wallet preference resolution (client-side)
+
+```
+Given that a signed-in user may belong to more than one wallet
+  (e.g. an auto-bootstrapped personal wallet from get_or_create_default_wallet
+   AND a wallet they later joined via redeem_wallet_invitation)
+When the wallet context resolves the "active" wallet for the session
+Then the client must NOT rely solely on get_or_create_default_wallet's oldest-by-joined_at result
+  (which would lock a user to their original personal wallet and hide the shared one)
+And the client must instead read all wallet_members rows visible to the user
+  (RLS already lets a member see every co-member of every wallet they belong to)
+And the client must group those rows by wallet_id, then pick the wallet with the most members
+  (ties broken by most-recent joined_at for the current user)
+And for a couples app where any wallet has at most two members, this guarantees that a shared
+  wallet always wins over a leftover empty personal wallet
+And the chosen wallet_id must be persisted to local storage (KV store, key "wallet:selected-id:<uid>")
+  so the same wallet resumes on next launch
+And on every sign-in the cached wallet_id must be re-validated against current memberships;
+  if the user is no longer a member of the cached wallet (e.g. they left it), the resolver falls back
+  to the preference logic above, and as a last resort to get_or_create_default_wallet
+```
+
 ### redeem_wallet_invitation RPC
 
 ```
@@ -106,6 +129,69 @@ And if the row is valid:
   1. Insert (wallet_id, auth.uid()) into wallet_members with `on conflict do nothing`
   2. Delete the wallet_invitations row (single-use)
   3. Return the wallet_id
+And the function runs SECURITY DEFINER with search_path = public
+```
+
+### create_wallet RPC
+
+```
+Given that the client calls public.create_wallet(p_name text, p_currency text default 'BRL')
+When the function runs
+Then it must require auth.uid() to be non-null (raise "not authenticated" otherwise)
+And it must validate p_name length: 1–60 chars after trim (raise on violation)
+And it must validate p_currency length: exactly 3 chars (raise on violation)
+And it must count the caller's current wallet_members rows
+And if the count is >= 2, raise "free_tier_limit" with hint "upgrade to create more wallets"
+  (free-tier cap: a user may belong to at most 2 wallets simultaneously)
+And if the count is < 2, insert into wallets (name = trim(p_name), currency = upper(p_currency), created_by = auth.uid())
+And the wallets_after_insert trigger fires automatically (adds caller as member, seeds default categories)
+And the function returns the new wallet UUID
+And the function runs SECURITY DEFINER with search_path = public
+```
+
+### request_or_delete_wallet RPC
+
+```
+Given that the client calls public.request_or_delete_wallet(p_wallet_id uuid)
+When the function runs
+Then it must require auth.uid() to be non-null (raise "not authenticated" otherwise)
+And it must verify the caller is a member of p_wallet_id (raise "not a member of this wallet" otherwise)
+And it must check whether a wallet_delete_requests row already exists for p_wallet_id:
+  - If found and requested_by = auth.uid(): return 'pending' (idempotent re-request)
+  - If found and requested_by ≠ auth.uid(): raise "delete_already_requested"
+And if no request exists, count the current members of p_wallet_id:
+  - count ≤ 1 → hard-delete the wallet and return the text 'deleted'
+  - count ≥ 2 → insert a wallet_delete_requests row (wallet_id, requested_by = auth.uid()) and return 'pending'
+And the function runs SECURITY DEFINER with search_path = public
+```
+
+### confirm_wallet_deletion RPC
+
+```
+Given that the client calls public.confirm_wallet_deletion(p_wallet_id uuid)
+When the function runs
+Then it must require auth.uid() to be non-null (raise "not authenticated" otherwise)
+And it must verify the caller is a member of p_wallet_id (raise "not a member of this wallet" otherwise)
+And it must look up the wallet_delete_requests row for p_wallet_id:
+  - If not found: raise "no_pending_delete_request"
+  - If requested_by = auth.uid(): raise "cannot_confirm_own_request"
+    (only the non-requesting member may confirm)
+And if the request is valid and was made by a different member, hard-delete the wallet
+And the ON DELETE CASCADE on wallet_delete_requests.wallet_id removes the request row automatically
+And the function runs SECURITY DEFINER with search_path = public
+```
+
+### cancel_wallet_deletion RPC
+
+```
+Given that the client calls public.cancel_wallet_deletion(p_wallet_id uuid)
+When the function runs
+Then it must require auth.uid() to be non-null (raise "not authenticated" otherwise)
+And it must verify the caller is a member of p_wallet_id (raise "not a member of this wallet" otherwise)
+And it must DELETE FROM wallet_delete_requests WHERE wallet_id = p_wallet_id
+And if no row was deleted (not found), raise "no_pending_delete_request"
+And either member may cancel — there is no ownership restriction on cancellation
+And the wallet itself is NOT deleted
 And the function runs SECURITY DEFINER with search_path = public
 ```
 
@@ -133,6 +219,22 @@ And being SECURITY DEFINER lets the function read wallet_members without trigger
 And the function is purely read-side; it must never mutate
 ```
 
+### wallet_delete_requests — pending deletion handshake
+
+```
+Given that a wallet member initiates deletion of a shared wallet
+When another member must confirm before the wallet is hard-deleted
+Then a row must be inserted into public.wallet_delete_requests with:
+  - id           (uuid, generated)
+  - wallet_id    (uuid, FK → wallets.id, ON DELETE CASCADE)
+  - requested_by (uuid, FK → profiles.id, ON DELETE CASCADE)
+  - created_at   (timestamptz, default now())
+And the table must enforce a UNIQUE constraint on wallet_id
+  (only one active deletion request per wallet at a time)
+And when the wallet itself is deleted (hard delete), the request row is removed automatically via ON DELETE CASCADE
+And when only one member is in the wallet, request_or_delete_wallet deletes immediately without inserting a request row
+```
+
 ### Row Level Security — coverage
 
 ```
@@ -140,12 +242,13 @@ Given that the migration has been applied
 When pg_policies is inspected for schema = 'public'
 Then RLS must be enabled on every table in the schema
 And the policy counts must be:
-  - profiles            : 2 (select, update)
-  - wallets             : 4 (select, insert, update, delete)
-  - wallet_members      : 2 (select, delete) — no INSERT policy by design
-  - wallet_invitations  : 3 (select, insert, delete)
-  - categories          : 4 (select, insert, update, delete)
-  - transactions        : 4 (select, insert, update, delete)
+  - profiles                 : 2 (select, update)
+  - wallets                  : 4 (select, insert, update, delete)
+  - wallet_members           : 2 (select, delete) — no INSERT policy by design
+  - wallet_invitations       : 3 (select, insert, delete)
+  - wallet_delete_requests   : 3 (select, insert, delete) — no UPDATE policy by design
+  - categories               : 4 (select, insert, update, delete)
+  - transactions             : 4 (select, insert, update, delete)
 ```
 
 ### Profiles policies
@@ -194,6 +297,20 @@ And a member may INSERT an invitation provided created_by = auth.uid()
 And invitations are NEVER updatable via REST — to extend or rotate, delete and recreate
 ```
 
+### wallet_delete_requests policies
+
+```
+Given that the wallet_delete_requests table has RLS enabled
+When deletion requests are accessed
+Then any wallet member may SELECT requests for their wallet (is_wallet_member(wallet_id))
+And a wallet member may INSERT a request only when requested_by = auth.uid()
+  (the RPC request_or_delete_wallet enforces this; the INSERT policy is a belt-and-suspenders guard)
+And any wallet member may DELETE the request (either the requester or the partner may cancel)
+And there is NO UPDATE policy — a request cannot be modified; it is either active or deleted
+And the four RPCs (request_or_delete_wallet, confirm_wallet_deletion, cancel_wallet_deletion)
+  run SECURITY DEFINER, so they bypass RLS for their internal DML
+```
+
 ### Categories policies
 
 ```
@@ -240,6 +357,7 @@ When the database's indexes are inspected
 Then at minimum these performance-relevant indexes must exist:
   - wallet_members_user_idx                       on wallet_members (user_id)
   - wallet_invitations_wallet_idx                 on wallet_invitations (wallet_id)
+  - wallet_delete_requests_wallet_idx             on wallet_delete_requests (wallet_id)
   - categories_wallet_name_type_idx (UNIQUE)      on categories (wallet_id, lower(name), type)
   - categories_wallet_type_idx                    on categories (wallet_id, type)
   - transactions_wallet_occurred_idx              on transactions (wallet_id, occurred_at desc)
@@ -252,11 +370,14 @@ And the primary key columns (id) on every table provide their own indexes implic
 ```
 Given that the client subscribes to per-wallet finance changes via Supabase Realtime
 When the publication `supabase_realtime` is inspected
-Then it must include `public.transactions` and `public.categories`
-And the client subscribes with the filter `wallet_id=eq.<active wallet id>` on each table
-And on any postgres_changes event, the corresponding TanStack Query cache key is invalidated
+Then it must include `public.transactions`, `public.categories`, and `public.wallet_delete_requests`
+And for transactions and categories, the client subscribes with the filter `wallet_id=eq.<active wallet id>`
+And on any postgres_changes event for transactions/categories, the corresponding TanStack Query cache key is invalidated
   (finance:<wallet>:transactions or finance:<wallet>:categories)
-And the publication membership is established by the wallet_currency_and_realtime migration
+And for wallet_delete_requests, the client subscribes without a filter (RLS limits visibility to the user's wallets)
+And on any postgres_changes event for wallet_delete_requests or wallet_members, the wallets list cache key is invalidated
+  (wallets:<userId>:list — drives reactive UI updates in the Danger Zone and WalletsModal)
+And the supabase_realtime publication is extended by the wallet_management migration
 ```
 
 ### Money is integer cents

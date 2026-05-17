@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       categories: {
@@ -140,6 +165,42 @@ export type Database = {
           },
         ]
       }
+      wallet_delete_requests: {
+        Row: {
+          created_at: string
+          id: string
+          requested_by: string
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          requested_by: string
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          requested_by?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_delete_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_delete_requests_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: true
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_invitations: {
         Row: {
           code: string
@@ -255,12 +316,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_wallet_deletion: {
+        Args: { p_wallet_id: string }
+        Returns: undefined
+      }
+      confirm_wallet_deletion: {
+        Args: { p_wallet_id: string }
+        Returns: undefined
+      }
+      create_wallet: {
+        Args: { p_currency?: string; p_name: string }
+        Returns: string
+      }
       get_or_create_default_wallet: {
         Args: { p_name?: string }
         Returns: string
       }
       is_wallet_member: { Args: { wid: string }; Returns: boolean }
       redeem_wallet_invitation: { Args: { p_code: string }; Returns: string }
+      request_or_delete_wallet: {
+        Args: { p_wallet_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
@@ -389,7 +466,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+

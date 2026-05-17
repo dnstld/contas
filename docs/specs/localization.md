@@ -119,7 +119,7 @@ And the dashboard's primaryValue, lens rows, category cards, transactions list, 
 And consistency is achieved via the wallet context update + TanStack Query cache invalidation, NOT via persisted-state broadcast
 ```
 
-> Per-wallet currency selection UI (a picker that writes `wallets.currency`) is currently exposed by the Settings → Language → Display currency row for backwards compatibility. A dedicated "Wallet settings" surface is a future spec/UI task.
+> Per-wallet currency selection UI (a picker that writes `wallets.currency`) is exposed in Settings → Language & currency → Currency row. The same currency picker is also available in the WalletsModal create-wallet form, where the user sets the initial currency for a new wallet.
 
 ### Translation completeness
 
@@ -143,6 +143,7 @@ And in en, the "_one" form must be used for count = 1 and "_other" for count ≠
 Currently parameterized keys:
   - category.transactionCount (e.g. "1 transação" / "2 transações" / "1 transaction" / "2 transactions")
   - category.selectedCount (e.g. "1 selecionada" / "2 selecionadas" / "1 selected" / "2 selected")
+  - wallets.membersMany (e.g. "2 members" / "2 membros") — wallets.membersOne used for count = 1 (not a plural suffix key)
 ```
 
 ### Interpolation rules
@@ -155,6 +156,10 @@ And no HTML/JSX escaping must be applied (escapeValue: false)
 Currently interpolated keys:
   - category.vsPrevious — {{label}}, {{value}}
   - overview.vsPrevious — {{label}}, {{value}}
+  - dangerZone.delete.partnerDescription — {{partner}}
+  - dangerZone.delete.partnerMessage — {{partner}}
+  - dangerZone.delete.waitingCaption — {{partner}}
+  - dangerZone.delete.partnerRequestedTitle — {{partner}}
 ```
 
 ### Month names follow the active language

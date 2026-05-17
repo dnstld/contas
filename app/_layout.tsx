@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useFinanceRealtime } from "@/hooks/use-finance-realtime";
+import { useFinanceRealtime, useWalletRealtime } from "@/hooks/use-finance-realtime";
 import { FinanceQueryProvider } from "@/hooks/use-query-client";
 import { WalletProvider, useWallet } from "@/hooks/use-wallet";
 import { initI18n } from "@/i18n";
@@ -21,6 +21,7 @@ function RootStack() {
   const router = useRouter();
 
   useFinanceRealtime();
+  useWalletRealtime();
 
   const booting = authLoading || (!!session && walletLoading);
 

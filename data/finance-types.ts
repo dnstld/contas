@@ -33,3 +33,22 @@ export type Finance = {
   categories: Category[]
   transactions: Transaction[]
 }
+
+export type WalletMember = {
+  userId: string
+  displayName: string | null
+  avatarUrl: string | null
+  joinedAt: string
+}
+
+export type WalletWithMeta = {
+  id: string
+  name: string
+  currency: string
+  memberCount: number
+  members: WalletMember[]
+  createdAt: string
+  pendingDeleteRequest: { requestedByUserId: string; createdAt: string } | null
+}
+
+export type DeleteWalletResult = 'deleted' | 'pending'

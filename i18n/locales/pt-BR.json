@@ -1,7 +1,14 @@
 {
   "common": {
     "appName": "CONTAS",
-    "add": "Lançar"
+    "add": "Lançar",
+    "cancel": "Cancelar",
+    "manage": "Gerenciar",
+    "back": "Voltar",
+    "done": "Pronto",
+    "loading": "Carregando…",
+    "saving": "Salvando…",
+    "create": "Criar"
   },
   "tabs": {
     "balance": "Status",
@@ -56,7 +63,11 @@
     "sections": {
       "display": "Exibição",
       "regional": "Idioma e moeda",
-      "account": "Conta"
+      "account": "Conta",
+      "wallets": "Carteiras"
+    },
+    "walletsRow": {
+      "title": "Minhas Carteiras"
     },
     "signOutRow": {
       "title": "Sair",
@@ -154,6 +165,56 @@
       "confirmCancel": "Cancelar",
       "errorToast": "Não foi possível sair da carteira. Tente novamente."
     }
+  },
+  "dangerZone": {
+    "title": "Zona de Perigo",
+    "leave": {
+      "title": "Sair da Carteira",
+      "description": "Remove você. Seu parceiro(a) mantém todos os dados.",
+      "soloCaption": "Disponível apenas quando você compartilha esta carteira.",
+      "button": "Sair"
+    },
+    "delete": {
+      "title": "Excluir Carteira",
+      "soloDescription": "Exclui permanentemente todos os dados da carteira.",
+      "partnerDescription": "Precisa da aprovação de {{partner}} antes de excluir.",
+      "button": "Excluir",
+      "soloTitle": "Excluir Carteira?",
+      "soloMessage": "Isso excluirá permanentemente a carteira e todos os seus dados. Essa ação não pode ser desfeita.",
+      "partnerTitle": "Solicitar Exclusão?",
+      "partnerMessage": "{{partner}} receberá uma solicitação de exclusão e precisará aprovar antes que qualquer dado seja deletado.",
+      "confirmAction": "Excluir",
+      "requestAction": "Enviar Solicitação",
+      "waitingBadge": "Pendente",
+      "waitingCaption": "Aguardando {{partner}} aprovar. Você pode cancelar a qualquer momento.",
+      "cancelRequest": "Cancelar solicitação",
+      "partnerRequestedTitle": "{{partner}} quer excluir esta carteira",
+      "partnerRequestedCaption": "Ao aprovar, todos os dados serão excluídos permanentemente e não poderão ser recuperados.",
+      "approveTitle": "Aprovar Exclusão?",
+      "approveMessage": "Isso excluirá permanentemente a carteira e todos os dados para os dois. Essa ação não pode ser desfeita.",
+      "approveAction": "Sim, excluir a carteira"
+    }
+  },
+  "wallets": {
+    "modalTitle": "Minhas Carteiras",
+    "createTitle": "Criar Carteira",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Nome da carteira",
+    "freeTierLimit": "Faça upgrade para criar mais carteiras",
+    "activeLabel": "Ativa",
+    "switchButton": "Mudar",
+    "membersOne": "1 membro",
+    "membersMany": "{{count}} membros",
+    "pendingDeleteOwner": "Aguardando seu parceiro(a) confirmar a exclusão.",
+    "pendingDeleteOther": "Seu parceiro(a) quer excluir esta carteira.",
+    "confirmDeleteButton": "Confirmar",
+    "cancelDeleteButton": "Cancelar",
+    "deleteConfirmTitle": "Excluir Carteira",
+    "deleteConfirmMessage": "Esta ação excluirá permanentemente a carteira e todos os seus dados. Isso não pode ser desfeito.",
+    "deleteConfirmAction": "Excluir",
+    "deleteRequestTitle": "Solicitar Exclusão",
+    "deleteRequestMessage": "Seu parceiro(a) precisará confirmar antes de a carteira ser excluída.",
+    "deleteRequestAction": "Enviar Solicitação"
   },
   "category": {
     "create": {

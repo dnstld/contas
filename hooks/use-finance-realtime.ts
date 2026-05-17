@@ -2,6 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { financeKeys } from '@/hooks/use-finance-queries';
+import { useAuth } from '@/hooks/use-auth';
+import { walletKeys } from '@/hooks/use-wallet-list';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
 
@@ -44,4 +46,36 @@ export function useFinanceRealtime() {
       supabase.removeChannel(channel);
     };
   }, [walletId, qc]);
+}
+
+export function useWalletRealtime() {
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`wallet-meta:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'wallet_delete_requests' },
+        () => {
+          qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'wallet_members' },
+        () => {
+          qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, qc]);
 }

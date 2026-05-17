@@ -2,7 +2,7 @@ import { useFocusEffect } from 'expo-router';
 import { Image } from 'expo-image';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   Divider,
@@ -13,13 +13,15 @@ import {
   Text,
   Toggle,
 } from '@/components/ui';
+import { DangerZone } from '@/components/settings/danger-zone';
 import { EditDisplayNameModal } from '@/components/settings/edit-display-name-modal';
 import { InvitationSection } from '@/components/settings/invitation-section';
+import { WalletsModal } from '@/components/settings/wallets-modal';
 import { useAuth } from '@/hooks/use-auth';
 import { useCurrency, type SupportedCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/hooks/use-language';
-import { useLeaveWallet } from '@/hooks/use-leave-wallet';
 import { useMyProfile } from '@/hooks/use-my-profile';
+import { useWallet } from '@/hooks/use-wallet';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
@@ -50,6 +52,8 @@ export default function SettingsScreen() {
   const currentUserId = session?.user?.id ?? null;
 
   const [editNameVisible, setEditNameVisible] = useState(false);
+  const [walletsVisible, setWalletsVisible] = useState(false);
+  const { name: walletName } = useWallet();
 
   const { language, setLanguage, supported } = useLanguage();
   const {
@@ -66,8 +70,7 @@ export default function SettingsScreen() {
     false,
   );
 
-  const { members, isLoading: membersLoading, refetch: refetchMembers } = useWalletMembers();
-  const leaveWallet = useLeaveWallet();
+  const { members, refetch: refetchMembers } = useWalletMembers();
 
   useFocusEffect(
     useCallback(() => {
@@ -76,7 +79,6 @@ export default function SettingsScreen() {
   );
 
   const partner = members.find((m) => m.userId !== currentUserId) ?? null;
-  const isSolo = !membersLoading && members.length <= 1;
 
   const languageOptions = useMemo(
     () =>
@@ -95,31 +97,6 @@ export default function SettingsScreen() {
       })),
     [supportedCurrencies, t],
   );
-
-  const handleLeave = () => {
-    Alert.alert(
-      t('wallet.leave.confirmTitle'),
-      t('wallet.leave.confirmBody'),
-      [
-        { text: t('wallet.leave.confirmCancel'), style: 'cancel' },
-        {
-          text: t('wallet.leave.confirmLeave'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await leaveWallet.mutateAsync();
-            } catch {
-              Alert.alert(t('wallet.leave.errorToast'));
-            }
-          },
-        },
-      ],
-    );
-  };
-
-  const handleRedeemSuccess = () => {
-    // members query refreshes via invalidation in useRedeemInvitation
-  };
 
   return (
     <>
@@ -200,7 +177,7 @@ export default function SettingsScreen() {
         </Surface>
 
         {!partner ? (
-          <InvitationSection onRedeemSuccess={handleRedeemSuccess} />
+          <InvitationSection onRedeemSuccess={() => {}} />
         ) : null}
 
         <SettingsSection title={t('settings.sections.display')}>
@@ -215,6 +192,20 @@ export default function SettingsScreen() {
             title={t('settings.demoMode.title')}
             description={t('settings.demoMode.description')}
             trailing={<Toggle value={demoMode} onValueChange={setDemoMode} />}
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('settings.sections.wallets')}>
+          <SettingsRow
+            title={t('settings.walletsRow.title')}
+            description={walletName ?? undefined}
+            trailing={
+              <Pressable onPress={() => setWalletsVisible(true)} hitSlop={8}>
+                <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
+                  {t('common.manage')}
+                </Text>
+              </Pressable>
+            }
           />
         </SettingsSection>
 
@@ -241,37 +232,21 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
-        <View style={styles.leaveSection}>
-          <Pressable
-            onPress={isSolo ? undefined : handleLeave}
-            disabled={isSolo || leaveWallet.isPending}
-            style={({ pressed }) => [
-              styles.leaveBtn,
-              { borderColor: isSolo ? borderColor : dangerColor },
-              (isSolo || leaveWallet.isPending) && styles.leaveBtnDisabled,
-              !isSolo && pressed && { opacity: 0.6 },
-            ]}
-          >
-            <Text
-              variant="caption"
-              weight="medium"
-              style={{ color: isSolo ? mutedColor : dangerColor }}
-            >
-              {t('wallet.leave.button')}
-            </Text>
-          </Pressable>
-          {isSolo ? (
-            <Text variant="caption" tone="textMuted" style={styles.leaveCaption}>
-              {t('wallet.leave.disabledCaption')}
-            </Text>
-          ) : null}
-        </View>
+        <DangerZone
+          currentUserId={currentUserId ?? ''}
+          partnerName={partner?.displayName ?? null}
+          hasParter={!!partner}
+        />
       </ScrollView>
 
       <EditDisplayNameModal
         visible={editNameVisible}
         currentName={displayName}
         onClose={() => setEditNameVisible(false)}
+      />
+      <WalletsModal
+        visible={walletsVisible}
+        onClose={() => setWalletsVisible(false)}
       />
     </>
   );
@@ -316,23 +291,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
-  },
-  leaveSection: {
-    gap: 8,
-    alignItems: 'center',
-  },
-  leaveBtn: {
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  leaveBtnDisabled: {
-    opacity: 0.5,
-  },
-  leaveCaption: {
-    textAlign: 'center',
-    paddingHorizontal: 16,
   },
 });

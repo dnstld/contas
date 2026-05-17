@@ -1,7 +1,14 @@
 {
   "common": {
     "appName": "CONTAS",
-    "add": "Add"
+    "add": "Add",
+    "cancel": "Cancel",
+    "manage": "Manage",
+    "back": "Back",
+    "done": "Done",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "create": "Create"
   },
   "tabs": {
     "balance": "Status",
@@ -56,7 +63,11 @@
     "sections": {
       "display": "Display",
       "regional": "Language & Currency",
-      "account": "Account"
+      "account": "Account",
+      "wallets": "Wallets"
+    },
+    "walletsRow": {
+      "title": "My Wallets"
     },
     "signOutRow": {
       "title": "Sign out",
@@ -154,6 +165,56 @@
       "confirmCancel": "Cancel",
       "errorToast": "Could not leave the wallet. Please try again."
     }
+  },
+  "dangerZone": {
+    "title": "Danger Zone",
+    "leave": {
+      "title": "Leave Wallet",
+      "description": "Remove yourself. Your partner keeps all data.",
+      "soloCaption": "Only available when you share this wallet.",
+      "button": "Leave"
+    },
+    "delete": {
+      "title": "Delete Wallet",
+      "soloDescription": "Permanently deletes all wallet data.",
+      "partnerDescription": "Needs {{partner}}'s approval before deleting.",
+      "button": "Delete",
+      "soloTitle": "Delete Wallet?",
+      "soloMessage": "This will permanently delete the wallet and all its data. This cannot be undone.",
+      "partnerTitle": "Request Deletion?",
+      "partnerMessage": "{{partner}} will receive a deletion request and must approve it before anything is deleted.",
+      "confirmAction": "Delete",
+      "requestAction": "Send Request",
+      "waitingBadge": "Pending",
+      "waitingCaption": "Waiting for {{partner}} to approve. You can cancel at any time.",
+      "cancelRequest": "Cancel request",
+      "partnerRequestedTitle": "{{partner}} wants to delete this wallet",
+      "partnerRequestedCaption": "Once you approve, all data will be permanently deleted and cannot be recovered.",
+      "approveTitle": "Approve Deletion?",
+      "approveMessage": "This will permanently delete the wallet and all its data for both of you. This cannot be undone.",
+      "approveAction": "Yes, delete the wallet"
+    }
+  },
+  "wallets": {
+    "modalTitle": "My Wallets",
+    "createTitle": "Create Wallet",
+    "nameLabel": "Name",
+    "namePlaceholder": "Wallet name",
+    "freeTierLimit": "Upgrade to create more wallets",
+    "activeLabel": "Active",
+    "switchButton": "Switch",
+    "membersOne": "1 member",
+    "membersMany": "{{count}} members",
+    "pendingDeleteOwner": "Waiting for your partner to confirm deletion.",
+    "pendingDeleteOther": "Your partner wants to delete this wallet.",
+    "confirmDeleteButton": "Confirm",
+    "cancelDeleteButton": "Cancel",
+    "deleteConfirmTitle": "Delete Wallet",
+    "deleteConfirmMessage": "This will permanently delete the wallet and all its data. This cannot be undone.",
+    "deleteConfirmAction": "Delete",
+    "deleteRequestTitle": "Request Deletion",
+    "deleteRequestMessage": "Your partner will need to confirm before the wallet is deleted.",
+    "deleteRequestAction": "Send Request"
   },
   "category": {
     "create": {
