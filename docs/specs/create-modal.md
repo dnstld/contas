@@ -153,14 +153,13 @@ Then the picker UI must reflect the new selection without dismissing the form
 And the rest of the form must remain visible and interactive
 ```
 
-### Category chips — Café / Bar always available
+### Category chips — starter categories
 
 ```
 Given that the create modal is visible
 When category chips are rendered
-Then the following category must always be available when the type is "expense":
-  - Café / Bar (id: "cafe_bar")
-And in the starter (non-demo) data set, this is the only available category
+Then the following categories are seeded per wallet and always available:
+  - Bar / Café (type: "expense") — seeded by the wallets_after_insert trigger
 And in Demo mode, the full demo category list is available, filtered to the chips that match the current type
 ```
 
@@ -175,17 +174,83 @@ And the selected category must become associated with the transaction
 And tapping the already-selected chip must deselect it (the form returns to the "no category" state)
 ```
 
-### Category chips — empty state for income in starter mode
+### Category chips — create new category
 
 ```
-Given that the user switches the transaction type to "income"
-And the starter (non-demo) data set is active (no income categories defined)
-When the category section is rendered
-Then no chip row may be shown
-And instead a muted text line from key "create.categoryEmpty" must be rendered
-  (en: "No categories available" / pt-BR: "Sem categorias disponíveis")
-And the Save action must remain disabled while no category is selected
-  (see "Save action — enablement")
+Given that the category section is rendered (regardless of how many categories exist)
+When the chip row is displayed
+Then a "+ Add" chip (key "category.create.chipLabel") must appear at the START of the row, before all other chips
+And tapping it must open the CategoryFormModal in create mode
+
+When the CategoryFormModal is open in create mode
+Then it must contain:
+  - A title from key "category.create.title"
+  - A "Name" field with label (key "category.create.nameLabel"), a text input
+      (placeholder from "category.create.namePlaceholder"), and a caption below
+      (key "category.create.nameCaption")
+  - A "Monthly budget" field with label (key "category.create.budgetLabel"), a numeric
+      currency input (symbol prefix + amount), and a caption below
+      (key "category.create.budgetCaption") — this field is optional
+  - A Cancel button (key "category.create.cancel") and a Create button
+      (key "category.create.createButton" / "category.create.creating" while pending)
+And both inputs must render as rounded filled boxes with the surfaceMuted background colour
+And the Create button must be disabled while the name is empty or the mutation is in flight
+
+When the user submits a valid name
+Then the mutation must INSERT the new category into Supabase with the current transaction type
+And the categories TanStack Query cache must be invalidated on success
+And the new category must be auto-selected (categoryId set to the returned id)
+And the new category chip must appear immediately after the "+ Add" chip (position 1),
+  ahead of all pre-existing chips, for the duration of this form session
+And the modal must close automatically on success
+
+When the user switches the transaction type
+Then the pinned new-category position must reset (the type change clears the selection anyway)
+```
+
+### Category chips — long-press to edit
+
+```
+Given that the category section has one or more chips
+When the chip row is displayed
+Then a "Press and hold to edit" caption (key "category.pressAndHoldHint") must appear
+  as a muted hint below the chip row
+And long-pressing any category chip for ≥ 500 ms must open the CategoryFormModal in edit mode,
+  pre-filled with that category's name and monthly budget
+
+When the CategoryFormModal is open in edit mode
+Then it must display:
+  - A title from key "category.edit.title"
+  - The same Name and Monthly budget fields as in create mode, pre-filled with the category's current values
+  - A Save button (key "category.edit.saveButton" / "category.edit.saving" while pending)
+  - A Delete button (key "category.edit.delete" / "category.edit.deleting" while pending)
+    rendered below the Save action, styled with the theme's negative (red) colour
+    — the Delete button must NOT be rendered if this is the last category of its type
+And the Save button must be disabled while the name is empty or a mutation is in flight
+
+When the user saves valid changes
+Then the mutation must UPDATE the category's name and monthly_budget_cents in Supabase
+And if monthly budget is cleared (set to 0), the column must be set to NULL
+And the categories TanStack Query cache must be invalidated on success
+And the modal must close automatically
+
+When the user taps Delete on a category that has associated transactions
+Then the mutation must first query the count of transactions referencing that category
+And if count > 0, an inline warning must appear inside the modal:
+  (singular) "category.edit.hasTransactions_one" — e.g. "1 transaction must be deleted before deleting this category."
+  (plural)   "category.edit.hasTransactions_other" — e.g. "32 transactions must be deleted before deleting this category."
+And the category must NOT be deleted
+
+When the user taps Delete on a category with zero transactions
+Then the category must be deleted from Supabase
+And the categories TanStack Query cache must be invalidated
+And if the deleted category was currently selected in the form, the form must deselect it (categoryId → null)
+And the modal must close automatically
+
+Invariant: each transaction type must always have at least one category.
+The Delete button is therefore hidden (not rendered) when the category being edited
+is the only remaining category of its type (expense or income).
+
 ```
 
 ### Description input — free text with a 100-character cap
@@ -194,6 +259,10 @@ And the Save action must remain disabled while no category is selected
 Given that the create modal is visible
 When the description input is rendered
 Then the field must accept free text input
+And the field must render as a rounded filled box using the surfaceMuted background colour
+  (same visual treatment as the inputs in the CreateCategoryModal)
+And the placeholder must come from key "create.descriptionPlaceholder"
+  (en: "ex: Airfare" / pt-BR: "ex: Passagem aérea")
 And the field's maxLength must be 100 characters (the native input enforces the hard cap)
 And the field is optional — leaving it empty must not block submission
 And the caption below the field must read the value of key "create.descriptionCaption"
@@ -244,9 +313,9 @@ Then the modal's onSubmit handler must be invoked synchronously on the same fram
   - date (Date)
   - categoryId (string)
   - description (string, possibly empty)
-And the modal must close on dismissal (router.back) once the submit handler resolves
-And persistence of the new transaction is intentionally out of scope here — the current implementation logs the payload
-  and dismisses the modal. The real persistence layer will live behind the same handler and is tracked separately.
+And the handler must INSERT the new transaction into Supabase
+And the transactions TanStack Query cache must be invalidated on success
+And the modal must close (router.back) once the mutation resolves
 ```
 
 ### Layout under the keyboard
@@ -285,7 +354,16 @@ Then every user-facing string must be sourced from i18next using these keys:
   - amount accessibility:     "create.amountPlaceholder"
   - date section label:       "create.dateLabel"
   - category section label:   "create.categoryLabel"
-  - category empty state:     "create.categoryEmpty"
+  - create category chip:     "category.create.chipLabel"
+  - create category modal title: "category.create.title"
+  - create category name label/placeholder/caption: "category.create.nameLabel" / "category.create.namePlaceholder" / "category.create.nameCaption"
+  - create category budget label/caption: "category.create.budgetLabel" / "category.create.budgetCaption"
+  - create category actions:  "category.create.createButton" / "category.create.creating" / "category.create.cancel"
+  - category long-press hint: "category.pressAndHoldHint"
+  - edit category modal title: "category.edit.title"
+  - edit category save button: "category.edit.saveButton" / "category.edit.saving"
+  - edit category delete button: "category.edit.delete" / "category.edit.deleting"
+  - edit category has-transactions warning: "category.edit.hasTransactions_one" / "category.edit.hasTransactions_other"
   - description placeholder:  "create.descriptionPlaceholder"
   - description caption:      "create.descriptionCaption"
   - description counter:      "create.descriptionCounter" (with {{count}})

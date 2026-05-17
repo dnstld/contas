@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Transition from 'react-native-screen-transitions';
 
+import { CategoryFormModal } from '@/components/transactions/create-category-modal';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { Icon } from '@/components/ui/atoms/icon';
 import {
@@ -24,7 +25,7 @@ import {
 } from '@/components/ui/molecules/chip-group';
 import { Fonts } from '@/constants/theme';
 import { useCurrency } from '@/hooks/use-currency';
-import { useCategories } from '@/hooks/use-finance-queries';
+import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -63,6 +64,7 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const { t } = useTranslation();
   const { data: categories = [] } = useCategories();
+  const { data: transactions = [] } = useTransactions();
   const { currency } = useCurrency();
   const { formatDecimal, currencySymbol } = useFormatters();
 
@@ -72,6 +74,7 @@ export function TransactionForm({
   const borderColor = useThemeColor({}, 'border');
   const accentColor = useThemeColor({}, 'positive');
   const dangerColor = useThemeColor({}, 'negative');
+  const surfaceMutedColor = useThemeColor({}, 'surfaceMuted');
 
   const [type, setType] = useState<TransactionType>(
     initialValues?.type ?? 'expense',
@@ -86,6 +89,15 @@ export function TransactionForm({
   const [description, setDescription] = useState<string>(
     initialValues?.description ?? '',
   );
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newCategoryId, setNewCategoryId] = useState<string | null>(
+    initialValues?.categoryId ?? null,
+  );
+  const [editingCategory, setEditingCategory] = useState<{
+    id: string;
+    name: string;
+    monthlyBudget?: number;
+  } | null>(null);
 
   const typeOptions: SegmentedOption<TransactionType>[] = useMemo(
     () => [
@@ -95,13 +107,39 @@ export function TransactionForm({
     [t],
   );
 
-  const categoryItems: ChipGroupItem<string>[] = useMemo(
-    () =>
-      categories
-        .filter((c) => c.type === type)
-        .map((c) => ({ id: c.id, label: c.name })),
-    [categories, type],
-  );
+  const categoryItems: ChipGroupItem<string>[] = useMemo(() => {
+    // Build per-category stats from transaction history.
+    const statsById = new Map<string, { mostRecentYear: number; count: number }>();
+    for (const t of transactions) {
+      if (!t.date) continue;
+      const year = new Date(t.date).getFullYear();
+      const s = statsById.get(t.categoryId);
+      if (!s) {
+        statsById.set(t.categoryId, { mostRecentYear: year, count: 1 });
+      } else {
+        s.count += 1;
+        if (year > s.mostRecentYear) s.mostRecentYear = year;
+      }
+    }
+
+    const items = categories
+      .filter((c) => c.type === type)
+      .map((c) => ({ id: c.id, label: c.name }))
+      .sort((a, b) => {
+        const sa = statsById.get(a.id) ?? { mostRecentYear: 0, count: 0 };
+        const sb = statsById.get(b.id) ?? { mostRecentYear: 0, count: 0 };
+        if (sb.mostRecentYear !== sa.mostRecentYear) return sb.mostRecentYear - sa.mostRecentYear;
+        return sb.count - sa.count;
+      });
+
+    // Pin the selected/newly-created category to slot 0.
+    if (newCategoryId) {
+      const idx = items.findIndex((i) => i.id === newCategoryId);
+      if (idx > 0) items.unshift(items.splice(idx, 1)[0]);
+    }
+
+    return items;
+  }, [categories, transactions, type, newCategoryId]);
 
   const formattedAmount = formatDecimal(amountCents / 100);
   const symbol = currencySymbol(currency);
@@ -118,9 +156,16 @@ export function TransactionForm({
     }
   };
 
+  const handleCategoryLongPress = (id: string) => {
+    const cat = categories.find((c) => c.id === id);
+    if (!cat) return;
+    setEditingCategory({ id: cat.id, name: cat.name, monthlyBudget: cat.monthlyBudget });
+  };
+
   const handleTypeChange = (next: TransactionType) => {
     setType(next);
     setCategoryId(null);
+    setNewCategoryId(null);
   };
 
   const busy = isSubmitting || isDeleting;
@@ -207,22 +252,52 @@ export function TransactionForm({
             <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
               {t('create.categoryLabel').toUpperCase()}
             </Text>
+            <ChipGroup<string>
+              items={categoryItems}
+              selectedIds={categoryId ? [categoryId] : []}
+              onToggle={(id) =>
+                setCategoryId((current) => (current === id ? null : id))
+              }
+              onLongPress={handleCategoryLongPress}
+              multiSelect={false}
+              showCheckWhenSelected
+              leading={
+                <Pressable
+                  onPress={() => setShowCreateModal(true)}
+                  style={({ pressed }) => [
+                    styles.newCategoryChip,
+                    { borderColor, opacity: pressed ? 0.6 : 1 },
+                  ]}
+                >
+                  <Text variant="caption" weight="medium" tone="textMuted">
+                    {t('category.create.chipLabel')}
+                  </Text>
+                </Pressable>
+              }
+            />
             {categoryItems.length > 0 ? (
-              <ChipGroup<string>
-                items={categoryItems}
-                selectedIds={categoryId ? [categoryId] : []}
-                onToggle={(id) =>
-                  setCategoryId((current) => (current === id ? null : id))
-                }
-                multiSelect={false}
-                showCheckWhenSelected
-              />
-            ) : (
-              <Text variant="body" tone="textMuted">
-                {t('create.categoryEmpty')}
+              <Text variant="caption" tone="textMuted">
+                {t('category.pressAndHoldHint')}
               </Text>
-            )}
+            ) : null}
           </View>
+
+          <CategoryFormModal
+            visible={showCreateModal}
+            type={type}
+            onCreated={(id) => { setCategoryId(id); setNewCategoryId(id); }}
+            onClose={() => setShowCreateModal(false)}
+          />
+          <CategoryFormModal
+            visible={!!editingCategory}
+            type={type}
+            editCategory={editingCategory ?? undefined}
+            onCreated={() => {}}
+            onDeleted={(id) => {
+              if (categoryId === id) { setCategoryId(null); setNewCategoryId(null); }
+            }}
+            onClose={() => setEditingCategory(null)}
+          />
 
           <View style={styles.field}>
             <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
@@ -239,7 +314,7 @@ export function TransactionForm({
                 {
                   color: textColor,
                   fontFamily: Fonts.sans,
-                  borderBottomColor: borderColor,
+                  backgroundColor: surfaceMutedColor,
                 },
               ]}
             />
@@ -384,9 +459,9 @@ const styles = StyleSheet.create({
   descriptionInput: {
     fontSize: 15,
     lineHeight: 21,
-    paddingVertical: 10,
-    paddingHorizontal: 0,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
   },
   descriptionMeta: {
     flexDirection: 'row',
@@ -424,5 +499,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
+  },
+  newCategoryChip: {
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

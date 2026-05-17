@@ -99,7 +99,7 @@
     "categoryLabel": "Categoria",
     "categoryEmpty": "Sem categorias disponíveis",
     "descriptionLabel": "Descrição",
-    "descriptionPlaceholder": "Digita aqui a descrição",
+    "descriptionPlaceholder": "ex: Passagem aérea",
     "descriptionCaption": "Aparece nas transações",
     "descriptionCounter": "{{count}}/100",
     "save": "Salvar",
@@ -113,6 +113,28 @@
     "deleteError": "Não foi possível excluir a transação. Tente novamente."
   },
   "category": {
+    "create": {
+      "chipLabel": "+ Criar",
+      "title": "Nova Categoria",
+      "nameLabel": "Nome",
+      "namePlaceholder": "ex: Mercado",
+      "nameCaption": "Exibido nas transações e relatórios",
+      "budgetLabel": "Orçamento mensal",
+      "budgetCaption": "Opcional — define um limite de gastos para esta categoria",
+      "createButton": "Criar",
+      "creating": "Criando…",
+      "cancel": "Cancelar"
+    },
+    "edit": {
+      "title": "Editar Categoria",
+      "saveButton": "Salvar",
+      "saving": "Salvando…",
+      "delete": "Excluir Categoria",
+      "deleting": "Excluindo…",
+      "hasTransactions_one": "{{count}} transação deve ser excluída antes de excluir esta categoria.",
+      "hasTransactions_other": "{{count}} transações devem ser excluídas antes de excluir esta categoria."
+    },
+    "pressAndHoldHint": "Pressione e segure para editar",
     "transactionCount_one": "{{count}} transação",
     "transactionCount_other": "{{count}} transações",
     "selectedCount_one": "{{count}} selecionada",

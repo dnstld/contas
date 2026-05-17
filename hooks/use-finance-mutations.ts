@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { TransactionFormValues } from '@/components/transactions/transaction-form';
+import type { TransactionFormValues, TransactionType } from '@/components/transactions/transaction-form';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
@@ -69,6 +69,95 @@ export function useUpdateTransaction() {
     onSuccess: () => {
       if (walletId) {
         qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
+      }
+    },
+  });
+}
+
+export function useCreateCategory() {
+  const { walletId } = useWallet();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (values: { name: string; type: TransactionType; monthlyBudgetCents?: number }) => {
+      if (!walletId) throw new Error('no wallet');
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          name: values.name,
+          type: values.type,
+          wallet_id: walletId,
+          ...(values.monthlyBudgetCents != null && { monthly_budget_cents: values.monthlyBudgetCents }),
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
+      return data as { id: string };
+    },
+    onSuccess: () => {
+      if (walletId) {
+        qc.invalidateQueries({ queryKey: financeKeys.categories(walletId) });
+      }
+    },
+  });
+}
+
+export type CategoryHasTransactionsError = Error & { code: 'has_transactions'; transactionCount: number };
+
+export function isCategoryHasTransactionsError(e: unknown): e is CategoryHasTransactionsError {
+  return e instanceof Error && (e as CategoryHasTransactionsError).code === 'has_transactions';
+}
+
+export function useUpdateCategory() {
+  const { walletId } = useWallet();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (values: { id: string; name: string; monthlyBudgetCents?: number }) => {
+      const { data, error } = await supabase
+        .from('categories')
+        .update({
+          name: values.name,
+          monthly_budget_cents: values.monthlyBudgetCents ?? null,
+        })
+        .eq('id', values.id)
+        .select('id')
+        .single();
+      if (error) throw error;
+      return data as { id: string };
+    },
+    onSuccess: () => {
+      if (walletId) {
+        qc.invalidateQueries({ queryKey: financeKeys.categories(walletId) });
+      }
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const { walletId } = useWallet();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { count, error: countError } = await supabase
+        .from('transactions')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', id);
+      if (countError) throw countError;
+      if (count && count > 0) {
+        const err = new Error('has_transactions') as CategoryHasTransactionsError;
+        err.code = 'has_transactions';
+        err.transactionCount = count;
+        throw err;
+      }
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      if (walletId) {
+        qc.invalidateQueries({ queryKey: financeKeys.categories(walletId) });
       }
     },
   });

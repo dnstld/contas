@@ -45,9 +45,8 @@ And no other affordance (ellipsis menu, swipe action, long-press) is wired in th
 ```
 Given that the edit modal mounts with an `id` query parameter
 When the screen resolves the transaction
-Then it must read the current finance mock via useFinanceMock
+Then it must read the transactions list from the TanStack Query cache (populated by useTransactions)
 And it must find the transaction whose `id` matches the route parameter
-And the lookup must be memoized on (transactions, id)
 
 Given that no matching transaction exists for the supplied id
 When the resolution result is empty
@@ -62,8 +61,8 @@ Given that the target transaction has been resolved
 When the TransactionForm is rendered
 Then it must receive initialValues populated from the transaction record:
   - type        ← transaction.type
-  - amountCents ← Math.round(transaction.amount * 100)
-  - date        ← new Date(transaction.date ?? transaction.startDate ?? transaction.nextOccurrence ?? Date.now())
+  - amountCents ← transaction.amountCents
+  - date        ← new Date(transaction.occurredAt)
   - categoryId  ← transaction.categoryId
   - description ← transaction.description
 And the form must show those values on its very first render (no flash of empty defaults)
@@ -77,8 +76,6 @@ When the form mounts
 Then the amount input must NOT auto-focus
 And the keyboard must NOT open automatically
 And the user is free to scan the pre-filled fields before deciding what to edit
-And this is wired by passing autoFocusAmount={false} to TransactionForm
-  (the Create Modal omits this prop and relies on the default true — see [Create Modal spec](create-modal.md))
 ```
 
 ### Form structure and section order (shared with Create)
@@ -96,6 +93,28 @@ Then the field set, section order, and visual hierarchy must be identical to the
 And a fixed footer at the bottom must contain the save AND delete actions, in that order
 And every shared behavior — amount masking, category single-selection, description counter, keyboard layout —
   is governed by the [Create Modal spec](create-modal.md) and applies here verbatim
+```
+
+### Category chips — pre-selected category pinned first
+
+```
+Given that the edit modal opens with a resolved transaction
+When the category chip row is rendered
+Then the transaction's existing category must appear at position 0 (immediately after the "+ Add" chip)
+  regardless of the server-side sort order returned by the categories query
+And it must render in its active / selected state from the very first frame
+And this pin persists for the duration of the edit session;
+  it resets only if the user switches the transaction type (which clears the selection)
+```
+
+### Category chips — long-press to edit (shared with Create)
+
+```
+Given that the edit modal is visible and the category chip row contains chips
+When the user long-presses any category chip for ≥ 500 ms
+Then the CategoryFormModal must open in edit mode pre-filled with that category's values
+And the edit/delete behavior is identical to the Create Modal — see
+  "Category chips — long-press to edit" in the [Create Modal spec](create-modal.md)
 ```
 
 ### Screen title and submit label
@@ -130,12 +149,12 @@ And as soon as the user clears the amount or deselects the category, the save ac
 ```
 Given that the form is in a valid state
 When the user taps the save action
-Then the screen's onSubmit handler must be invoked synchronously with the current values
-And the handler must close the modal (router.back) once the update is dispatched
+Then the handler must UPDATE the transaction in Supabase (useUpdateTransaction)
+And the transactions TanStack Query cache must be invalidated on success
+And the modal must close (router.back) once the mutation resolves
 And the underlying Transactions screen must reflect the updated transaction on its next render
-  (driven by the same data source the screen already reads from)
-And persistence of the update is intentionally out of scope here — the current implementation logs the payload
-  with the transaction id and dismisses the modal. The real persistence layer will live behind the same handler and is tracked separately.
+And if the update fails, an error banner must appear above the save action
+  (key "edit.updateError")
 ```
 
 ### Delete action — visual treatment
@@ -158,11 +177,12 @@ And the delete action is rendered if and only if the TransactionForm receives an
 ```
 Given that the edit modal is rendered with a resolved transaction
 When the user taps the delete action
-Then the screen's onDelete handler must be invoked synchronously
-And the handler must close the modal (router.back) once the deletion is dispatched
+Then the handler must DELETE the transaction from Supabase (useDeleteTransaction)
+And the transactions TanStack Query cache must be invalidated on success
+And the modal must close (router.back) once the mutation resolves
 And the underlying Transactions screen must no longer include the deleted transaction on its next render
-And persistence of the deletion is intentionally out of scope here — the current implementation logs the transaction id
-  and dismisses the modal. The real persistence layer will live behind the same handler and is tracked separately.
+And if the deletion fails, an error banner must appear above the save action
+  (key "edit.deleteError")
 ```
 
 ### Dismissal — back to the underlying tab
@@ -199,6 +219,10 @@ And the edit-specific keys are:
   - title:             "edit.title"
   - save action label: "edit.save"
   - delete action:     "edit.delete"
+  - update error:      "edit.updateError"
+  - delete error:      "edit.deleteError"
+And category edit/delete keys ("category.edit.*", "category.pressAndHoldHint") apply here too —
+  see the [Create Modal spec](create-modal.md) for the full list
 And every other label (section labels, type options, description caption / counter, category empty state)
   comes from the shared "create.*" keyset — see the [Create Modal spec](create-modal.md)
 And monetary formatting follows the [Localization spec](localization.md)

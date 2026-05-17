@@ -99,7 +99,7 @@
     "categoryLabel": "Category",
     "categoryEmpty": "No categories available",
     "descriptionLabel": "Description",
-    "descriptionPlaceholder": "Type the description here",
+    "descriptionPlaceholder": "ex: Airfare",
     "descriptionCaption": "Appears in transactions",
     "descriptionCounter": "{{count}}/100",
     "save": "Save",
@@ -113,6 +113,28 @@
     "deleteError": "Could not delete the transaction. Please try again."
   },
   "category": {
+    "create": {
+      "chipLabel": "+ Add",
+      "title": "New Category",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Groceries",
+      "nameCaption": "Shown in transactions and reports",
+      "budgetLabel": "Monthly budget",
+      "budgetCaption": "Optional — set a spending limit for this category",
+      "createButton": "Create",
+      "creating": "Creating…",
+      "cancel": "Cancel"
+    },
+    "edit": {
+      "title": "Edit Category",
+      "saveButton": "Save",
+      "saving": "Saving…",
+      "delete": "Delete Category",
+      "deleting": "Deleting…",
+      "hasTransactions_one": "{{count}} transaction must be deleted before deleting this category.",
+      "hasTransactions_other": "{{count}} transactions must be deleted before deleting this category."
+    },
+    "pressAndHoldHint": "Press and hold to edit",
     "transactionCount_one": "{{count}} transaction",
     "transactionCount_other": "{{count}} transactions",
     "selectedCount_one": "{{count}} selected",
