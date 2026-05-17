@@ -77,9 +77,9 @@ export default function AppStackLayout() {
     <Stack
       screenOptions={{
         headerTransparent: true,
-        headerTitle: '',
+        headerTitle: () => <HeaderLogo />,
+        headerTitleAlign: 'left',
         headerShadowVisible: false,
-        headerLeft: () => <HeaderLogo />,
         headerRight: () => (
           <HeaderCreateButton onPress={() => router.push('/create')} />
         ),

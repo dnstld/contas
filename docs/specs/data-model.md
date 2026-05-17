@@ -64,7 +64,9 @@ When the after-insert trigger wallets_after_insert fires
 Then it must:
   1. Insert into wallet_members (wallet_id = NEW.id, user_id = NEW.created_by)
      with `on conflict do nothing`
-  2. Insert one seed category into categories: name "Bar / Café", type "expense"
+  2. Insert two seed categories into categories:
+     - name "Bar / Café", type "expense"
+     - name "Extra",      type "income"
 And the trigger function runs SECURITY DEFINER with search_path = public
   (so it can write to wallet_members and categories regardless of the caller's RLS scope)
 ```
@@ -199,8 +201,10 @@ Given that the categories table has RLS enabled
 When categories are accessed
 Then full CRUD (select / insert / update / delete) is allowed for any member of categories.wallet_id
 And no other access is permitted
-And uniqueness within a wallet is enforced by a unique index on (wallet_id, lower(name))
-  (case-insensitive: "Mercado" and "mercado" cannot coexist in the same wallet)
+And uniqueness within a wallet is enforced by a unique index on (wallet_id, lower(name), type)
+  (case-insensitive within a type: "Mercado" and "mercado" cannot coexist as expense in the same wallet,
+   but "Freelance" can exist as both expense and income — the seeds 'Bar / Café' (expense) and
+   'Extra' (income) coexist with any user-created same-named category of the opposite type)
 ```
 
 ### Transactions policies
@@ -236,7 +240,7 @@ When the database's indexes are inspected
 Then at minimum these performance-relevant indexes must exist:
   - wallet_members_user_idx                       on wallet_members (user_id)
   - wallet_invitations_wallet_idx                 on wallet_invitations (wallet_id)
-  - categories_wallet_name_idx (UNIQUE)           on categories (wallet_id, lower(name))
+  - categories_wallet_name_type_idx (UNIQUE)      on categories (wallet_id, lower(name), type)
   - categories_wallet_type_idx                    on categories (wallet_id, type)
   - transactions_wallet_occurred_idx              on transactions (wallet_id, occurred_at desc)
   - transactions_wallet_category_occurred_idx     on transactions (wallet_id, category_id, occurred_at)

@@ -160,6 +160,9 @@ Given that the create modal is visible
 When category chips are rendered
 Then the following categories are seeded per wallet and always available:
   - Bar / Café (type: "expense") — seeded by the wallets_after_insert trigger
+  - Extra      (type: "income")  — seeded by the wallets_after_insert trigger
+And because both seeds exist for every wallet, the income chip row is never empty in fresh wallets
+  (the "create.categoryEmpty" placeholder only renders if the user deletes every income category)
 And in Demo mode, the full demo category list is available, filtered to the chips that match the current type
 ```
 
