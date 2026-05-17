@@ -3,12 +3,16 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
+import { ErrorFallback } from '@/components/ErrorFallback';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFinanceRealtime, useWalletRealtime } from '@/hooks/use-finance-realtime';
 import { FinanceQueryProvider } from '@/hooks/use-query-client';
 import { WalletProvider, useWallet } from '@/hooks/use-wallet';
 import { initI18n } from '@/i18n';
+import { ErrorBoundary, initMonitoring, wrap } from '@/utils/monitoring';
+
+initMonitoring();
 
 function RootStack() {
   const { session, loading: authLoading } = useAuth();
@@ -42,7 +46,7 @@ function RootStack() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const colorScheme = useColorScheme();
   const [i18nReady, setI18nReady] = useState(false);
 
@@ -59,15 +63,19 @@ export default function RootLayout() {
   if (!i18nReady) return null;
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <FinanceQueryProvider>
-          <WalletProvider>
-            <RootStack />
-          </WalletProvider>
-        </FinanceQueryProvider>
-      </AuthProvider>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ErrorBoundary fallback={({ resetError }) => <ErrorFallback onReset={resetError} />}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AuthProvider>
+          <FinanceQueryProvider>
+            <WalletProvider>
+              <RootStack />
+            </WalletProvider>
+          </FinanceQueryProvider>
+        </AuthProvider>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
+
+export default wrap(RootLayout);

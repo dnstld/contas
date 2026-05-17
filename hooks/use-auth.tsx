@@ -2,6 +2,7 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { captureError, captureMessage, setMonitoringUser } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
 
 GoogleSignin.configure({
@@ -25,10 +26,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
+      if (data.session) {
+        setMonitoringUser({
+          id: data.session.user.id,
+          email: data.session.user.email ?? undefined,
+        });
+      }
       setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
+      if (next) {
+        setMonitoringUser({ id: next.user.id, email: next.user.email ?? undefined });
+      } else {
+        setMonitoringUser(null);
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -42,11 +54,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await GoogleSignin.signIn();
         const idToken = res.data?.idToken;
         if (!idToken) throw new Error('No idToken returned from Google');
-        const { error } = await supabase.auth.signInWithIdToken({
+        const { data, error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: idToken,
         });
-        if (error) throw error;
+        if (error) {
+          captureError(error, { tags: { context: 'auth' } });
+          throw error;
+        }
+        if (!data.session) {
+          captureMessage('signInWithIdToken returned no session', 'error', {
+            tags: { context: 'auth' },
+          });
+          throw new Error('No session returned');
+        }
       },
       async signOut() {
         try {

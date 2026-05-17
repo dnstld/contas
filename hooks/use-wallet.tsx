@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { useAuth } from '@/hooks/use-auth';
+import { captureError } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
 
 type WalletContextValue = {
@@ -59,7 +60,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       .single();
     if (reqId !== requestRef.current) return;
     if (error) {
-      console.error('[wallet] wallet data fetch failed', error);
+      captureError(error, { tags: { context: 'wallet' } });
       return;
     }
     if (data?.currency) setCurrencyState(data.currency);
@@ -133,7 +134,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.rpc('get_or_create_default_wallet');
       if (reqId !== requestRef.current) return;
       if (error) {
-        console.error('[wallet] get_or_create_default_wallet failed', error);
+        captureError(error, { tags: { context: 'wallet' } });
         return;
       }
       if (!data) return;
@@ -171,7 +172,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         .update({ currency: next })
         .eq('id', walletId);
       if (error) {
-        console.error('[wallet] setCurrency failed', error);
+        captureError(error, { tags: { context: 'wallet' } });
         setCurrencyState(previous);
         throw error;
       }

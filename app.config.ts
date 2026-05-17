@@ -59,6 +59,13 @@ const config: ExpoConfig = {
           'com.googleusercontent.apps.59423241860-20pm8hjnm29sir3v86ta4t8u7koupuel',
       },
     ],
+    [
+      '@sentry/react-native/expo',
+      {
+        organization: 'contas',
+        project: 'contas',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
