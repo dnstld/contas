@@ -2,16 +2,41 @@
 
 The Account tab is the project's user-identity and preferences surface. It exposes:
 
-1. **Profile card** — the signed-in user and (when present) the wallet's second member ("partner"), plus two inline actions: edit name and sign out.
-2. **Invitation section** — visible only when the active wallet has a single member; lets the user generate a sharable invitation code or redeem one they received.
-3. **Display** (pt-BR: "Exibição") — two persisted toggles that affect what the Status screen renders.
-4. **Wallets** (pt-BR: "Carteiras") — a "My Wallets" row that opens the WalletsModal; lets the user switch between wallets or create a new one (free tier: max 2).
-5. **Language & currency** (pt-BR: "Idioma e moeda") — language picker and currency picker (the currency picker writes to the active wallet's `currency` column).
+1. **Account section** — the signed-in user and (when present) the wallet's second member, with an inline dots menu for edit-name and sign-out actions. A `SectionHeader` with title "Account" and a trailing `members.length/2` count sits above the card.
+2. **Wallets section** — an inline `ActionMenu` (ellipsis dots) lets the user switch between wallets (checkmark on active) or create a new one. A `SectionHeader` with trailing `wallets.length/2` count sits above the row. Free tier: max 2 wallets.
+3. **Invitation section** — visible only when the active wallet has a single member; lets the user generate a shareable invitation code or redeem one received from a friend. Shows a description and two side-by-side pill buttons.
+4. **Display** (pt-BR: "Exibição") — two persisted toggles that affect what the Status screen renders.
+5. **Language & currency** (pt-BR: "Idioma e moeda") — language picker and currency picker.
 6. **Danger Zone** (pt-BR: "Zona de Perigo") — leave wallet (shared wallets only, when the user has another wallet to fall back to) and delete wallet (with a two-step confirmation flow when the wallet has two members).
 
-The screen has no page-level title; the profile card at the top provides the contextual heading.
-
 > Note on language: this spec uses the English copy because English is the default language. Equivalent Portuguese strings are listed alongside where they're material to the contract. The full string contract lives in `i18n/locales/en.json` and `i18n/locales/pt-BR.json`.
+
+## Shared component: ActionMenu
+
+`ActionMenu` (`components/ui/molecules/action-menu.tsx`) is a reusable ellipsis-dots trigger that opens a native platform menu.
+
+```
+Given that an ActionMenu is rendered
+When the user taps the ellipsis icon
+Then on iOS a SwiftUI.Menu appears (systemImage "ellipsis.circle")
+And on Android a Compose.DropdownMenu appears anchored to the trigger
+
+When items are provided with dividerBefore: true
+Then iOS groups items into SwiftUI.Section wrappers (native section separators)
+And Android inserts a HorizontalDivider before those items
+
+When an item has disabled: true
+Then iOS applies the disabled() SwiftUI modifier (button grayed out, non-interactive)
+And Android renders the item with enabled={false}
+
+When an item has a subtitle string
+Then on iOS a SwiftUI.Text is rendered immediately after the button in the same section
+  with font size 12pt
+And on Android the subtitle is not shown (disabled state alone communicates the limit)
+
+When an item has destructive: true
+Then on iOS the button renders with role="destructive" (red label, native iOS destructive styling)
+```
 
 ## Scenarios
 
@@ -21,7 +46,6 @@ The screen has no page-level title; the profile card at the top provides the con
 Given that the user is logged in
 When the Account tab is selected
 Then the screen must render its own scrollable layout (no shared header)
-And there must be no page-level title text at the top of the scroll content
 And content must scroll independently of the tab bar
 And the screen background must use the theme's background color
 ```
@@ -32,22 +56,24 @@ And the screen background must use the theme's background color
 Given that the Account screen is rendered
 When its sections are displayed top-to-bottom
 Then the order must be:
-  1. Profile card (no section wrapper)
-  2. Invitation section (only when the active wallet has a single member)
-  3. Display (key: "settings.sections.display")
-  4. Wallets (key: "settings.sections.wallets")
+  1. Account section (SectionHeader + profile card Surface)
+  2. Wallets section (SectionHeader + SettingsRow Surface)
+  3. Invitation section (only when the active wallet has a single member)
+  4. Display (key: "settings.sections.display")
   5. Language & currency (key: "settings.sections.regional")
   6. Danger Zone
 And the page-level vertical gap between elements must be 24 points
 ```
 
-### Profile card
+### Profile card — structure
 
 ```
 Given that the Account screen is rendered
-When the profile card is displayed
-Then it must render as a bordered Surface (default surface tone, no padding) with 16-point corner radius
-And it must contain the following stacked sub-rows, separated by horizontal hairline Dividers (inset 16):
+When the Account section is displayed
+Then a SectionHeader must appear above the profile Surface with:
+  - title from key "settings.sections.account" (en: "Account" / pt-BR: "Conta")
+  - trailing: muted caption text showing "{members.length}/2"
+And below it a bordered Surface (default tone, no padding, 16-point corner radius) must contain:
   Row 1 — current user identity row (horizontal, items centered, 14-point gap, 16-point horizontal padding, 14-point vertical padding):
     - Avatar (44×44, borderRadius 22):
         If a non-null avatar URL is available:
@@ -57,17 +83,16 @@ And it must contain the following stacked sub-rows, separated by horizontal hair
     - Name/email column (flex: 1):
         Primary text: the user's display name if present, otherwise the user's email (subtitle variant, semibold)
         Secondary text: the user's email (caption variant, muted tone) — only shown when the display name is also present
-  Row 2 — partner identity row (same shape as Row 1, no email line):
+    - ActionMenu (trailing, right side of the row) with two items:
+        1. label from key "profile.actions.editName", systemImage "pencil"
+           → opens EditDisplayNameModal
+        2. label from key "profile.actions.signOut", systemImage "rectangle.portrait.and.arrow.right", destructive: true
+           → calls useAuth().signOut()
+  Row 2 — partner identity row (same shape as Row 1, separated by Divider inset 16, no ActionMenu):
     - Rendered ONLY when the active wallet has a second member (useWalletMembers returns more than one entry)
     - Primary text: the partner's display_name from `profiles`, or the fallback key "wallet.partner.unnamed"
-      (en: "Partner" / pt-BR: "Parceiro(a)") if their display_name is null
     - No actions on this row (partner is read-only from the current user's perspective)
-  Row 3 — actions row (horizontal, 10-point gap, 16-point horizontal padding, 14-point vertical padding):
-    - "Edit" button (flex: 1, pill, hairline border in theme border color, caption variant, medium weight, muted text color)
-      (key: "profile.actions.editName" — en: "Edit" / pt-BR: "Editar")
-    - "Sign out" button (flex: 1, pill, hairline border in theme negative color, caption variant, medium weight, negative/red text color)
-      (key: "profile.actions.signOut" — en: "Sign out" / pt-BR: "Sair")
-And the "Your partner" / "Seu parceiro(a)" header text must NOT be rendered — the partner row sits directly under the user row in the same Surface
+And there must be NO separate actions row with Edit/Sign out buttons at the bottom of the card
 ```
 
 ### Profile card — data sources
@@ -82,11 +107,11 @@ And the partner's display_name and avatar_url must come from the `profiles` tabl
 And membership and profile data must refresh on screen focus (useFocusEffect → refetchMembers) so that newly-joined partners appear without an app relaunch
 ```
 
-### Profile card — "Edit" action
+### Profile card — "Edit name" action
 
 ```
 Given that the profile card is rendered
-When the user taps the "Edit" button
+When the user taps the ActionMenu (ellipsis) and selects "Edit name"
 Then the EditDisplayNameModal must become visible
 And the modal's text input must be pre-filled with the user's current full_name (or empty if none)
 And the input must auto-focus so the keyboard appears immediately
@@ -137,7 +162,7 @@ Then no change must be persisted
 
 ```
 Given that the profile card is rendered
-When the user taps the "Sign out" button
+When the user taps the ActionMenu (ellipsis) and selects "Sign out"
 Then useAuth().signOut() must be called
 And after sign-out completes, the root layout's route gate must redirect the user to /authentication
 ```
@@ -147,7 +172,7 @@ And after sign-out completes, the root layout's route gate must redirect the use
 ```
 Given that the Account screen is rendered
 When the active wallet has a single member (the current user)
-Then the InvitationSection must render directly below the profile card
+Then the InvitationSection must render directly below the Wallets section
 And when the active wallet has two members, the InvitationSection must NOT render
   (the partner row inside the profile card takes its place)
 ```
@@ -157,20 +182,25 @@ And when the active wallet has two members, the InvitationSection must NOT rende
 ```
 Given that the InvitationSection is rendered and no invitation code has been generated yet
 When the user views the section
-Then a section label "INVITE YOUR PARTNER" must appear above a muted Surface
-  (key: "wallet.invitation.sectionTitle" — en: "Invite your partner" / pt-BR: "Convidar parceiro(a)")
-And the Surface must contain two stacked pill buttons (10-point gap):
-  - "Invite your partner" (filled pill in the positive/green color, white label, full width)
-    (key: "wallet.invitation.inviteButton" — en: "Invite your partner" / pt-BR: "Convidar parceiro(a)")
-  - "I have a code" (outlined pill, hairline border in theme border color, muted text)
-    (key: "wallet.invitation.haveCodeButton" — en: "I have a code" / pt-BR: "Tenho um código")
+Then a section label must appear above a muted Surface card
+  (key: "wallet.invitation.sectionTitle" — en: "Invite a friend" / pt-BR: "Convidar um amigo")
+And the Surface card must contain, top to bottom:
+  1. A description text (caption variant, muted tone):
+     key: "wallet.invitation.description"
+     en: "Share this wallet with a friend to track finances together."
+     pt-BR: "Compartilhe esta carteira com um amigo para acompanhar as finanças juntos."
+  2. Two pill buttons laid out side-by-side in a horizontal row (10-point gap, each flex: 1):
+     Left:  "Generate invitation code" (filled pill in positive/green color, white label)
+            (key: "wallet.invitation.inviteButton" — en: "Generate invitation code" / pt-BR: "Gerar código de convite")
+     Right: "I have a code" (outlined pill, hairline border in theme border color, muted text)
+            (key: "wallet.invitation.haveCodeButton" — en: "I have a code" / pt-BR: "Tenho um código")
 And while the invite mutation is in flight the filled pill must display a small ActivityIndicator instead of its label
 ```
 
 ### Invitation section — code generated state
 
 ```
-Given that the user taps "Invite your partner"
+Given that the user taps "Generate invitation code"
 When the invitation is created
 Then the client must INSERT a row into wallet_invitations with wallet_id = active and created_by = auth.uid()
 And the SELECT-after-insert must return the `code` column (16 hex characters, generated by the table default)
@@ -230,6 +260,84 @@ Then the error caption must become visible inside the modal
 And the modal must stay open so the user can correct the code
 ```
 
+### "Wallets" section — structure
+
+```
+Given that the Account screen is rendered
+When the Wallets section is displayed
+Then a SectionHeader must appear above the row Surface with:
+  - title from key "settings.sections.wallets" (en: "Wallets" / pt-BR: "Carteiras")
+  - trailing: muted caption text showing "{wallets.length}/2"
+And below it a bordered Surface must contain a single SettingsRow:
+  - title from key "settings.walletsRow.title" (en: "My Wallets" / pt-BR: "Minhas Carteiras")
+  - description: all wallet names joined by ", " (e.g. "Alemanha, Personal") — empty when wallets have not loaded
+  - trailing: an ActionMenu (ellipsis dots) with the following items:
+      For each wallet in the user's wallet list (sorted by joined_at ascending):
+        - label: wallet name
+        - systemImage: "checkmark" if this wallet is the active wallet, otherwise absent
+        - action: if not the active wallet, calls switchWallet(id) and navigates to /(tabs)/(status)
+                  if already active, action is a no-op
+      Then a divider (dividerBefore: true) followed by:
+        - label from key "wallets.createTitle" (en: "Create Wallet" / pt-BR: "Criar Carteira")
+        - systemImage: "plus"
+        - action: opens the WalletsModal in create mode (defaultView="create")
+        - HIDDEN entirely when wallets.length >= 2 (free-tier limit reached)
+```
+
+### WalletsModal — create wallet view
+
+```
+Given that the user taps "Create Wallet" from the Wallets ActionMenu
+When the WalletsModal opens
+Then it must open directly in "create" view (defaultView="create"):
+  - The name input must auto-focus 200 ms after the modal becomes visible
+  - The modal header must show:
+      left: pressable "← Back" (key: "common.back") that returns to list view
+      center: title from key "wallets.createTitle"
+      right: pressable "Done" (key: "common.done") that closes the modal
+  - The body must show a create form containing:
+      - label "NAME" (key: "wallets.nameLabel" uppercased) above a TextInput (maxLength 60, returnKeyType "done")
+        placeholder from key "wallets.namePlaceholder"
+      - label "CURRENCY" (key: "settings.currencyRow.title" uppercased) above a SortMenu currency picker
+      - two action buttons (row, 12-point gap):
+          Cancel (flex: 1, outlined pill): key "common.cancel"
+          Create (flex: 1, green-background pill):
+            idle:    key "common.create"
+            pending: key "common.saving"
+  - Create button must be disabled (opacity 0.4) when name is empty
+  - The form must be in a ScrollView with keyboardShouldPersistTaps="handled"
+
+Given that the user re-opens the WalletsModal after closing it
+When visible transitions from false to true
+Then the modal must reset to the defaultView passed at open time (not retain the last view from the previous open)
+
+Given that the user submits a valid name
+When the create mutation runs
+Then it must call supabase.rpc('create_wallet', { p_name, p_currency })
+And on success it must call useWallet().switchWallet(newWalletId) and return to the list view
+And the TanStack Query cache key wallets:<userId>:list must be invalidated on success
+```
+
+### WalletsModal — list view
+
+```
+Given that the WalletsModal is opened without a defaultView (or defaultView="list")
+When the modal is displayed
+Then it must render as a bottom-sheet Modal (slide animation, transparent backdrop, top-radius 20)
+And the header row must contain:
+  - left: empty spacer (48 pt)
+  - center: title from key "wallets.modalTitle"
+  - right: pressable "Done" label (key: "common.done") that closes the modal
+And the body must contain a ScrollView listing all wallets the user is a member of
+And each wallet row (WalletItem) must show:
+  - wallet name (body variant, semibold)
+  - currency code and member count (caption variant, muted)
+  - for the active wallet: a green "Active" badge
+  - for inactive wallets: an ActionMenu (ellipsis dots) with a single "Switch" item
+      (key: "wallets.switchButton", systemImage: "arrow.left.arrow.right")
+      that calls switchWallet(id) and closes the modal
+```
+
 ### "Display" section structure
 
 ```
@@ -260,76 +368,6 @@ Then it must show a title from key "settings.demoMode.title" (body variant, medi
 And it must show a description from key "settings.demoMode.description" (caption variant, muted tone)
 And the trailing slot must contain a Toggle bound to the persisted-state key "settings:demo-mode"
 And the default value (when no persisted state exists) must be false
-```
-
-### "Wallets" section — row
-
-```
-Given that the Account screen is rendered
-When the Wallets section is displayed
-Then it must use the SettingsSection molecule with title from key "settings.sections.wallets"
-  (en: "Wallets" / pt-BR: "Carteiras")
-And the section must contain a single SettingsRow:
-  - title from key "settings.walletsRow.title" (en: "My Wallets" / pt-BR: "Minhas Carteiras")
-  - description: the active wallet's name (from useWallet().name), shown when resolved
-  - trailing: a pressable "Manage" label (key: "common.manage") that opens the WalletsModal
-And tapping anywhere on the trailing action must open the WalletsModal
-```
-
-### WalletsModal — list view
-
-```
-Given that the user opens the WalletsModal
-When the modal is displayed
-Then it must render as a bottom-sheet Modal (slide animation, transparent backdrop, top-radius 20)
-And the header row must contain:
-  - left: empty spacer (48 pt) in list view
-  - center: title from key "wallets.modalTitle" (en: "My Wallets" / pt-BR: "Minhas Carteiras")
-  - right: pressable "Done" label (key: "common.done") that closes the modal
-And the body must contain a ScrollView listing all wallets the current user is a member of
-  (fetched via useWalletList, which queries wallet_members joined to wallets + profiles + wallet_delete_requests)
-And each wallet row must show:
-  - wallet name (body variant, semibold)
-  - currency code and member count (caption variant, muted) — e.g. "BRL · 2 members"
-  - for the active wallet: an "Active" badge (positive color, pill)
-  - for inactive wallets: a "Switch" button that calls useWallet().switchWallet(id) and closes the modal
-And the list must be sorted by joined_at ascending (oldest first)
-And at the bottom, a "Create Wallet" button must appear:
-  - label: "+ Create Wallet" (key: "wallets.createTitle")
-  - when the user already belongs to 2 wallets (free-tier limit): label changes to the key "wallets.freeTierLimit"
-    (en: "Upgrade to create more wallets") and the button is disabled (opacity 0.4)
-```
-
-### WalletsModal — create wallet view
-
-```
-Given that the user taps "Create Wallet" from the list view
-When the create view is displayed
-Then the modal header must update:
-  - left: pressable "← Back" (key: "common.back") that returns to list view
-  - center: title from key "wallets.createTitle" (en: "Create Wallet" / pt-BR: "Criar Carteira")
-  - right: same "Done" close pressable
-And the body must show a create form containing:
-  - a label "NAME" (key: "wallets.nameLabel" uppercased) above a TextInput (maxLength 60, returnKeyType "done")
-    placeholder from key "wallets.namePlaceholder" (en: "Wallet name" / pt-BR: "Nome da carteira")
-  - a label "CURRENCY" (key: "settings.currencyRow.title" uppercased) above a SortMenu currency picker
-    with the same options as the currency picker in the Language & currency section
-  - two action buttons (row, 12-point gap):
-      Cancel (flex: 1, outlined pill): key "common.cancel"
-      Create (flex: 1, green-background pill):
-        idle:    key "common.create"  (en: "Create"   / pt-BR: "Criar")
-        pending: key "common.saving"  (en: "Saving…"  / pt-BR: "Salvando…")
-And the Create button must be disabled (opacity 0.4) when the name field is empty
-And the form must be wrapped in a ScrollView with keyboardShouldPersistTaps="handled"
-  so that tapping "Create" while the keyboard is open submits in a single tap (no keyboard-dismiss intermediate step)
-
-Given that the user submits a valid name
-When the create mutation runs
-Then it must call supabase.rpc('create_wallet', { p_name, p_currency })
-And on success it must call useWallet().switchWallet(newWalletId) and return to the list view
-And on "free_tier_limit" error the button must remain interactive but an error state must surface
-  (the server is the authoritative guard; the client-side limit check is UI-only)
-And the TanStack Query cache key wallets:<userId>:list must be invalidated on success
 ```
 
 ### "Language & currency" section structure
@@ -389,27 +427,26 @@ When the current user's wallet membership and wallet count are evaluated
 Then the Leave Wallet row must be SHOWN only when BOTH:
   - the active wallet has two members (the current user has a partner in this wallet), AND
   - the current user belongs to more than one wallet in total (useWalletList returns length > 1)
-    (i.e. leaving this wallet will not leave the user with zero wallets)
 And the Leave Wallet row must be HIDDEN when either condition is false
 
 When the Leave Wallet row is rendered
 Then it must display:
-  - title from key "dangerZone.leave.title" (en: "Leave Wallet" / pt-BR: "Sair da Carteira")
+  - title from key "dangerZone.leave.title"
   - description from key "dangerZone.leave.description"
-    (en: "Remove yourself. Your partner keeps all data." / pt-BR: "Remove você. Seu parceiro(a) mantém todos os dados.")
   - trailing "Leave" pill button (hairline border in negative color, negative-colored label)
-    (key: "dangerZone.leave.button" — en: "Leave" / pt-BR: "Sair")
+    (key: "dangerZone.leave.button")
 
 Given that the user taps "Leave"
 When the press is registered
 Then a native Alert must appear with:
-  - Title: key "wallet.leave.confirmTitle" (en: "Leave wallet?" / pt-BR: "Sair da carteira?")
+  - Title: key "wallet.leave.confirmTitle"
   - Body: key "wallet.leave.confirmBody"
   - Cancel button (style: "cancel"): key "wallet.leave.confirmCancel"
   - Leave button (style: "destructive"): key "wallet.leave.confirmLeave"
 And on confirm the mutation must DELETE from wallet_members where wallet_id = active AND user_id = auth.uid()
-And on success it must call useWallet().refresh()
-  (the wallet resolver re-picks the next preferred wallet; with only one remaining, get_or_create_default_wallet may create a new Personal wallet)
+And on success the TanStack Query cache wallets:<userId>:list must be invalidated
+And then useWallet().refresh() must be called
+  (the wallet resolver re-picks the next preferred wallet)
 And on error a second Alert must appear with key "wallet.leave.errorToast"
 ```
 
@@ -420,115 +457,72 @@ Given that the Danger Zone is rendered
 And there is no pending wallet_delete_requests row for the active wallet
 When the Delete Wallet row is displayed
 Then it must show:
-  - title from key "dangerZone.delete.title" (en: "Delete Wallet" / pt-BR: "Excluir Carteira")
+  - title from key "dangerZone.delete.title"
   - description:
       when the active wallet has 1 member: key "dangerZone.delete.soloDescription"
-        (en: "Permanently deletes all wallet data." / pt-BR: "Exclui permanentemente todos os dados da carteira.")
       when the active wallet has 2 members: key "dangerZone.delete.partnerDescription" with {{partner}} interpolated
-        (en: "Needs {{partner}}'s approval before deleting." / pt-BR: "Precisa da aprovação de {{partner}} antes de excluir.")
   - trailing "Delete" pill button (hairline border in negative color, negative-colored label)
-    (key: "dangerZone.delete.button" — en: "Delete" / pt-BR: "Excluir")
+    (key: "dangerZone.delete.button")
 
 Given that the user taps "Delete" on a solo wallet (1 member)
 When the press is registered
-Then a native Alert must appear with:
-  - Title: key "dangerZone.delete.soloTitle"
-  - Body: key "dangerZone.delete.soloMessage"
-  - Cancel button (style: "cancel"): key "common.cancel"
-  - Delete button (style: "destructive"): key "dangerZone.delete.confirmAction"
-And on confirm the mutation must call supabase.rpc('request_or_delete_wallet', { p_wallet_id })
-And the RPC returns 'deleted' (solo path) and the wallet is immediately hard-deleted
-And on success useWallet().refresh() is called, which bootstraps the user into their next wallet
-  (or creates a new Personal wallet via get_or_create_default_wallet if none remain)
+Then a native Alert must appear with title "dangerZone.delete.soloTitle", body "dangerZone.delete.soloMessage"
+And on confirm the mutation calls supabase.rpc('request_or_delete_wallet', { p_wallet_id })
+And on success useWallet().refresh() is called and the TanStack Query cache wallets:<userId>:list is invalidated
 
 Given that the user taps "Delete" on a 2-member wallet
 When the press is registered
-Then a native Alert must appear with:
-  - Title: key "dangerZone.delete.partnerTitle"
-  - Body: key "dangerZone.delete.partnerMessage" with {{partner}} interpolated
-  - Cancel button (style: "cancel"): key "common.cancel"
-  - Send Request button (style: "destructive"): key "dangerZone.delete.requestAction"
-And on confirm the mutation calls request_or_delete_wallet, which returns 'pending'
-And the Danger Zone reactively transitions to the "waiting for partner" state (see next scenario)
-  (driven by the wallet_delete_requests realtime subscription invalidating wallets:<userId>:list)
+Then a native Alert must appear with title "dangerZone.delete.partnerTitle", body "dangerZone.delete.partnerMessage"
+And on confirm the mutation calls request_or_delete_wallet which returns 'pending'
+And the Danger Zone reactively transitions to the "waiting for partner" state
 ```
 
 ### Danger Zone — Delete Wallet: requester waiting for partner
 
 ```
-Given that the Danger Zone is rendered
-And a wallet_delete_requests row exists for the active wallet
+Given that a wallet_delete_requests row exists for the active wallet
 And requested_by = the current user's id
 
 When the Delete Wallet area is displayed
 Then it must show:
-  - title from key "dangerZone.delete.title" alongside a "Pending" badge
-    badge key: "dangerZone.delete.waitingBadge" (en: "Pending" / pt-BR: "Pendente")
-    badge style: small pill with negative color at ~10% opacity fill and ~20% opacity border
+  - title alongside a "Pending" badge (key: "dangerZone.delete.waitingBadge")
   - caption from key "dangerZone.delete.waitingCaption" with {{partner}} interpolated
-    (en: "Waiting for {{partner}} to approve. You can cancel at any time.")
-  - a pressable underlined "Cancel request" text link below the caption
-    (key: "dangerZone.delete.cancelRequest" — en: "Cancel request" / pt-BR: "Cancelar solicitação")
-And the "Delete" trailing button must NOT be shown (replaced by the pending state above)
+  - a pressable underlined "Cancel request" text link (key: "dangerZone.delete.cancelRequest")
+And the "Delete" trailing button must NOT be shown
 
-Given that the current user taps "Cancel request"
-When the mutation runs
+Given that the user taps "Cancel request"
 Then it must call supabase.rpc('cancel_wallet_deletion', { p_wallet_id })
 And on success the Danger Zone reactively reverts to the "no pending request" state
-And the wallet itself is NOT deleted
 ```
 
 ### Danger Zone — Delete Wallet: partner requested, awaiting current user's approval
 
 ```
-Given that the Danger Zone is rendered
-And a wallet_delete_requests row exists for the active wallet
-And requested_by ≠ the current user's id (the partner initiated the request)
+Given that a wallet_delete_requests row exists for the active wallet
+And requested_by ≠ the current user's id
 
 When the Delete Wallet area is displayed
-Then it must show a prominent block with a lightly red-tinted background:
-  - headline from key "dangerZone.delete.partnerRequestedTitle" with {{partner}} interpolated
-    (en: "{{partner}} wants to delete this wallet" / pt-BR: "{{partner}} quer excluir esta carteira")
-    style: body variant, semibold, negative/red color
+Then it must show a lightly red-tinted block with:
+  - headline from key "dangerZone.delete.partnerRequestedTitle" (body, semibold, negative color)
   - caption from key "dangerZone.delete.partnerRequestedCaption"
-    (en: "Once you approve, all data will be permanently deleted and cannot be recovered.")
-  - a full-width "Yes, delete the wallet" button (negative/red fill, white label, 12-point border radius)
-    (key: "dangerZone.delete.approveAction" — en: "Yes, delete the wallet" / pt-BR: "Sim, excluir a carteira")
-  - a full-width "Cancel request" button (surfaceMuted fill, muted label, 12-point border radius)
+  - full-width "Yes, delete the wallet" button (negative fill, white label)
+    (key: "dangerZone.delete.approveAction")
+  - full-width "Cancel request" button (surfaceMuted fill, muted label)
     (key: "dangerZone.delete.cancelRequest")
 
-Given that the current user taps "Yes, delete the wallet"
-When the press is registered
-Then a native Alert must appear with:
-  - Title: key "dangerZone.delete.approveTitle"
-  - Body: key "dangerZone.delete.approveMessage"
-  - Cancel button (style: "cancel"): key "common.cancel"
-  - Approve button (style: "destructive"): key "dangerZone.delete.approveAction"
-And on confirm the mutation calls supabase.rpc('confirm_wallet_deletion', { p_wallet_id })
-And the wallet and all its data are hard-deleted
-And on success useWallet().refresh() is called to move the user to their next wallet
-
-Given that the current user taps "Cancel request"
-When the mutation runs
-Then it must call supabase.rpc('cancel_wallet_deletion', { p_wallet_id })
-And on success the Danger Zone reverts to the "no pending request" state for both users (via realtime)
-And the wallet itself is NOT deleted
+Given that the user taps "Yes, delete the wallet"
+Then a native Alert must confirm before calling supabase.rpc('confirm_wallet_deletion', { p_wallet_id })
+And on success useWallet().refresh() is called and cache is invalidated
 ```
 
 ### Danger Zone — reactive updates via realtime
 
 ```
 Given that two users share a wallet and both have the Account screen visible
-When User A triggers a deletion request (via request_or_delete_wallet)
-Then the wallet_delete_requests realtime channel delivers a postgres_changes INSERT event
-And useWalletRealtime invalidates the wallets:<userId>:list cache for both users
-And User A's Danger Zone transitions to the "waiting for partner" state without a manual refresh
-And User B's Danger Zone transitions to the "partner requested" state without a manual refresh
-And both transitions must occur within the Supabase Realtime delivery latency (typically < 500 ms)
-
-When either user taps "Cancel request"
-Then the DELETE event on wallet_delete_requests propagates to both users
-And both Danger Zones revert to the "no pending request" state reactively
+When User A triggers a deletion request
+Then useWalletRealtime invalidates wallets:<userId>:list for both users
+And both Danger Zones transition states without a manual refresh
+And both transitions must occur within Supabase Realtime delivery latency (typically < 500 ms)
 ```
 
 ### Persistence
@@ -536,15 +530,13 @@ And both Danger Zones revert to the "no pending request" state reactively
 ```
 Given that the user toggles any toggle or picks a new value on this screen
 When the change is committed
-Then any device-scoped preference must be persisted to local storage immediately (expo-sqlite KV store)
+Then device-scoped preferences must be persisted to local storage immediately (expo-sqlite KV store)
 And the storage keys owned by this screen are:
   - "dashboard:revenue-visible"   (boolean)
   - "settings:demo-mode"          (boolean)
   - "settings:language"           (supported language code: "en" or "pt-BR")
-And currency selections must NOT be persisted to kv-store;
-  they are written to the database (wallets.currency) and propagate via the wallet context
-And wallet selection (active wallet id) is persisted to kv-store under "wallet:selected-id:<userId>"
-  by the wallet context (useWallet) — not directly by this screen
+And currency selections must NOT be persisted to kv-store (written to wallets.currency)
+And wallet selection is persisted under "wallet:selected-id:<userId>" by the wallet context
 ```
 
 ### Localization
@@ -554,23 +546,23 @@ Given that the active language is one of the supported languages ("en" or "pt-BR
 When the Account screen is rendered
 Then every label and description must come from i18next under the keys listed in the scenarios above
 And no string must be hardcoded in the screen source
-And switching the language from the Language row must update every label on the screen in place
-And the section order must remain consistent across languages
+And switching the language must update every label on the screen in place
 
-New i18n key namespaces introduced by this spec:
+Key namespaces used by this screen:
   - common.cancel / common.manage / common.back / common.done / common.loading / common.saving / common.create
-  - settings.sections.wallets / settings.walletsRow.title
+  - settings.sections.account / settings.sections.wallets / settings.sections.display / settings.sections.regional
+  - settings.walletsRow.title
   - wallets.modalTitle / wallets.createTitle / wallets.nameLabel / wallets.namePlaceholder
-  - wallets.freeTierLimit / wallets.activeLabel / wallets.switchButton
+  - wallets.activeLabel / wallets.switchButton
   - wallets.membersOne / wallets.membersMany ({{count}})
-  - dangerZone.title
-  - dangerZone.leave.title / description / button
-  - dangerZone.delete.title / soloDescription / partnerDescription ({{partner}})
-  - dangerZone.delete.button / soloTitle / soloMessage / confirmAction
-  - dangerZone.delete.partnerTitle / partnerMessage ({{partner}}) / requestAction
-  - dangerZone.delete.waitingBadge / waitingCaption ({{partner}}) / cancelRequest
-  - dangerZone.delete.partnerRequestedTitle ({{partner}}) / partnerRequestedCaption
-  - dangerZone.delete.approveTitle / approveMessage / approveAction
+  - wallet.invitation.sectionTitle / description / inviteButton / haveCodeButton
+  - wallet.invitation.codeLabel / shareCode / codeExpiry / haveCodeLink
+  - wallet.invitation.redeemTitle / codeInputPlaceholder / redeemButton / redeeming / redeemError / redeemCancel
+  - profile.actions.editName / profile.actions.signOut
+  - profile.editName.title / nameLabel / namePlaceholder / cancel / save / saving
+  - dangerZone.title / leave.* / delete.*
+  - wallet.leave.confirmTitle / confirmBody / confirmCancel / confirmLeave / errorToast
+  - wallet.partner.unnamed
 ```
 
 See the [Localization spec](localization.md) for the complete contract on language resolution, persistence, and cross-screen synchronization. See the [Data model spec](data-model.md) for the wallet currency contract and the delete-request RPC contracts.

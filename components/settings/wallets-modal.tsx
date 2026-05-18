@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
@@ -20,27 +20,40 @@ import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 import { useCreateWallet } from '@/hooks/use-wallet-mutations';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useRouter } from 'expo-router';
 
 export interface WalletsModalProps {
   visible: boolean;
   onClose: () => void;
+  defaultView?: ModalView;
 }
 
 type ModalView = 'list' | 'create';
 
 const FREE_TIER_LIMIT = 2;
 
-export function WalletsModal({ visible, onClose }: WalletsModalProps) {
+export function WalletsModal({ visible, onClose, defaultView = 'list' }: WalletsModalProps) {
   const { t } = useTranslation();
   const { walletId, switchWallet } = useWallet();
+  const router = useRouter();
 
   const { data: wallets = [], isLoading } = useWalletList();
   const createWallet = useCreateWallet();
 
-  const [view, setView] = useState<ModalView>('list');
+  const [view, setView] = useState<ModalView>(defaultView);
   const [newName, setNewName] = useState('');
   const [newCurrency, setNewCurrency] = useState<SupportedCurrency>('BRL');
   const nameInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setView(defaultView);
+      setNewName('');
+      if (defaultView === 'create') {
+        setTimeout(() => nameInputRef.current?.focus(), 200);
+      }
+    }
+  }, [visible, defaultView]);
 
   const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
@@ -69,6 +82,7 @@ export function WalletsModal({ visible, onClose }: WalletsModalProps) {
   function handleSwitch(id: string) {
     switchWallet(id);
     handleClose();
+    router.navigate('/(tabs)/(status)');
   }
 
   async function handleCreate() {

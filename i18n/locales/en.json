@@ -142,8 +142,9 @@
       "unnamed": "Partner"
     },
     "invitation": {
-      "sectionTitle": "Invite your partner",
-      "inviteButton": "Invite your partner",
+      "sectionTitle": "Invite a friend",
+      "description": "Share this wallet with a friend to track finances together.",
+      "inviteButton": "Generate invitation code",
       "haveCodeButton": "I have a code",
       "codeLabel": "Share this code",
       "shareCode": "Share code",
@@ -200,7 +201,7 @@
     "createTitle": "Create Wallet",
     "nameLabel": "Name",
     "namePlaceholder": "Wallet name",
-    "freeTierLimit": "Upgrade to create more wallets",
+    "freeTierLimit": "Maximum of 2 wallets reached",
     "activeLabel": "Active",
     "switchButton": "Switch",
     "membersOne": "1 member",

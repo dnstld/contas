@@ -82,34 +82,39 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
             </Pressable>
           </>
         ) : (
-          <View style={styles.ctaRow}>
-            <Pressable
-              onPress={handleInvite}
-              disabled={createInvitation.isPending}
-              style={({ pressed }) => [
-                styles.pill,
-                styles.pillFilled,
-                { backgroundColor: accentColor, opacity: pressed ? 0.8 : 1 },
-              ]}
-            >
-              {createInvitation.isPending ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text variant="caption" weight="semibold" style={styles.pillFilledLabel}>
-                  {t('wallet.invitation.inviteButton')}
-                </Text>
-              )}
-            </Pressable>
+          <>
+            <Text variant="caption" tone="textMuted" style={styles.description}>
+              {t('wallet.invitation.description')}
+            </Text>
+            <View style={styles.ctaRow}>
+              <Pressable
+                onPress={handleInvite}
+                disabled={createInvitation.isPending}
+                style={({ pressed }) => [
+                  styles.pill,
+                  styles.pillFilled,
+                  { backgroundColor: accentColor, opacity: pressed ? 0.8 : 1 },
+                ]}
+              >
+                {createInvitation.isPending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text variant="caption" weight="semibold" style={styles.pillFilledLabel}>
+                    {t('wallet.invitation.inviteButton')}
+                  </Text>
+                )}
+              </Pressable>
 
-            <Pressable
-              onPress={() => setRedeemVisible(true)}
-              style={({ pressed }) => [styles.pill, { borderColor, opacity: pressed ? 0.7 : 1 }]}
-            >
-              <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
-                {t('wallet.invitation.haveCodeButton')}
-              </Text>
-            </Pressable>
-          </View>
+              <Pressable
+                onPress={() => setRedeemVisible(true)}
+                style={({ pressed }) => [styles.pill, { borderColor, opacity: pressed ? 0.7 : 1 }]}
+              >
+                <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
+                  {t('wallet.invitation.haveCodeButton')}
+                </Text>
+              </Pressable>
+            </View>
+          </>
         )}
       </Surface>
 
@@ -149,10 +154,15 @@ const styles = StyleSheet.create({
   codeActions: {
     alignItems: 'center',
   },
+  description: {
+    lineHeight: 18,
+  },
   ctaRow: {
+    flexDirection: 'row',
     gap: 10,
   },
   pill: {
+    flex: 1,
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 20,

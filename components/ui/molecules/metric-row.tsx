@@ -1,24 +1,34 @@
 import { type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui/atoms/text';
+import { Text, type TextTone } from '@/components/ui/atoms/text';
 
 export interface MetricRowProps {
   label: string;
   value?: string | number;
+  valueTone?: TextTone;
+  valueLeading?: ReactNode;
   trailing?: ReactNode;
   emphasis?: 'subtle' | 'strong';
 }
 
-export function MetricRow({ label, value, trailing, emphasis = 'subtle' }: MetricRowProps) {
+export function MetricRow({
+  label,
+  value,
+  valueTone,
+  valueLeading,
+  trailing,
+  emphasis = 'subtle',
+}: MetricRowProps) {
   return (
     <View style={styles.row}>
       <Text variant="body" tone="textMuted">
         {label}
       </Text>
       <View style={styles.right}>
+        {valueLeading}
         {value !== undefined ? (
-          <Text variant="body" weight={emphasis === 'strong' ? 'semibold' : 'medium'}>
+          <Text variant="body" weight={emphasis === 'strong' ? 'semibold' : 'medium'} tone={valueTone}>
             {value}
           </Text>
         ) : null}

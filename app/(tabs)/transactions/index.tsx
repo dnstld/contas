@@ -63,7 +63,7 @@ export default function TransactionsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
       <View style={styles.header}>
-        <FinanceTimeFilter api={filterApi} now={now} />
+        <FinanceTimeFilter api={filterApi} now={now} availableYears={data?.years} />
 
         <Surface variant="plain" bordered padding={16} style={styles.totalCard}>
           <Text variant="caption" tone="textMuted" weight="semibold">
@@ -83,7 +83,7 @@ export default function TransactionsScreen() {
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
-          stickySectionHeadersEnabled
+          stickySectionHeadersEnabled={false}
           contentContainerStyle={styles.listContent}
           initialNumToRender={20}
           windowSize={10}

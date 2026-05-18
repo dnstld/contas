@@ -15,6 +15,8 @@ import {
 
 export interface TimeFilterBarProps extends UseTimeFilterOptions {
   yearsRange?: number;
+  /** When provided, only these years are shown as chips (replaces the computed range). */
+  availableYears?: number[];
   /** Optional controlled API. When provided, the bar does not own its state. */
   api?: TimeFilterApi;
   onChange?: (state: { years: number[]; months: Month[]; all: boolean }) => void;
@@ -29,30 +31,67 @@ function TimeFilterBarUncontrolled({
   now = new Date(),
   onChange,
   yearsRange,
+  availableYears,
   ...filterOptions
 }: Omit<TimeFilterBarProps, 'api'>) {
   const api = useTimeFilter({ now, ...filterOptions });
-  return <TimeFilterBarView api={api} now={now} yearsRange={yearsRange} onChange={onChange} />;
+  return (
+    <TimeFilterBarView
+      api={api}
+      now={now}
+      yearsRange={yearsRange}
+      availableYears={availableYears}
+      onChange={onChange}
+    />
+  );
 }
 
 interface ViewProps {
   api: TimeFilterApi;
   now?: Date;
   yearsRange?: number;
+  availableYears?: number[];
   onChange?: TimeFilterBarProps['onChange'];
 }
 
-function TimeFilterBarView({ api, now = new Date(), yearsRange = 4, onChange }: ViewProps) {
+function TimeFilterBarView({
+  api,
+  now = new Date(),
+  yearsRange = 4,
+  availableYears,
+  onChange,
+}: ViewProps) {
   const { state, selectAll, toggleYear, toggleMonth } = api;
   const { t } = useTranslation();
   const { monthName } = useFormatters();
 
-  const years = useMemo(() => {
+  const computedYears = useMemo(() => {
     const current = now.getFullYear();
     const arr: number[] = [];
     for (let i = yearsRange - 1; i >= 0; i--) arr.push(current - i);
     return arr;
   }, [now, yearsRange]);
+
+  // availableYears === undefined → bar is not data-driven, use computed range
+  // availableYears === []       → data-driven but wallet is empty, show only current year
+  // availableYears === [...]    → use the real data years
+  const years =
+    availableYears === undefined
+      ? computedYears
+      : availableYears.length > 0
+        ? availableYears
+        : [now.getFullYear()];
+
+  // Auto-correct selected year when the available list changes and the selection is stale.
+  const availableYearsKey = availableYears?.join(',');
+  useEffect(() => {
+    if (!availableYears || availableYears.length === 0) return;
+    const selectedYear = state.years[0];
+    if (selectedYear !== undefined && !availableYears.includes(selectedYear)) {
+      toggleYear(availableYears[availableYears.length - 1]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableYearsKey]);
 
   const months = useMemo(() => {
     const start = now.getMonth();

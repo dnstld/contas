@@ -33,7 +33,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <FinanceTimeFilter api={filterApi} now={now} />
+        <FinanceTimeFilter api={filterApi} now={now} availableYears={dashboard.data?.years} />
 
         {showEmptyNotice ? (
           <Surface variant="muted" padding={12} bordered style={styles.notice}>

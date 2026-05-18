@@ -1,12 +1,14 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useWallet } from '@/hooks/use-wallet';
+import { walletKeys } from '@/hooks/use-wallet-list';
 import { supabase } from '@/utils/supabase';
 
 export function useLeaveWallet() {
   const { walletId, refresh } = useWallet();
   const { session } = useAuth();
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
@@ -19,6 +21,8 @@ export function useLeaveWallet() {
       if (error) throw error;
     },
     onSuccess: async () => {
+      const userId = session?.user.id;
+      if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
       await refresh();
     },
   });

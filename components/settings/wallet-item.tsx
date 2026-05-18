@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/atoms/text';
+import { ActionMenu } from '@/components/ui/molecules/action-menu';
 import type { WalletWithMeta } from '@/data/finance-types';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -9,14 +10,12 @@ export interface WalletItemProps {
   wallet: WalletWithMeta;
   isActive: boolean;
   onSwitch: (id: string) => void;
-  isSwitchPending?: boolean;
 }
 
-export function WalletItem({ wallet, isActive, onSwitch, isSwitchPending }: WalletItemProps) {
+export function WalletItem({ wallet, isActive, onSwitch }: WalletItemProps) {
   const { t } = useTranslation();
   const borderColor = useThemeColor({}, 'border');
   const positiveColor = useThemeColor({}, 'positive');
-  const mutedColor = useThemeColor({}, 'textMuted');
 
   return (
     <View style={[styles.container, { borderColor }]}>
@@ -46,22 +45,15 @@ export function WalletItem({ wallet, isActive, onSwitch, isSwitchPending }: Wall
             </Text>
           </View>
         ) : (
-          <Pressable
-            onPress={() => onSwitch(wallet.id)}
-            disabled={isSwitchPending}
-            style={({ pressed }) => [
-              styles.switchBtn,
-              { borderColor, opacity: pressed || isSwitchPending ? 0.5 : 1 },
+          <ActionMenu
+            items={[
+              {
+                label: t('wallets.switchButton'),
+                action: () => onSwitch(wallet.id),
+                systemImage: 'arrow.left.arrow.right',
+              },
             ]}
-          >
-            {isSwitchPending ? (
-              <ActivityIndicator size="small" color={mutedColor} />
-            ) : (
-              <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
-                {t('wallets.switchButton')}
-              </Text>
-            )}
-          </Pressable>
+          />
         )}
       </View>
     </View>
@@ -90,14 +82,5 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
-  },
-  switchBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 54,
   },
 });

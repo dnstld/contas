@@ -193,26 +193,24 @@ export function TransactionForm({
           </View>
 
           <View style={styles.amountSection}>
-            <View style={styles.amountRow}>
-              <Text style={[styles.amountSymbol, { color: mutedColor, fontFamily: Fonts.rounded }]}>
-                {symbol}
-              </Text>
-              <TextInput
-                value={formattedAmount}
-                onChangeText={handleAmountChange}
-                keyboardType="number-pad"
-                inputMode="numeric"
-                accessibilityLabel={t('create.amountPlaceholder')}
-                selectionColor={textColor}
-                style={[
-                  styles.amountInput,
-                  {
-                    color: amountCents > 0 ? textColor : mutedColor,
-                    fontFamily: Fonts.rounded,
-                  },
-                ]}
-              />
-            </View>
+            <Text style={[styles.amountSymbol, { color: mutedColor, fontFamily: Fonts.rounded }]}>
+              {currency}
+            </Text>
+            <TextInput
+              value={formattedAmount}
+              onChangeText={handleAmountChange}
+              keyboardType="number-pad"
+              inputMode="numeric"
+              accessibilityLabel={t('create.amountPlaceholder')}
+              selectionColor={textColor}
+              style={[
+                styles.amountInput,
+                {
+                  color: amountCents > 0 ? textColor : mutedColor,
+                  fontFamily: Fonts.rounded,
+                },
+              ]}
+            />
           </View>
 
           <View style={styles.field}>
@@ -405,25 +403,20 @@ const styles = StyleSheet.create({
   },
   amountSection: {
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  amountRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
+    gap: 2,
   },
   amountSymbol: {
-    fontSize: 24,
-    lineHeight: 32,
+    fontSize: 16,
+    lineHeight: 20,
     fontWeight: '600',
-    paddingBottom: 10,
   },
   amountInput: {
     fontSize: 56,
     lineHeight: 64,
     fontWeight: '700',
-    textAlign: 'left',
+    textAlign: 'center',
     padding: 0,
+    alignSelf: 'stretch',
   },
   field: {
     gap: 8,

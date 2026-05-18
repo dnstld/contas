@@ -1,8 +1,8 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   Divider,
@@ -13,6 +13,8 @@ import {
   Text,
   Toggle,
 } from '@/components/ui';
+import { SectionHeader } from '@/components/ui/molecules/section-header';
+import { ActionMenu } from '@/components/ui/molecules/action-menu';
 import { DangerZone } from '@/components/settings/danger-zone';
 import { EditDisplayNameModal } from '@/components/settings/edit-display-name-modal';
 import { InvitationSection } from '@/components/settings/invitation-section';
@@ -22,6 +24,7 @@ import { useCurrency, type SupportedCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/hooks/use-language';
 import { useMyProfile } from '@/hooks/use-my-profile';
 import { useWallet } from '@/hooks/use-wallet';
+import { useWalletList } from '@/hooks/use-wallet-list';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
@@ -37,10 +40,8 @@ function userInitials(name: string | null): string {
 
 export default function SettingsScreen() {
   const background = useThemeColor({}, 'background');
-  const borderColor = useThemeColor({}, 'border');
-  const mutedColor = useThemeColor({}, 'textMuted');
-  const dangerColor = useThemeColor({}, 'negative');
   const { t } = useTranslation();
+  const router = useRouter();
   const { signOut, session } = useAuth();
 
   const { displayName: profileName, avatarUrl: profileAvatar } = useMyProfile();
@@ -50,8 +51,10 @@ export default function SettingsScreen() {
   const currentUserId = session?.user?.id ?? null;
 
   const [editNameVisible, setEditNameVisible] = useState(false);
-  const [walletsVisible, setWalletsVisible] = useState(false);
-  const { name: walletName } = useWallet();
+  const [createWalletVisible, setCreateWalletVisible] = useState(false);
+  const { walletId, switchWallet } = useWallet();
+  const { data: wallets = [] } = useWalletList();
+  const atWalletLimit = wallets.length >= 2;
 
   const { language, setLanguage, supported } = useLanguage();
   const { currency, setCurrency, supported: supportedCurrencies } = useCurrency();
@@ -89,7 +92,16 @@ export default function SettingsScreen() {
   return (
     <>
       <ScrollView style={{ backgroundColor: background }} contentContainerStyle={styles.content}>
-        <Surface padding={0} radius={16} bordered>
+        <View style={styles.accountSection}>
+          <SectionHeader
+            title={t('settings.sections.account')}
+            trailing={
+              <Text variant="caption" tone="textMuted" weight="medium">
+                {members.length}/2
+              </Text>
+            }
+          />
+          <Surface padding={0} radius={16} bordered>
           <View style={styles.profileRow}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
@@ -115,6 +127,21 @@ export default function SettingsScreen() {
                 </Text>
               ) : null}
             </View>
+            <ActionMenu
+              items={[
+                {
+                  label: t('profile.actions.editName'),
+                  action: () => setEditNameVisible(true),
+                  systemImage: 'pencil',
+                },
+                {
+                  label: t('profile.actions.signOut'),
+                  action: signOut,
+                  destructive: true,
+                  systemImage: 'rectangle.portrait.and.arrow.right',
+                },
+              ]}
+            />
           </View>
 
           {partner ? (
@@ -144,34 +171,53 @@ export default function SettingsScreen() {
             </>
           ) : null}
 
-          <Divider inset={16} />
-          <View style={styles.profileActions}>
-            <Pressable
-              onPress={() => setEditNameVisible(true)}
-              style={({ pressed }) => [
-                styles.actionBtn,
-                { borderColor, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
-                {t('profile.actions.editName')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={signOut}
-              style={({ pressed }) => [
-                styles.actionBtn,
-                { borderColor: dangerColor, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Text variant="caption" weight="medium" style={{ color: dangerColor }}>
-                {t('profile.actions.signOut')}
-              </Text>
-            </Pressable>
-          </View>
         </Surface>
+        </View>
 
         {!partner ? <InvitationSection onRedeemSuccess={() => {}} /> : null}
+
+        <View style={styles.accountSection}>
+          <SectionHeader
+            title={t('settings.sections.wallets')}
+            trailing={
+              <Text variant="caption" tone="textMuted" weight="medium">
+                {wallets.length}/2
+              </Text>
+            }
+          />
+          <Surface padding={0} bordered>
+            <SettingsRow
+              title={t('settings.walletsRow.title')}
+              description={wallets.length > 0 ? wallets.map((w) => w.name).join(', ') : undefined}
+              trailing={
+                <ActionMenu
+                  items={[
+                    ...wallets.map((w) => ({
+                      label: w.name,
+                      action: () => {
+                        if (w.id !== walletId) {
+                          switchWallet(w.id);
+                          router.navigate('/(tabs)/(status)');
+                        }
+                      },
+                      systemImage: w.id === walletId ? 'checkmark' : undefined,
+                    })),
+                    ...(!atWalletLimit
+                      ? [
+                          {
+                            label: t('wallets.createTitle'),
+                            action: () => setCreateWalletVisible(true),
+                            systemImage: 'plus',
+                            dividerBefore: true,
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
+              }
+            />
+          </Surface>
+        </View>
 
         <SettingsSection title={t('settings.sections.display')}>
           <SettingsRow
@@ -183,20 +229,6 @@ export default function SettingsScreen() {
             title={t('settings.demoMode.title')}
             description={t('settings.demoMode.description')}
             trailing={<Toggle value={demoMode} onValueChange={setDemoMode} />}
-          />
-        </SettingsSection>
-
-        <SettingsSection title={t('settings.sections.wallets')}>
-          <SettingsRow
-            title={t('settings.walletsRow.title')}
-            description={walletName ?? undefined}
-            trailing={
-              <Pressable onPress={() => setWalletsVisible(true)} hitSlop={8}>
-                <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
-                  {t('common.manage')}
-                </Text>
-              </Pressable>
-            }
           />
         </SettingsSection>
 
@@ -235,7 +267,11 @@ export default function SettingsScreen() {
         currentName={displayName}
         onClose={() => setEditNameVisible(false)}
       />
-      <WalletsModal visible={walletsVisible} onClose={() => setWalletsVisible(false)} />
+      <WalletsModal
+        visible={createWalletVisible}
+        defaultView="create"
+        onClose={() => setCreateWalletVisible(false)}
+      />
     </>
   );
 }
@@ -246,6 +282,9 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 64,
     gap: 24,
+  },
+  accountSection: {
+    gap: 8,
   },
   profileRow: {
     flexDirection: 'row',
@@ -266,18 +305,5 @@ const styles = StyleSheet.create({
   profileText: {
     flex: 1,
     gap: 2,
-  },
-  profileActions: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  actionBtn: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
   },
 });

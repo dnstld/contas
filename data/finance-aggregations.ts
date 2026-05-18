@@ -174,13 +174,15 @@ function buildMonthMode(mock: Finance, year: number, month: number, locale: stri
     }
   }
 
+  const hasPrevMonthData = prevExpenses > 0 || prevRevenue > 0;
+
   const overview: DashboardOverviewData = {
     mode: 'month',
     primaryLabel: monthLabel,
     primaryValue: monthExpenses,
-    comparisonLabel: prevMonthLabel,
-    previousExpenses: prevExpenses,
-    previousRevenue: prevRevenue,
+    comparisonLabel: hasPrevMonthData ? prevMonthLabel : undefined,
+    previousExpenses: hasPrevMonthData ? prevExpenses : undefined,
+    previousRevenue: hasPrevMonthData ? prevRevenue : undefined,
     revenue: monthRevenue,
     expenses: monthExpenses,
     net: monthRevenue - monthExpenses,
@@ -270,13 +272,15 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     delta: monthExpense[idx] - prevMonthExpense[idx],
   })).filter((p) => p.value > 0 || p.delta !== 0);
 
+  const hasPrevYear = mock.years.includes(prevYear);
+
   const overview: DashboardOverviewData = {
     mode: 'year',
     primaryLabel: yearLabel,
     primaryValue: yearExpenses,
-    comparisonLabel: prevYearLabel,
-    previousExpenses: prevYearExpenses,
-    previousRevenue: prevYearRevenue,
+    comparisonLabel: hasPrevYear ? prevYearLabel : undefined,
+    previousExpenses: hasPrevYear ? prevYearExpenses : undefined,
+    previousRevenue: hasPrevYear ? prevYearRevenue : undefined,
     revenue: yearRevenue,
     expenses: yearExpenses,
     net: yearRevenue - yearExpenses,

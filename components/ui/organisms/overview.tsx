@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { Icon } from '@/components/ui/atoms/icon';
 import { PriceText } from '@/components/ui/atoms/price-text';
 import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
 import { Surface } from '@/components/ui/atoms/surface';
@@ -160,15 +161,27 @@ export function Overview({
             <MetricRow
               label={t('overview.revenue')}
               value={formatCurrency(revenue ?? 0, currency)}
+              valueTone={(revenue ?? 0) > 0 ? 'positive' : undefined}
             />
             <MetricRow
               label={t('overview.expenses')}
               value={formatCurrency(expenses ?? primaryValue, currency)}
+              valueTone={(expenses ?? primaryValue) > 0 ? 'negative' : undefined}
             />
             <MetricRow
               label={t('overview.balance')}
-              value={formatCurrency(net ?? 0, currency)}
+              value={formatCurrency(Math.abs(net ?? 0), currency)}
               emphasis="strong"
+              valueTone={(net ?? 0) > 0 ? 'positive' : (net ?? 0) < 0 ? 'negative' : undefined}
+              valueLeading={
+                (net ?? 0) !== 0 ? (
+                  <Icon
+                    name={(net ?? 0) > 0 ? 'arrow.up' : 'arrow.down'}
+                    size={14}
+                    tone={(net ?? 0) > 0 ? 'positive' : 'negative'}
+                  />
+                ) : null
+              }
             />
           </View>
         </View>

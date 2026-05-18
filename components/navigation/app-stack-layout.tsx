@@ -1,4 +1,4 @@
-import { Button as SwiftUIButton, Host } from '@expo/ui/swift-ui';
+import { Host, Button as SwiftUIButton } from '@expo/ui/swift-ui';
 import {
   buttonStyle,
   controlSize,
@@ -9,7 +9,7 @@ import {
 } from '@expo/ui/swift-ui/modifiers';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, StyleSheet } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
@@ -18,12 +18,30 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useWallet } from '@/hooks/use-wallet';
 
 function HeaderLogo() {
-  const { t } = useTranslation();
   const { name } = useWallet();
   return (
-    <Text variant="subtitle" weight="bold" style={{ letterSpacing: 1.5 }}>
-      {name ? `Contas: ${name}` : t('common.appName')}
-    </Text>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 6,
+      }}
+    >
+      <Text variant="subtitle" weight="bold" style={{ letterSpacing: 1.5 }}>
+        FINANCE42
+      </Text>
+      {name ? (
+        <>
+          <Text variant="body" tone="textMuted" weight="medium">
+            |
+          </Text>
+          <Text variant="caption" weight="medium">
+            {name}
+          </Text>
+        </>
+      ) : null}
+    </View>
   );
 }
 

@@ -115,17 +115,20 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             if (b[1].count !== a[1].count) return b[1].count - a[1].count;
             return b[1].myJoinedAt.localeCompare(a[1].myJoinedAt);
           });
-          const preferred = mine[0][0];
+
+          // Honour the user's last manual selection if they're still a member.
+          const cachedIsValid = cachedId != null && mine.some(([wid]) => wid === cachedId);
+          const preferred = cachedIsValid ? cachedId : mine[0][0];
+
           setWalletId(preferred);
-          if (storage) {
+          if (!cachedIsValid && storage) {
             try {
               await storage.setItem(key, JSON.stringify(preferred));
             } catch {
               // swallow — next launch will reconcile again
             }
           }
-          if (preferred !== cachedId) fetchWalletData(preferred, reqId);
-          else if (cachedId) fetchWalletData(cachedId, reqId);
+          fetchWalletData(preferred, reqId);
           return;
         }
       }

@@ -46,7 +46,7 @@ export function TransactionRow({ transaction, currency, onPress }: TransactionRo
         value={signedAmount}
         currency={currency}
         locale={locale}
-        tone="neutral"
+        tone={isIncome ? 'positive' : 'neutral'}
         size="md"
         showSign
       />

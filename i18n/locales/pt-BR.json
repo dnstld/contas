@@ -142,8 +142,9 @@
       "unnamed": "Parceiro(a)"
     },
     "invitation": {
-      "sectionTitle": "Convidar parceiro(a)",
-      "inviteButton": "Convidar parceiro(a)",
+      "sectionTitle": "Convidar um amigo",
+      "description": "Compartilhe esta carteira com um amigo para acompanhar as finanças juntos.",
+      "inviteButton": "Gerar código de convite",
       "haveCodeButton": "Tenho um código",
       "codeLabel": "Compartilhe este código",
       "shareCode": "Compartilhar código",
@@ -200,7 +201,7 @@
     "createTitle": "Criar Carteira",
     "nameLabel": "Nome",
     "namePlaceholder": "Nome da carteira",
-    "freeTierLimit": "Faça upgrade para criar mais carteiras",
+    "freeTierLimit": "Limite de 2 carteiras atingido",
     "activeLabel": "Ativa",
     "switchButton": "Mudar",
     "membersOne": "1 membro",
