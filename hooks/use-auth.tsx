@@ -50,23 +50,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       loading,
       async signInWithGoogle() {
-        await GoogleSignin.hasPlayServices();
-        const res = await GoogleSignin.signIn();
-        const idToken = res.data?.idToken;
-        if (!idToken) throw new Error('No idToken returned from Google');
-        const { data, error } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: idToken,
-        });
-        if (error) {
-          captureError(error, { tags: { context: 'auth' } });
-          throw error;
-        }
-        if (!data.session) {
-          captureMessage('signInWithIdToken returned no session', 'error', {
-            tags: { context: 'auth' },
+        try {
+          await GoogleSignin.hasPlayServices();
+          const res = await GoogleSignin.signIn();
+          const idToken = res.data?.idToken;
+          if (!idToken) throw new Error('No idToken returned from Google');
+          const { data, error } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: idToken,
           });
-          throw new Error('No session returned');
+          if (error) throw error;
+          if (!data.session) {
+            captureMessage('signInWithIdToken returned no session', 'error', {
+              tags: { context: 'auth' },
+            });
+            throw new Error('No session returned');
+          }
+        } catch (err) {
+          const code = (err as { code?: string } | null)?.code;
+          if (code !== statusCodes.SIGN_IN_CANCELLED && code !== statusCodes.IN_PROGRESS) {
+            captureError(err, { tags: { context: 'auth' } });
+          }
+          throw err;
         }
       },
       async signOut() {

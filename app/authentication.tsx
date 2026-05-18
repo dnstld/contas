@@ -16,8 +16,8 @@ export default function AuthenticationScreen() {
     setSubmitting(true);
     try {
       await signInWithGoogle();
-    } catch (e) {
-      console.error('[auth] Google sign-in failed', e);
+    } catch {
+      // Reported in useAuth; nothing to show in the UI yet.
     } finally {
       setSubmitting(false);
     }
