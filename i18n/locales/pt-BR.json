@@ -17,12 +17,12 @@
   },
   "errorFallback": {
     "title": "Algo deu errado",
-    "body": "Ocorreu um erro inesperado. Tente novamente.",
+    "body": "Algo inesperado aconteceu. Tente novamente.",
     "retry": "Tentar novamente"
   },
   "balance": {
     "empty": {
-      "title": "Sem dados para exibir",
+      "title": "Nada por aqui ainda",
       "body": "Ative o Modo demo em Ajustes para ver dados de exemplo."
     },
     "demoBadge": {
@@ -36,14 +36,14 @@
     "today": "Hoje",
     "yesterday": "Ontem",
     "empty": {
-      "title": "Sem transações",
-      "body": "Nenhuma transação no período selecionado."
+      "title": "Nada aqui",
+      "body": "Nenhum registro neste período."
     }
   },
   "auth": {
     "welcome": {
       "title": "Bem-vindo ao Finance42",
-      "body": "Entre para manter suas finanças sincronizadas entre dispositivos."
+      "body": "Entre para ver suas finanças em qualquer dispositivo."
     },
     "signInWithGoogle": "Entrar com o Google",
     "signOut": "Sair"
@@ -102,7 +102,7 @@
     }
   },
   "overview": {
-    "expenses": "Despesas",
+    "expenses": "Gastos",
     "revenue": "Receitas",
     "balance": "Saldo",
     "allMonths": "TODOS OS MESES",
@@ -126,39 +126,39 @@
     "amountPlaceholder": "Valor",
     "dateLabel": "Data",
     "categoryLabel": "Categoria",
-    "categoryEmpty": "Sem categorias disponíveis",
+    "categoryEmpty": "Sem categorias ainda",
     "descriptionLabel": "Descrição",
     "descriptionPlaceholder": "ex: Passagem aérea",
     "descriptionCaption": "Aparece nas transações",
     "descriptionCounter": "{{count}}/100",
     "save": "Salvar",
-    "error": "Não foi possível salvar a transação. Tente novamente."
+    "error": "Algo não salvou. Tente de novo."
   },
   "edit": {
     "title": "Editar transação",
     "save": "Salvar alterações",
     "delete": "Excluir",
-    "updateError": "Não foi possível atualizar a transação. Tente novamente.",
-    "deleteError": "Não foi possível excluir a transação. Tente novamente."
+    "updateError": "Não foi possível atualizar. Tente de novo.",
+    "deleteError": "Não foi possível remover. Tente de novo."
   },
   "wallet": {
     "partner": {
-      "unnamed": "Parceiro(a)"
+      "unnamed": "Compartilhado com"
     },
     "invitation": {
-      "sectionTitle": "Convidar um amigo",
-      "description": "Compartilhe esta carteira com um amigo para acompanhar as finanças juntos.",
-      "inviteButton": "Gerar código de convite",
-      "haveCodeButton": "Tenho um código",
+      "sectionTitle": "Dividir com alguém",
+      "description": "Divida esta carteira com alguém. Ao aceitar o convite, vocês passam a ver e organizar as contas da casa juntos.",
+      "inviteButton": "Convidar",
+      "haveCodeButton": "Recebi um convite",
       "codeLabel": "Compartilhe este código",
-      "shareCode": "Compartilhar código",
+      "shareCode": "Enviar convite",
       "codeExpiry": "Expira em 7 dias · uso único",
-      "haveCodeLink": "Tenho um código",
-      "redeemTitle": "Inserir código de convite",
+      "haveCodeLink": "Recebi um convite",
+      "redeemTitle": "Entrar com convite",
       "codeInputPlaceholder": "Cole ou digite seu código",
-      "redeemButton": "Entrar na carteira",
+      "redeemButton": "Entrar",
       "redeeming": "Entrando…",
-      "redeemError": "Código inválido ou expirado. Tente novamente.",
+      "redeemError": "Esse código não funcionou — pode ter expirado. Tente novamente.",
       "redeemCancel": "Cancelar"
     },
     "leave": {
@@ -168,11 +168,11 @@
       "confirmBody": "Seu parceiro(a) continuará com acesso. Você começará uma nova carteira pessoal.",
       "confirmLeave": "Sair",
       "confirmCancel": "Cancelar",
-      "errorToast": "Não foi possível sair da carteira. Tente novamente."
+      "errorToast": "Algo deu errado. Tente de novo."
     }
   },
   "dangerZone": {
-    "title": "Zona de Perigo",
+    "title": "Avançado",
     "leave": {
       "title": "Sair da Carteira",
       "description": "Remove você. Seu parceiro(a) mantém todos os dados.",
@@ -205,7 +205,7 @@
     "createTitle": "Criar Carteira",
     "nameLabel": "Nome",
     "namePlaceholder": "Nome da carteira",
-    "freeTierLimit": "Limite de 2 carteiras atingido",
+    "freeTierLimit": "Você chegou ao limite de 2 carteiras",
     "activeLabel": "Ativa",
     "switchButton": "Mudar",
     "membersOne": "1 membro",
@@ -228,8 +228,8 @@
       "nameLabel": "Nome",
       "namePlaceholder": "ex: Mercado",
       "nameCaption": "Exibido nas transações e relatórios",
-      "budgetLabel": "Orçamento mensal",
-      "budgetCaption": "Opcional — define um limite de gastos para esta categoria",
+      "budgetLabel": "Meta mensal",
+      "budgetCaption": "Opcional — define uma meta mensal de gastos",
       "createButton": "Criar",
       "creating": "Criando…",
       "cancel": "Cancelar"
@@ -240,8 +240,8 @@
       "saving": "Salvando…",
       "delete": "Excluir Categoria",
       "deleting": "Excluindo…",
-      "hasTransactions_one": "{{count}} transação deve ser excluída antes de excluir esta categoria.",
-      "hasTransactions_other": "{{count}} transações devem ser excluídas antes de excluir esta categoria."
+      "hasTransactions_one": "Esta categoria tem {{count}} transação. Exclua ou reatribua antes de remover.",
+      "hasTransactions_other": "Esta categoria tem {{count}} transações. Exclua ou reatribua antes de remover."
     },
     "pressAndHoldHint": "Pressione e segure para editar",
     "transactionCount_one": "{{count}} transação",
@@ -260,7 +260,7 @@
       "label": "Ordenar",
       "highestExpense": "Maior despesa",
       "mostUsed": "Mais usadas",
-      "overBudget": "Acima do orçamento"
+      "overBudget": "Acima da meta"
     }
   }
 }

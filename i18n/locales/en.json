@@ -17,12 +17,12 @@
   },
   "errorFallback": {
     "title": "Something went wrong",
-    "body": "An unexpected error occurred. Please try again.",
+    "body": "Something unexpected happened. Try again.",
     "retry": "Try again"
   },
   "balance": {
     "empty": {
-      "title": "No data to display",
+      "title": "Nothing here yet",
       "body": "Enable Demo Mode in Settings to see sample data."
     },
     "demoBadge": {
@@ -36,14 +36,14 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "empty": {
-      "title": "No transactions",
-      "body": "No transactions match the selected period."
+      "title": "Nothing here",
+      "body": "Nothing logged in this period."
     }
   },
   "auth": {
     "welcome": {
       "title": "Welcome to Finance42",
-      "body": "Sign in to keep your finances in sync across devices."
+      "body": "Sign in to see your finances on any device."
     },
     "signInWithGoogle": "Sign in with Google",
     "signOut": "Sign out"
@@ -102,7 +102,7 @@
     }
   },
   "overview": {
-    "expenses": "Expenses",
+    "expenses": "Spending",
     "revenue": "Revenue",
     "balance": "Balance",
     "allMonths": "ALL MONTHS",
@@ -126,39 +126,39 @@
     "amountPlaceholder": "Amount",
     "dateLabel": "Date",
     "categoryLabel": "Category",
-    "categoryEmpty": "No categories available",
+    "categoryEmpty": "No categories yet",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "ex: Airfare",
     "descriptionCaption": "Appears in transactions",
     "descriptionCounter": "{{count}}/100",
     "save": "Save",
-    "error": "Could not save the transaction. Please try again."
+    "error": "Something didn't save. Give it another try."
   },
   "edit": {
     "title": "Edit transaction",
     "save": "Save changes",
     "delete": "Delete",
-    "updateError": "Could not update the transaction. Please try again.",
-    "deleteError": "Could not delete the transaction. Please try again."
+    "updateError": "Couldn't update this. Give it another try.",
+    "deleteError": "Couldn't remove this. Give it another try."
   },
   "wallet": {
     "partner": {
-      "unnamed": "Partner"
+      "unnamed": "Shared with"
     },
     "invitation": {
-      "sectionTitle": "Invite a friend",
-      "description": "Share this wallet with a friend to track finances together.",
-      "inviteButton": "Generate invitation code",
-      "haveCodeButton": "I have a code",
+      "sectionTitle": "Share with someone",
+      "description": "Share this wallet with someone. Once they accept, you'll both be able to see and manage your household finances together.",
+      "inviteButton": "Invite",
+      "haveCodeButton": "I received an invite",
       "codeLabel": "Share this code",
-      "shareCode": "Share code",
+      "shareCode": "Send invite",
       "codeExpiry": "Expires in 7 days · single use",
-      "haveCodeLink": "I have a code instead",
-      "redeemTitle": "Enter invitation code",
+      "haveCodeLink": "I received an invite",
+      "redeemTitle": "Join with invite",
       "codeInputPlaceholder": "Paste or type your code",
-      "redeemButton": "Join wallet",
+      "redeemButton": "Join",
       "redeeming": "Joining…",
-      "redeemError": "Code is invalid or expired. Please try again.",
+      "redeemError": "That code didn't work — it may have expired. Try again.",
       "redeemCancel": "Cancel"
     },
     "leave": {
@@ -168,11 +168,11 @@
       "confirmBody": "Your partner will keep access. You'll start a new personal wallet.",
       "confirmLeave": "Leave",
       "confirmCancel": "Cancel",
-      "errorToast": "Could not leave the wallet. Please try again."
+      "errorToast": "Something went wrong. Give it another try."
     }
   },
   "dangerZone": {
-    "title": "Danger Zone",
+    "title": "Advanced",
     "leave": {
       "title": "Leave Wallet",
       "description": "Remove yourself. Your partner keeps all data.",
@@ -205,7 +205,7 @@
     "createTitle": "Create Wallet",
     "nameLabel": "Name",
     "namePlaceholder": "Wallet name",
-    "freeTierLimit": "Maximum of 2 wallets reached",
+    "freeTierLimit": "You've reached the 2-wallet limit",
     "activeLabel": "Active",
     "switchButton": "Switch",
     "membersOne": "1 member",
@@ -228,8 +228,8 @@
       "nameLabel": "Name",
       "namePlaceholder": "e.g. Groceries",
       "nameCaption": "Shown in transactions and reports",
-      "budgetLabel": "Monthly budget",
-      "budgetCaption": "Optional — set a spending limit for this category",
+      "budgetLabel": "Monthly goal",
+      "budgetCaption": "Optional — set a monthly spending goal",
       "createButton": "Create",
       "creating": "Creating…",
       "cancel": "Cancel"
@@ -240,8 +240,8 @@
       "saving": "Saving…",
       "delete": "Delete Category",
       "deleting": "Deleting…",
-      "hasTransactions_one": "{{count}} transaction must be deleted before deleting this category.",
-      "hasTransactions_other": "{{count}} transactions must be deleted before deleting this category."
+      "hasTransactions_one": "This category has {{count}} transaction. Remove or reassign it first.",
+      "hasTransactions_other": "This category has {{count}} transactions. Remove or reassign them first."
     },
     "pressAndHoldHint": "Press and hold to edit",
     "transactionCount_one": "{{count}} transaction",
@@ -260,7 +260,7 @@
       "label": "Sort",
       "highestExpense": "Highest expense",
       "mostUsed": "Most used",
-      "overBudget": "Over budget"
+      "overBudget": "Above goal"
     }
   }
 }
