@@ -3,7 +3,7 @@ import type { ExpoConfig } from 'expo/config';
 const IS_DEV = process.env.APP_VARIANT === 'development';
 
 const config: ExpoConfig = {
-  name: IS_DEV ? 'contas.dev' : 'contas',
+  name: IS_DEV ? 'Finance42.dev' : 'Finance42',
   slug: 'contas',
   version: '1.0.0',
   runtimeVersion: {

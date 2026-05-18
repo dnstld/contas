@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "CONTAS",
+    "appName": "Finance42",
     "add": "Add",
     "cancel": "Cancel",
     "manage": "Manage",
@@ -42,7 +42,7 @@
   },
   "auth": {
     "welcome": {
-      "title": "Welcome to CONTAS",
+      "title": "Welcome to Finance42",
       "body": "Sign in to keep your finances in sync across devices."
     },
     "signInWithGoogle": "Sign in with Google",
