@@ -2,7 +2,7 @@ import { type CategoryCardData } from '@/components/ui/organisms/category-card';
 import { type MonthlyTimelinePoint } from '@/components/ui/organisms/monthly-timeline';
 import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter';
 
-import type { Category, Finance, Transaction } from './finance-types';
+import { transactionDate, type Category, type Finance, type Transaction } from './finance-types';
 
 export type DashboardMode = 'month' | 'year';
 
@@ -35,8 +35,7 @@ function monthFormatter(locale: string): (monthIndex: number) => string {
 }
 
 function txDate(t: Transaction): Date | null {
-  if (!t.date) return null;
-  return new Date(t.date);
+  return new Date(transactionDate(t));
 }
 
 function isCompletedExpense(t: Transaction): boolean {

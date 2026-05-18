@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { useAuth } from '@/hooks/use-auth';
+import { getKVStore } from '@/utils/kv-store';
 import { captureError } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
 
@@ -27,20 +28,6 @@ const WalletContext = createContext<WalletContextValue | null>(null);
 
 const KEY_PREFIX = 'wallet:selected-id:';
 const DEFAULT_CURRENCY = 'BRL';
-
-type KVStore = {
-  getItem: (key: string) => Promise<string | null> | string | null;
-  setItem: (key: string, value: string) => Promise<void> | void;
-};
-
-let storagePromise: Promise<KVStore | null> | null = null;
-function getStorage(): Promise<KVStore | null> {
-  if (storagePromise) return storagePromise;
-  storagePromise = import('expo-sqlite/kv-store')
-    .then((mod) => (mod.default as unknown as KVStore) ?? null)
-    .catch(() => null);
-  return storagePromise;
-}
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
@@ -71,7 +58,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     async (uid: string) => {
       const reqId = ++requestRef.current;
       const key = KEY_PREFIX + uid;
-      const storage = await getStorage();
+      const storage = await getKVStore();
       if (reqId !== requestRef.current) return;
 
       let cachedId: string | null = null;
@@ -80,7 +67,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           const raw = await storage.getItem(key);
           if (reqId !== requestRef.current) return;
           if (raw) {
-            const parsed = JSON.parse(raw) as string;
+            const parsed: unknown = JSON.parse(raw);
             if (typeof parsed === 'string') {
               cachedId = parsed;
               setWalletId(parsed);
@@ -117,8 +104,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           });
 
           // Honour the user's last manual selection if they're still a member.
-          const cachedIsValid = cachedId != null && mine.some(([wid]) => wid === cachedId);
-          const preferred = cachedIsValid ? cachedId : mine[0][0];
+          const cachedIsValid =
+            cachedId != null && mine.some(([wid]) => wid === cachedId);
+          const preferred: string = cachedIsValid && cachedId ? cachedId : mine[0][0];
 
           setWalletId(preferred);
           if (!cachedIsValid && storage) {
@@ -197,7 +185,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setWalletId(id);
         setName(null);
         setCurrencyState(DEFAULT_CURRENCY);
-        getStorage().then((storage) => {
+        getKVStore().then((storage) => {
           storage?.setItem(KEY_PREFIX + userId, JSON.stringify(id));
         });
         fetchWalletData(id, requestRef.current);

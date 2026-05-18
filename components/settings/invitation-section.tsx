@@ -19,6 +19,7 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
   const borderColor = useThemeColor({}, 'border');
   const mutedColor = useThemeColor({}, 'textMuted');
   const accentColor = useThemeColor({}, 'positive');
+  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const createInvitation = useCreateInvitation();
 
@@ -97,9 +98,9 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
                 ]}
               >
                 {createInvitation.isPending ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={onPrimary} />
                 ) : (
-                  <Text variant="caption" weight="semibold" style={styles.pillFilledLabel}>
+                  <Text variant="caption" weight="semibold" style={{ color: onPrimary }}>
                     {t('wallet.invitation.inviteButton')}
                   </Text>
                 )}
@@ -171,9 +172,6 @@ const styles = StyleSheet.create({
   },
   pillFilled: {
     borderWidth: 0,
-  },
-  pillFilledLabel: {
-    color: '#fff',
   },
   linkBtn: {
     alignItems: 'center',

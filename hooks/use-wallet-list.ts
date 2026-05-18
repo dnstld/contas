@@ -15,13 +15,12 @@ export function useWalletList(): UseQueryResult<WalletWithMeta[]> {
   return useQuery({
     queryKey: userId ? walletKeys.list(userId) : ['wallets', 'unbound'],
     enabled: !!userId,
-    staleTime: Infinity,
     queryFn: async (): Promise<WalletWithMeta[]> => {
       // Fetch wallets the current user is a member of
       const { data: memberRows, error: memberError } = await supabase
         .from('wallet_members')
         .select('wallet_id, joined_at, wallets(id, name, currency, created_at)')
-        .eq('user_id', userId as string)
+        .eq('user_id', userId!)
         .order('joined_at', { ascending: true });
 
       if (memberError) throw memberError;

@@ -27,6 +27,8 @@ export function TransactionRow({ transaction, currency, onPress }: TransactionRo
   return (
     <Pressable
       onPress={() => onPress(transaction)}
+      accessibilityRole="button"
+      accessibilityLabel={`${transaction.categoryName}, ${transaction.description}`}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
       <Surface variant="muted" padding={0} radius={20} style={styles.avatar}>

@@ -6,6 +6,7 @@ import {
   TransactionForm,
   type TransactionFormValues,
 } from '@/components/transactions/transaction-form';
+import { transactionDate } from '@/data/finance-types';
 import { useFinance } from '@/hooks/use-finance';
 import { useDeleteTransaction, useUpdateTransaction } from '@/hooks/use-finance-mutations';
 
@@ -34,9 +35,7 @@ export default function EditScreen() {
   const initialValues: Partial<TransactionFormValues> = {
     type: transaction.type,
     amountCents: Math.round(transaction.amount * 100),
-    date: new Date(
-      transaction.date ?? transaction.startDate ?? transaction.nextOccurrence ?? Date.now(),
-    ),
+    date: new Date(transactionDate(transaction)),
     categoryId: transaction.categoryId,
     description: transaction.description,
   };

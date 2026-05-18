@@ -1,15 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
 import { Text } from '@/components/ui/atoms/text';
 import { Fonts } from '@/constants/theme';
 import { useRedeemInvitation } from '@/hooks/use-wallet-invitation';
@@ -29,11 +22,11 @@ export function RedeemCodeModal({ visible, onClose, onSuccess }: RedeemCodeModal
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
-  const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
   const accentColor = useThemeColor({}, 'positive');
   const dangerColor = useThemeColor({}, 'negative');
   const inputBackground = useThemeColor({}, 'surfaceMuted');
+  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const redeem = useRedeemInvitation();
 
@@ -61,109 +54,85 @@ export function RedeemCodeModal({ visible, onClose, onSuccess }: RedeemCodeModal
   const canJoin = code.trim().length > 0 && !redeem.isPending;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={[styles.sheet, { backgroundColor, borderColor }]}>
-          <Text variant="subtitle" weight="semibold" style={styles.title}>
-            {t('wallet.invitation.redeemTitle')}
-          </Text>
+    <ModalSheet visible={visible} onRequestClose={onClose} animationType="fade">
+      <View style={styles.body}>
+        <Text variant="subtitle" weight="semibold" style={styles.title}>
+          {t('wallet.invitation.redeemTitle')}
+        </Text>
 
-          <View style={styles.field}>
-            <TextInput
-              ref={inputRef}
-              value={code}
-              onChangeText={(v) => {
-                setCode(v);
-                setError(false);
-              }}
-              placeholder={t('wallet.invitation.codeInputPlaceholder')}
-              placeholderTextColor={mutedColor}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="done"
-              onSubmitEditing={handleJoin}
-              style={[
-                styles.input,
-                {
-                  color: textColor,
-                  backgroundColor: inputBackground,
-                  fontFamily: Fonts.sans,
-                  borderColor: error ? dangerColor : 'transparent',
-                  borderWidth: error ? 1 : 0,
-                },
-              ]}
-            />
-            {error ? (
-              <Text variant="caption" style={{ color: dangerColor }}>
-                {t('wallet.invitation.redeemError')}
-              </Text>
-            ) : null}
-          </View>
-
-          <View style={styles.actions}>
-            <Pressable
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.cancelBtn,
-                { borderColor, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Text variant="body" weight="medium" style={{ color: mutedColor }}>
-                {t('wallet.invitation.redeemCancel')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={handleJoin}
-              disabled={!canJoin}
-              style={({ pressed }) => [
-                styles.joinBtn,
-                {
-                  backgroundColor: accentColor,
-                  opacity: canJoin ? (pressed ? 0.8 : 1) : 0.4,
-                },
-              ]}
-            >
-              <Text variant="body" weight="semibold" style={styles.joinBtnLabel}>
-                {redeem.isPending
-                  ? t('wallet.invitation.redeeming')
-                  : t('wallet.invitation.redeemButton')}
-              </Text>
-            </Pressable>
-          </View>
+        <View style={styles.field}>
+          <TextInput
+            ref={inputRef}
+            value={code}
+            onChangeText={(v) => {
+              setCode(v);
+              setError(false);
+            }}
+            placeholder={t('wallet.invitation.codeInputPlaceholder')}
+            placeholderTextColor={mutedColor}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={handleJoin}
+            accessibilityLabel={t('wallet.invitation.codeInputPlaceholder')}
+            style={[
+              styles.input,
+              {
+                color: textColor,
+                backgroundColor: inputBackground,
+                fontFamily: Fonts.sans,
+                borderColor: error ? dangerColor : 'transparent',
+                borderWidth: error ? 1 : 0,
+              },
+            ]}
+          />
+          {error ? (
+            <Text variant="caption" style={{ color: dangerColor }}>
+              {t('wallet.invitation.redeemError')}
+            </Text>
+          ) : null}
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        <View style={styles.actions}>
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('wallet.invitation.redeemCancel')}
+            style={({ pressed }) => [styles.cancelBtn, { borderColor, opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text variant="body" weight="medium" style={{ color: mutedColor }}>
+              {t('wallet.invitation.redeemCancel')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleJoin}
+            disabled={!canJoin}
+            accessibilityRole="button"
+            accessibilityLabel={t('wallet.invitation.redeemButton')}
+            accessibilityState={{ disabled: !canJoin, busy: redeem.isPending }}
+            style={({ pressed }) => [
+              styles.joinBtn,
+              {
+                backgroundColor: accentColor,
+                opacity: canJoin ? (pressed ? 0.8 : 1) : 0.4,
+              },
+            ]}
+          >
+            <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
+              {redeem.isPending
+                ? t('wallet.invitation.redeeming')
+                : t('wallet.invitation.redeemButton')}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </ModalSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
+  body: {
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 36,
     gap: 20,
   },
   title: {
@@ -199,8 +168,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 999,
-  },
-  joinBtnLabel: {
-    color: '#fff',
   },
 });

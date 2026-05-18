@@ -1,4 +1,4 @@
-import type { Finance, Transaction } from '@/data/finance-types';
+import { transactionDate, type Finance, type Transaction } from '@/data/finance-types';
 import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter';
 
 export interface TransactionsSection {
@@ -73,8 +73,8 @@ export function buildTransactionsList(
   let expenses = 0;
 
   for (const tx of mock.transactions) {
-    if (tx.status !== 'completed' || !tx.date) continue;
-    const date = new Date(tx.date);
+    if (tx.status !== 'completed') continue;
+    const date = new Date(transactionDate(tx));
     if (date.getFullYear() !== year) continue;
     if (monthIndex !== undefined && date.getMonth() !== monthIndex) continue;
 

@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryFormModal } from '@/components/transactions/create-category-modal';
+import { transactionDate } from '@/data/finance-types';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { Icon } from '@/components/ui/atoms/icon';
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
@@ -22,6 +23,7 @@ import { useCurrency } from '@/hooks/use-currency';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from '@/constants/limits';
 
 export type TransactionType = 'expense' | 'income';
 
@@ -44,8 +46,6 @@ export interface TransactionFormProps {
   errorMessage?: string | null;
 }
 
-const DESCRIPTION_MAX_LENGTH = 100;
-
 export function TransactionForm({
   initialValues,
   onSubmit,
@@ -60,7 +60,7 @@ export function TransactionForm({
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
   const { currency } = useCurrency();
-  const { formatDecimal, currencySymbol } = useFormatters();
+  const { formatDecimal } = useFormatters();
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
@@ -69,6 +69,7 @@ export function TransactionForm({
   const accentColor = useThemeColor({}, 'positive');
   const dangerColor = useThemeColor({}, 'negative');
   const surfaceMutedColor = useThemeColor({}, 'surfaceMuted');
+  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const [type, setType] = useState<TransactionType>(initialValues?.type ?? 'expense');
   const [amountCents, setAmountCents] = useState<number>(initialValues?.amountCents ?? 0);
@@ -97,8 +98,7 @@ export function TransactionForm({
     // Build per-category stats from transaction history.
     const statsById = new Map<string, { mostRecentYear: number; count: number }>();
     for (const t of transactions) {
-      if (!t.date) continue;
-      const year = new Date(t.date).getFullYear();
+      const year = new Date(transactionDate(t)).getFullYear();
       const s = statsById.get(t.categoryId);
       if (!s) {
         statsById.set(t.categoryId, { mostRecentYear: year, count: 1 });
@@ -128,7 +128,6 @@ export function TransactionForm({
   }, [categories, transactions, type, newCategoryId]);
 
   const formattedAmount = formatDecimal(amountCents / 100);
-  const symbol = currencySymbol(currency);
 
   const handleAmountChange = (text: string) => {
     const digits = text.replace(/\D/g, '');
@@ -282,7 +281,7 @@ export function TransactionForm({
             <TextInput
               value={description}
               onChangeText={setDescription}
-              maxLength={DESCRIPTION_MAX_LENGTH}
+              maxLength={TRANSACTION_DESCRIPTION_MAX_LENGTH}
               placeholder={t('create.descriptionPlaceholder')}
               placeholderTextColor={mutedColor}
               style={[
@@ -336,7 +335,11 @@ export function TransactionForm({
             ]}
           >
             <Icon name="checkmark" size={18} color="#fff" />
-            <Text variant="subtitle" weight="bold" style={styles.submitLabel}>
+            <Text
+              variant="subtitle"
+              weight="bold"
+              style={[styles.submitLabel, { color: onPrimary }]}
+            >
               {submitLabel ?? t('create.save')}
             </Text>
           </Pressable>
@@ -449,7 +452,6 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   submitLabel: {
-    color: '#fff',
     letterSpacing: 0.3,
   },
   delete: {

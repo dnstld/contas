@@ -1,28 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-type Storage = {
-  getItem: (key: string) => Promise<string | null>;
-  setItem: (key: string, value: string) => Promise<void>;
-};
-
-let storagePromise: Promise<Storage | null> | null = null;
-
-function getStorage(): Promise<Storage | null> {
-  if (storagePromise) return storagePromise;
-  storagePromise = import('expo-sqlite/kv-store')
-    .then((mod) => (mod.default as unknown as Storage) ?? null)
-    .catch(() => {
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          '[usePersistedState] expo-sqlite native module not available. ' +
-            'Falling back to in-memory state. Rebuild the dev client to enable persistence.',
-        );
-      }
-      return null;
-    });
-  return storagePromise;
-}
+import { getKVStore } from '@/utils/kv-store';
+import { captureError } from '@/utils/monitoring';
 
 type Cell = {
   value: unknown;
@@ -47,7 +26,7 @@ function getCell(key: string): Cell {
  * synchronously (no hydration flicker). Safe to call before any consumer mounts.
  */
 export async function prewarmPersistedState(keys: readonly string[]): Promise<void> {
-  const storage = await getStorage();
+  const storage = await getKVStore();
   if (!storage) return;
   await Promise.all(
     keys.map(async (key) => {
@@ -102,7 +81,7 @@ export function usePersistedState<T>(
       setHydrated(true);
     };
 
-    getStorage().then((storage) => {
+    getKVStore().then((storage) => {
       if (cancelled) return;
       if (!storage) {
         apply(defaultValueRef.current);
@@ -133,21 +112,29 @@ export function usePersistedState<T>(
     };
   }, [key]);
 
+  // Keep the current value reachable from `update` without putting it in deps —
+  // otherwise every state change recreates `update` and any consumer that lists
+  // it in a `useEffect` dependency array would re-fire on every mutation.
+  const valueRef = useRef(value);
+  valueRef.current = value;
+
   const update = useCallback(
     (next: T | ((prev: T) => T)) => {
       const cell = getCell(key);
-      const prev = (cell.hasValue ? cell.value : value) as T;
+      const prev = (cell.hasValue ? cell.value : valueRef.current) as T;
       const resolved = typeof next === 'function' ? (next as (p: T) => T)(prev) : next;
       cell.value = resolved;
       cell.hasValue = true;
       cell.subscribers.forEach((fn) => fn(resolved));
       if (hydratedRef.current) {
-        getStorage().then((storage) => {
-          storage?.setItem(key, JSON.stringify(resolved)).catch(() => {});
+        getKVStore().then((storage) => {
+          storage?.setItem(key, JSON.stringify(resolved)).catch((err) => {
+            captureError(err, { tags: { context: 'kv-store' }, extra: { key } });
+          });
         });
       }
     },
-    [key, value],
+    [key],
   );
 
   return [value, update, { hydrated }];

@@ -1,18 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
 import { Text } from '@/components/ui/atoms/text';
 import { Fonts } from '@/constants/theme';
+import { DISPLAY_NAME_MAX_LENGTH } from '@/constants/limits';
 import { useAuth } from '@/hooks/use-auth';
 import { myProfileKey } from '@/hooks/use-my-profile';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -37,10 +31,10 @@ export function EditDisplayNameModal({ visible, currentName, onClose }: EditDisp
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
-  const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
   const accentColor = useThemeColor({}, 'positive');
   const inputBackground = useThemeColor({}, 'surfaceMuted');
+  const onPrimary = useThemeColor({}, 'onPrimary');
 
   useEffect(() => {
     if (visible) {
@@ -48,7 +42,7 @@ export function EditDisplayNameModal({ visible, currentName, onClose }: EditDisp
       setIsPending(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [visible]);
+  }, [visible, currentName]);
 
   const handleSave = async () => {
     const trimmed = name.trim();
@@ -72,95 +66,71 @@ export function EditDisplayNameModal({ visible, currentName, onClose }: EditDisp
   const canSave = name.trim().length > 0 && !isPending;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={[styles.sheet, { backgroundColor, borderColor }]}>
-          <Text variant="subtitle" weight="semibold" style={styles.title}>
-            {t('profile.editName.title')}
+    <ModalSheet visible={visible} onRequestClose={onClose} animationType="fade">
+      <View style={styles.body}>
+        <Text variant="subtitle" weight="semibold" style={styles.title}>
+          {t('profile.editName.title')}
+        </Text>
+
+        <View style={styles.field}>
+          <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+            {t('profile.editName.nameLabel').toUpperCase()}
           </Text>
-
-          <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('profile.editName.nameLabel').toUpperCase()}
-            </Text>
-            <TextInput
-              ref={inputRef}
-              value={name}
-              onChangeText={setName}
-              placeholder={t('profile.editName.namePlaceholder')}
-              placeholderTextColor={mutedColor}
-              maxLength={80}
-              returnKeyType="done"
-              onSubmitEditing={handleSave}
-              style={[
-                styles.input,
-                { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
-              ]}
-            />
-          </View>
-
-          <View style={styles.actions}>
-            <Pressable
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.cancelBtn,
-                { borderColor, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Text variant="body" weight="medium" style={{ color: mutedColor }}>
-                {t('profile.editName.cancel')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={handleSave}
-              disabled={!canSave}
-              style={({ pressed }) => [
-                styles.saveBtn,
-                {
-                  backgroundColor: accentColor,
-                  opacity: canSave ? (pressed ? 0.8 : 1) : 0.4,
-                },
-              ]}
-            >
-              <Text variant="body" weight="semibold" style={styles.saveBtnLabel}>
-                {isPending ? t('profile.editName.saving') : t('profile.editName.save')}
-              </Text>
-            </Pressable>
-          </View>
+          <TextInput
+            ref={inputRef}
+            value={name}
+            onChangeText={setName}
+            placeholder={t('profile.editName.namePlaceholder')}
+            placeholderTextColor={mutedColor}
+            maxLength={DISPLAY_NAME_MAX_LENGTH}
+            returnKeyType="done"
+            onSubmitEditing={handleSave}
+            accessibilityLabel={t('profile.editName.nameLabel')}
+            style={[
+              styles.input,
+              { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
+            ]}
+          />
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        <View style={styles.actions}>
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('profile.editName.cancel')}
+            style={({ pressed }) => [styles.cancelBtn, { borderColor, opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text variant="body" weight="medium" style={{ color: mutedColor }}>
+              {t('profile.editName.cancel')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleSave}
+            disabled={!canSave}
+            accessibilityRole="button"
+            accessibilityLabel={t('profile.editName.save')}
+            accessibilityState={{ disabled: !canSave, busy: isPending }}
+            style={({ pressed }) => [
+              styles.saveBtn,
+              {
+                backgroundColor: accentColor,
+                opacity: canSave ? (pressed ? 0.8 : 1) : 0.4,
+              },
+            ]}
+          >
+            <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
+              {isPending ? t('profile.editName.saving') : t('profile.editName.save')}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </ModalSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
+  body: {
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 36,
     gap: 20,
   },
   title: {
@@ -199,8 +169,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 999,
-  },
-  saveBtnLabel: {
-    color: '#fff',
   },
 });

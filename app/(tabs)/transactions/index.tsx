@@ -13,6 +13,7 @@ import {
   Text,
   TransactionRow,
 } from '@/components/ui';
+import { editTransactionHref } from '@/constants/routes';
 import type { Finance } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';
 import { useCurrency } from '@/hooks/use-currency';
@@ -55,7 +56,7 @@ export default function TransactionsScreen() {
 
   const handlePressTransaction = useCallback(
     (transactionId: string) => {
-      router.push({ pathname: '/edit', params: { id: transactionId } });
+      router.push(editTransactionHref(transactionId));
     },
     [router],
   );

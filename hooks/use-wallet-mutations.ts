@@ -18,7 +18,7 @@ export function useCreateWallet() {
         p_currency: values.currency,
       });
       if (error) throw error;
-      return data as string;
+      return data;
     },
     onSuccess: () => {
       if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
@@ -38,7 +38,10 @@ export function useRequestOrDeleteWallet() {
         p_wallet_id: targetWalletId,
       });
       if (error) throw error;
-      return data as DeleteWalletResult;
+      if (data !== 'deleted' && data !== 'pending') {
+        throw new Error(`Unexpected request_or_delete_wallet result: ${String(data)}`);
+      }
+      return data;
     },
     onSuccess: async (result, targetWalletId) => {
       if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });

@@ -89,8 +89,11 @@ export function CategoryGrid({
         // Most over budget first; categories without a budget go last.
         return arr.sort((a, b) => budgetRatio(b) - budgetRatio(a));
       case 'highestExpense':
-      default:
         return arr.sort((a, b) => b.total - a.total);
+      default: {
+        const _exhaustive: never = sort;
+        return _exhaustive;
+      }
     }
   }, [filtered, sort]);
 

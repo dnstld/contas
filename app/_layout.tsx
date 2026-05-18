@@ -3,11 +3,12 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
-import { ErrorFallback } from '@/components/ErrorFallback';
+import { ErrorFallback } from '@/components/error-fallback';
+import { ROUTES } from '@/constants/routes';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFinanceRealtime, useWalletRealtime } from '@/hooks/use-finance-realtime';
-import { FinanceQueryProvider } from '@/hooks/use-query-client';
+import { FinanceQueryProvider, useAppStateInvalidate } from '@/hooks/use-query-client';
 import { WalletProvider, useWallet } from '@/hooks/use-wallet';
 import { initI18n } from '@/i18n';
 import { ErrorBoundary, initMonitoring, wrap } from '@/utils/monitoring';
@@ -22,6 +23,7 @@ function RootStack() {
 
   useFinanceRealtime();
   useWalletRealtime();
+  useAppStateInvalidate();
 
   const booting = authLoading || (!!session && walletLoading);
 
@@ -29,9 +31,9 @@ function RootStack() {
     if (booting) return;
     const inAuthRoute = segments[0] === 'authentication';
     if (!session && !inAuthRoute) {
-      router.replace('/authentication');
+      router.replace(ROUTES.authentication);
     } else if (session && inAuthRoute) {
-      router.replace('/(tabs)/(status)');
+      router.replace(ROUTES.home);
     }
   }, [session, booting, segments, router]);
 

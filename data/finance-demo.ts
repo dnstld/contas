@@ -1,4 +1,4 @@
-import type { Category, Finance, Transaction } from './finance-types';
+import { transactionDate, type Category, type Finance, type Transaction } from './finance-types';
 
 type DemoCategory = Category & {
   behavior: {
@@ -229,8 +229,8 @@ function expenseScale(year: number, month: number): number {
 function sumMonthExpenses(transactions: Transaction[], year: number, month: number): number {
   let sum = 0;
   for (const t of transactions) {
-    if (t.status !== 'completed' || t.type !== 'expense' || !t.date) continue;
-    const d = new Date(t.date);
+    if (t.status !== 'completed' || t.type !== 'expense') continue;
+    const d = new Date(transactionDate(t));
     if (d.getFullYear() === year && d.getMonth() === month) sum += t.amount;
   }
   return sum;
@@ -260,13 +260,14 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
 
             transactions.push({
               id: createTransactionId(txIndex++),
+              kind: 'one-off',
               type: 'income',
               categoryId: category.id,
               categoryName: category.name,
               amount: salary,
               description: 'Salário',
               status: 'completed',
-              recurrence: 'monthly',
+              recurrence: 'none',
               date: salaryDate.toISOString(),
             });
           }
@@ -284,6 +285,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
 
               transactions.push({
                 id: createTransactionId(txIndex++),
+                kind: 'one-off',
                 type: 'income',
                 categoryId: category.id,
                 categoryName: category.name,
@@ -319,6 +321,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
 
           transactions.push({
             id: createTransactionId(txIndex++),
+            kind: 'one-off',
             type: 'expense',
             categoryId: category.id,
             categoryName: category.name,
@@ -335,6 +338,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
 
           transactions.push({
             id: createTransactionId(txIndex++),
+            kind: 'recurring',
             type: 'expense',
             categoryId: category.id,
             categoryName: category.name,
@@ -361,9 +365,8 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
     currency,
     categories: publicCategories,
     transactions: transactions.sort((a, b) => {
-      const dateA = new Date(a.date || a.startDate || '').getTime();
-      const dateB = new Date(b.date || b.startDate || '').getTime();
-
+      const dateA = new Date(transactionDate(a)).getTime();
+      const dateB = new Date(transactionDate(b)).getTime();
       return dateB - dateA;
     }),
   };

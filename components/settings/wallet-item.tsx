@@ -2,9 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/atoms/text';
-import { ActionMenu } from '@/components/ui/molecules/action-menu';
+import { ActionMenu, type ActionMenuItem } from '@/components/ui/molecules/action-menu';
 import type { WalletWithMeta } from '@/data/finance-types';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { withAlpha } from '@/utils/color';
 
 export interface WalletItemProps {
   wallet: WalletWithMeta;
@@ -37,7 +38,10 @@ export function WalletItem({ wallet, isActive, onSwitch }: WalletItemProps) {
           <View
             style={[
               styles.activeBadge,
-              { backgroundColor: positiveColor + '22', borderColor: positiveColor + '44' },
+              {
+                backgroundColor: withAlpha(positiveColor, 0.13),
+                borderColor: withAlpha(positiveColor, 0.27),
+              },
             ]}
           >
             <Text variant="caption" weight="semibold" style={{ color: positiveColor }}>
@@ -51,7 +55,7 @@ export function WalletItem({ wallet, isActive, onSwitch }: WalletItemProps) {
                 label: t('wallets.switchButton'),
                 action: () => onSwitch(wallet.id),
                 systemImage: 'arrow.left.arrow.right',
-              },
+              } satisfies ActionMenuItem,
             ]}
           />
         )}

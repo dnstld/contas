@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
+import type { SFSymbol } from 'sf-symbols-typescript';
 
 import * as Compose from '@expo/ui/jetpack-compose';
 import * as SwiftUI from '@expo/ui/swift-ui';
@@ -12,7 +13,7 @@ export interface ActionMenuItem {
   label: string;
   action: () => void;
   destructive?: boolean;
-  systemImage?: string;
+  systemImage?: SFSymbol;
   dividerBefore?: boolean;
   disabled?: boolean;
   subtitle?: string;
@@ -20,6 +21,8 @@ export interface ActionMenuItem {
 
 export interface ActionMenuProps {
   items: ActionMenuItem[];
+  /** Accessible label for the menu trigger button. */
+  accessibilityLabel?: string;
 }
 
 function groupBySections(items: ActionMenuItem[]): ActionMenuItem[][] {
@@ -36,7 +39,7 @@ function groupBySections(items: ActionMenuItem[]): ActionMenuItem[][] {
   return sections;
 }
 
-export function ActionMenu({ items }: ActionMenuProps) {
+export function ActionMenu({ items, accessibilityLabel = 'Open menu' }: ActionMenuProps) {
   const [open, setOpen] = useState(false);
 
   if (Platform.OS === 'ios') {
@@ -76,6 +79,9 @@ export function ActionMenu({ items }: ActionMenuProps) {
         <Pressable
           onPress={() => setOpen((o) => !o)}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={accessibilityLabel}
+          accessibilityState={{ expanded: open }}
           style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
         >
           <Icon name="ellipsis.circle" size={22} />

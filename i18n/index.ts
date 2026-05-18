@@ -1,6 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import { getKVStore } from '@/utils/kv-store';
+
 import en from './locales/en.json';
 import ptBR from './locales/pt-BR.json';
 
@@ -44,14 +46,11 @@ function resolveInitialLanguage(stored: string | null): SupportedLanguage {
 
 async function readStoredLanguage(): Promise<SupportedLanguage | null> {
   try {
-    const mod = await import('expo-sqlite/kv-store');
-    const storage = mod.default as unknown as {
-      getItem: (key: string) => Promise<string | null>;
-    } | null;
+    const storage = await getKVStore();
     const raw = storage ? await storage.getItem(LANGUAGE_STORAGE_KEY) : null;
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as unknown;
-    return isSupported(parsed as string) ? (parsed as SupportedLanguage) : null;
+    const parsed: unknown = JSON.parse(raw);
+    return typeof parsed === 'string' && isSupported(parsed) ? parsed : null;
   } catch {
     return null;
   }

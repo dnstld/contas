@@ -53,6 +53,9 @@ export function SortMenu<T extends string>({ label, options, value, onChange }: 
       <View style={styles.androidContainer}>
         <Pressable
           onPress={() => setOpen((o) => !o)}
+          accessibilityRole="button"
+          accessibilityLabel={label ?? 'Sort'}
+          accessibilityState={{ expanded: open }}
           style={[styles.trigger, { backgroundColor: surface, borderColor: border }]}
         >
           <Icon name="line.3.horizontal.decrease.circle" size={16} />

@@ -13,8 +13,12 @@
   "tabs": {
     "balance": "Status",
     "transactions": "Transações",
-    "settings": "Conta",
-    "uiDemo": "UI Demo"
+    "settings": "Conta"
+  },
+  "errorFallback": {
+    "title": "Algo deu errado",
+    "body": "Ocorreu um erro inesperado. Tente novamente.",
+    "retry": "Tentar novamente"
   },
   "balance": {
     "empty": {

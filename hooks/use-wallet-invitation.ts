@@ -18,7 +18,7 @@ export function useCreateInvitation() {
         .select('code')
         .single();
       if (error) throw error;
-      return data.code as string;
+      return data.code;
     },
   });
 }
@@ -34,7 +34,7 @@ export function useRedeemInvitation() {
       });
       if (error) throw error;
       // RPC returns the wallet_id of the joined wallet
-      return data as string;
+      return data;
     },
     onSuccess: (joinedWalletId: string) => {
       switchWallet(joinedWalletId);

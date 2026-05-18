@@ -25,13 +25,6 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>{t('tabs.settings')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.crop.circle.fill" drawable="ic_menu_manage" />
       </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="explore" hidden />
-
-      <NativeTabs.Trigger name="ui-demo" hidden={!__DEV__}>
-        <NativeTabs.Trigger.Label>{t('tabs.uiDemo')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="sparkles" drawable="ic_menu_view" />
-      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

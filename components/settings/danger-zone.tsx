@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components/ui/atoms/text';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { withAlpha } from '@/utils/color';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 import { useLeaveWallet } from '@/hooks/use-leave-wallet';
@@ -37,6 +38,7 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
   const dangerColor = useThemeColor({}, 'negative');
   const mutedColor = useThemeColor({}, 'textMuted');
   const surfaceMuted = useThemeColor({}, 'surfaceMuted');
+  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const displayPartner = partnerName ?? t('wallet.partner.unnamed');
 
@@ -112,7 +114,7 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
         {t('dangerZone.title').toUpperCase()}
       </Text>
 
-      <View style={[styles.card, { borderColor: dangerColor + '44' }]}>
+      <View style={[styles.card, { borderColor: withAlpha(dangerColor, 0.27) }]}>
         {/* Leave wallet — only shown when there is a partner AND the user has another wallet to fall back to */}
         {hasParter && wallets.length > 1 && (
           <>
@@ -143,7 +145,7 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               </Pressable>
             </View>
 
-            <View style={[styles.divider, { backgroundColor: dangerColor + '22' }]} />
+            <View style={[styles.divider, { backgroundColor: withAlpha(dangerColor, 0.13) }]} />
           </>
         )}
 
@@ -192,7 +194,10 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               <View
                 style={[
                   styles.waitingBadge,
-                  { backgroundColor: dangerColor + '18', borderColor: dangerColor + '33' },
+                  {
+                    backgroundColor: withAlpha(dangerColor, 0.09),
+                    borderColor: withAlpha(dangerColor, 0.2),
+                  },
                 ]}
               >
                 <Text variant="caption" weight="medium" style={{ color: dangerColor }}>
@@ -226,7 +231,7 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
 
         {/* State: partner requested deletion — awaiting current user's approval */}
         {partnerIsRequester && (
-          <View style={[styles.approveBlock, { backgroundColor: dangerColor + '0C' }]}>
+          <View style={[styles.approveBlock, { backgroundColor: withAlpha(dangerColor, 0.05) }]}>
             <Text variant="body" weight="semibold" style={{ color: dangerColor }}>
               {t('dangerZone.delete.partnerRequestedTitle', { partner: displayPartner })}
             </Text>
@@ -247,9 +252,9 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
                 ]}
               >
                 {confirmDeletion.isPending ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={onPrimary} />
                 ) : (
-                  <Text variant="body" weight="semibold" style={{ color: '#fff' }}>
+                  <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
                     {t('dangerZone.delete.approveAction')}
                   </Text>
                 )}

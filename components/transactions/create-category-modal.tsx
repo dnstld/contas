@@ -1,16 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text as RNText,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text as RNText, TextInput, View } from 'react-native';
 
+import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
 import { Text } from '@/components/ui/atoms/text';
 import type { TransactionType } from '@/components/transactions/transaction-form';
 import {
@@ -24,6 +16,7 @@ import { useFormatters } from '@/hooks/use-formatters';
 import { useCategories } from '@/hooks/use-finance-queries';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Fonts } from '@/constants/theme';
+import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
 
 export interface CategoryFormModalProps {
   visible: boolean;
@@ -56,11 +49,11 @@ export function CategoryFormModal({
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
-  const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
   const accentColor = useThemeColor({}, 'positive');
   const dangerColor = useThemeColor({}, 'negative');
   const inputBackground = useThemeColor({}, 'surfaceMuted');
+  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const { data: allCategories = [] } = useCategories();
   const isLastOfType = allCategories.filter((c) => c.type === type).length <= 1;
@@ -80,7 +73,7 @@ export function CategoryFormModal({
       setDeleteWarning(null);
       if (!isEdit) setTimeout(() => nameInputRef.current?.focus(), 100);
     }
-  }, [visible]);
+  }, [visible, editCategory?.name, editCategory?.monthlyBudget, isEdit]);
 
   const handleBudgetChange = (text: string) => {
     const digits = text.replace(/\D/g, '');
@@ -141,19 +134,8 @@ export function CategoryFormModal({
   const formattedBudget = formatDecimal(budgetCents / 100);
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={[styles.sheet, { backgroundColor, borderColor }]}>
+    <ModalSheet visible={visible} onRequestClose={onClose} animationType="fade">
+      <View style={styles.sheetInner}>
           <Text variant="subtitle" weight="semibold" style={[styles.title, { color: textColor }]}>
             {isEdit ? t('category.edit.title') : t('category.create.title')}
           </Text>
@@ -168,7 +150,7 @@ export function CategoryFormModal({
               onChangeText={setName}
               placeholder={t('category.create.namePlaceholder')}
               placeholderTextColor={mutedColor}
-              maxLength={50}
+              maxLength={CATEGORY_NAME_MAX_LENGTH}
               returnKeyType="next"
               style={[
                 styles.fieldInput,
@@ -229,7 +211,7 @@ export function CategoryFormModal({
                 },
               ]}
             >
-              <Text variant="body" weight="semibold" style={styles.saveBtnLabel}>
+              <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
                 {isEdit
                   ? isUpdating
                     ? t('category.edit.saving')
@@ -266,9 +248,8 @@ export function CategoryFormModal({
               </Pressable>
             </View>
           ) : null}
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </ModalSheet>
   );
 }
 
@@ -278,23 +259,8 @@ export const CreateCategoryModal = CategoryFormModal;
 export type CreateCategoryModalProps = CategoryFormModalProps;
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
+  sheetInner: {
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 36,
     gap: 20,
   },
   title: {
@@ -353,9 +319,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 999,
-  },
-  saveBtnLabel: {
-    color: '#fff',
   },
   deleteSection: {
     gap: 8,

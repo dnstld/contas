@@ -2,12 +2,13 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { env } from '@/utils/env';
 import { captureError, captureMessage, setMonitoringUser } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
 
 GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!,
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  webClientId: env.googleWebClientId,
+  iosClientId: env.googleIosClientId,
 });
 
 type AuthContextValue = {

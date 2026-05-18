@@ -63,7 +63,11 @@ function toneToColor(tone: Exclude<PriceTone, 'auto'>) {
       return 'positive' as const;
     case 'negative':
       return 'negative' as const;
-    default:
+    case 'neutral':
       return 'text' as const;
+    default: {
+      const _exhaustive: never = tone;
+      return _exhaustive;
+    }
   }
 }

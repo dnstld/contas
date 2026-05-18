@@ -14,7 +14,7 @@ import {
   Toggle,
 } from '@/components/ui';
 import { SectionHeader } from '@/components/ui/molecules/section-header';
-import { ActionMenu } from '@/components/ui/molecules/action-menu';
+import { ActionMenu, type ActionMenuItem } from '@/components/ui/molecules/action-menu';
 import { DangerZone } from '@/components/settings/danger-zone';
 import { EditDisplayNameModal } from '@/components/settings/edit-display-name-modal';
 import { InvitationSection } from '@/components/settings/invitation-section';
@@ -28,6 +28,8 @@ import { useWalletList } from '@/hooks/use-wallet-list';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
+import { MAX_WALLETS_PER_USER } from '@/constants/limits';
+import { ROUTES } from '@/constants/routes';
 import { type SupportedLanguage } from '@/i18n';
 
 function userInitials(name: string | null): string {
@@ -54,7 +56,7 @@ export default function SettingsScreen() {
   const [createWalletVisible, setCreateWalletVisible] = useState(false);
   const { walletId, switchWallet } = useWallet();
   const { data: wallets = [] } = useWalletList();
-  const atWalletLimit = wallets.length >= 2;
+  const atWalletLimit = wallets.length >= MAX_WALLETS_PER_USER;
 
   const { language, setLanguage, supported } = useLanguage();
   const { currency, setCurrency, supported: supportedCurrencies } = useCurrency();
@@ -97,7 +99,7 @@ export default function SettingsScreen() {
             title={t('settings.sections.account')}
             trailing={
               <Text variant="caption" tone="textMuted" weight="medium">
-                {members.length}/2
+                {members.length}/{MAX_WALLETS_PER_USER}
               </Text>
             }
           />
@@ -133,13 +135,13 @@ export default function SettingsScreen() {
                   label: t('profile.actions.editName'),
                   action: () => setEditNameVisible(true),
                   systemImage: 'pencil',
-                },
+                } satisfies ActionMenuItem,
                 {
                   label: t('profile.actions.signOut'),
                   action: signOut,
                   destructive: true,
                   systemImage: 'rectangle.portrait.and.arrow.right',
-                },
+                } satisfies ActionMenuItem,
               ]}
             />
           </View>
@@ -181,7 +183,7 @@ export default function SettingsScreen() {
             title={t('settings.sections.wallets')}
             trailing={
               <Text variant="caption" tone="textMuted" weight="medium">
-                {wallets.length}/2
+                {wallets.length}/{MAX_WALLETS_PER_USER}
               </Text>
             }
           />
@@ -192,26 +194,26 @@ export default function SettingsScreen() {
               trailing={
                 <ActionMenu
                   items={[
-                    ...wallets.map((w) => ({
+                    ...wallets.map<ActionMenuItem>((w) => ({
                       label: w.name,
                       action: () => {
                         if (w.id !== walletId) {
                           switchWallet(w.id);
-                          router.navigate('/(tabs)/(status)');
+                          router.navigate(ROUTES.home);
                         }
                       },
                       systemImage: w.id === walletId ? 'checkmark' : undefined,
                     })),
-                    ...(!atWalletLimit
-                      ? [
+                    ...(atWalletLimit
+                      ? []
+                      : [
                           {
                             label: t('wallets.createTitle'),
                             action: () => setCreateWalletVisible(true),
                             systemImage: 'plus',
                             dividerBefore: true,
-                          },
-                        ]
-                      : []),
+                          } satisfies ActionMenuItem,
+                        ]),
                   ]}
                 />
               }

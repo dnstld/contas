@@ -13,11 +13,14 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
+import { ROUTES } from '@/constants/routes';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
 
 function HeaderLogo() {
+  const { t } = useTranslation();
   const { name } = useWallet();
   return (
     <View
@@ -29,7 +32,7 @@ function HeaderLogo() {
       }}
     >
       <Text variant="subtitle" weight="bold" style={{ letterSpacing: 1.5 }}>
-        FINANCE42
+        {t('common.appName')}
       </Text>
       {name ? (
         <>
@@ -48,6 +51,7 @@ function HeaderLogo() {
 function HeaderCreateButton({ onPress }: { onPress: () => void }) {
   const scheme = useColorScheme() ?? 'light';
   const tintColor = Colors[scheme].positive;
+  const onPrimary = useThemeColor({}, 'onPrimary');
   const { t } = useTranslation();
   const label = t('common.add');
 
@@ -80,8 +84,8 @@ function HeaderCreateButton({ onPress }: { onPress: () => void }) {
         { backgroundColor: tintColor, opacity: pressed ? 0.7 : 1 },
       ]}
     >
-      <Icon name="plus" size={16} color="#fff" />
-      <Text variant="body" weight="semibold" style={{ color: '#fff' }}>
+      <Icon name="plus" size={16} color={onPrimary} />
+      <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
         {label}
       </Text>
     </Pressable>
@@ -101,7 +105,9 @@ export default function AppStackLayout() {
         headerTitle: '',
         headerLeft: () => <HeaderLogo />,
         headerShadowVisible: false,
-        headerRight: () => <HeaderCreateButton onPress={() => router.push('/create')} />,
+        headerRight: () => (
+          <HeaderCreateButton onPress={() => router.push(ROUTES.createTransaction)} />
+        ),
       }}
     />
   );

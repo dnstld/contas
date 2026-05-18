@@ -1,26 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
 import { Text } from '@/components/ui/atoms/text';
 import { SortMenu } from '@/components/ui/molecules/sort-menu';
 import { WalletItem } from '@/components/settings/wallet-item';
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/hooks/use-currency';
 import { Fonts } from '@/constants/theme';
+import { MAX_WALLETS_PER_USER } from '@/constants/limits';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 import { useCreateWallet } from '@/hooks/use-wallet-mutations';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useRouter } from 'expo-router';
+import { ROUTES } from '@/constants/routes';
 
 export interface WalletsModalProps {
   visible: boolean;
@@ -29,8 +23,6 @@ export interface WalletsModalProps {
 }
 
 type ModalView = 'list' | 'create';
-
-const FREE_TIER_LIMIT = 2;
 
 export function WalletsModal({ visible, onClose, defaultView = 'list' }: WalletsModalProps) {
   const { t } = useTranslation();
@@ -55,12 +47,12 @@ export function WalletsModal({ visible, onClose, defaultView = 'list' }: Wallets
     }
   }, [visible, defaultView]);
 
-  const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
   const positiveColor = useThemeColor({}, 'positive');
   const inputBackground = useThemeColor({}, 'surfaceMuted');
+  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const currencyOptions = useMemo(
     () =>
@@ -71,7 +63,7 @@ export function WalletsModal({ visible, onClose, defaultView = 'list' }: Wallets
     [t],
   );
 
-  const atLimit = wallets.length >= FREE_TIER_LIMIT;
+  const atLimit = wallets.length >= MAX_WALLETS_PER_USER;
 
   function handleClose() {
     setView('list');
@@ -82,7 +74,7 @@ export function WalletsModal({ visible, onClose, defaultView = 'list' }: Wallets
   function handleSwitch(id: string) {
     switchWallet(id);
     handleClose();
-    router.navigate('/(tabs)/(status)');
+    router.navigate(ROUTES.home);
   }
 
   async function handleCreate() {
@@ -97,20 +89,13 @@ export function WalletsModal({ visible, onClose, defaultView = 'list' }: Wallets
   const canCreate = newName.trim().length > 0 && !createWallet.isPending;
 
   return (
-    <Modal
+    <ModalSheet
       visible={visible}
-      transparent
-      animationType="slide"
       onRequestClose={handleClose}
-      statusBarTranslucent
+      animationType="slide"
+      maxHeight="80%"
     >
-      <KeyboardAvoidingView
-        style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <Pressable style={styles.backdrop} onPress={handleClose} />
-
-        <View style={[styles.sheet, { backgroundColor, borderColor }]}>
+      <View style={styles.sheetInner}>
           {/* Header */}
           <View style={styles.header}>
             {view === 'create' ? (
@@ -258,37 +243,21 @@ export function WalletsModal({ visible, onClose, defaultView = 'list' }: Wallets
                     },
                   ]}
                 >
-                  <Text variant="body" weight="semibold" style={styles.saveBtnLabel}>
+                  <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
                     {createWallet.isPending ? t('common.saving') : t('common.create')}
                   </Text>
                 </Pressable>
               </View>
             </ScrollView>
           )}
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </ModalSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    paddingTop: 20,
-    paddingBottom: 36,
-    maxHeight: '80%',
+  sheetInner: {
+    flexShrink: 1,
   },
   header: {
     flexDirection: 'row',
@@ -349,8 +318,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 999,
-  },
-  saveBtnLabel: {
-    color: '#fff',
   },
 });

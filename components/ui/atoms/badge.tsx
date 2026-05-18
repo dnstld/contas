@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/ui/atoms/text';
 import { Colors } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { withAlpha } from '@/utils/color';
 
 export type BadgeTone = 'neutral' | 'positive' | 'negative' | 'tint';
 
@@ -41,22 +42,6 @@ export function Badge({ label, tone = 'neutral', variant = 'soft' }: BadgeProps)
       </Text>
     </View>
   );
-}
-
-function withAlpha(hex: string, alpha: number) {
-  const a = Math.round(alpha * 255)
-    .toString(16)
-    .padStart(2, '0');
-  if (hex.startsWith('#') && (hex.length === 7 || hex.length === 4)) {
-    if (hex.length === 4) {
-      const r = hex[1];
-      const g = hex[2];
-      const b = hex[3];
-      return `#${r}${r}${g}${g}${b}${b}${a}`;
-    }
-    return `${hex}${a}`;
-  }
-  return hex;
 }
 
 const styles = StyleSheet.create({

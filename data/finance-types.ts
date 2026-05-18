@@ -1,5 +1,7 @@
 export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly';
 
+export type RecurringRecurrence = Exclude<Recurrence, 'none'>;
+
 export type TransactionStatus = 'completed' | 'scheduled';
 
 export type TransactionType = 'expense' | 'income';
@@ -12,7 +14,7 @@ export type Category = {
   createdAt?: string;
 };
 
-export type Transaction = {
+type TransactionBase = {
   id: string;
   type: TransactionType;
   categoryId: string;
@@ -20,11 +22,27 @@ export type Transaction = {
   amount: number;
   description: string;
   status: TransactionStatus;
-  recurrence: Recurrence;
-  date?: string;
-  startDate?: string;
-  nextOccurrence?: string;
 };
+
+export type OneOffTransaction = TransactionBase & {
+  kind: 'one-off';
+  recurrence: 'none';
+  date: string;
+};
+
+export type RecurringTransaction = TransactionBase & {
+  kind: 'recurring';
+  recurrence: RecurringRecurrence;
+  startDate: string;
+  nextOccurrence: string;
+};
+
+export type Transaction = OneOffTransaction | RecurringTransaction;
+
+/** Most reporting code only cares about a single canonical timestamp. */
+export function transactionDate(t: Transaction): string {
+  return t.kind === 'one-off' ? t.date : t.startDate;
+}
 
 export type Finance = {
   generatedAt: string;

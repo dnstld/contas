@@ -23,6 +23,8 @@ export const Colors = {
     surface: '#F4F4F5',
     surfaceMuted: '#E4E4E7',
     border: '#E4E4E7',
+    overlay: 'rgba(0,0,0,0.4)',
+    onPrimary: '#FFFFFF',
   },
   dark: {
     text: '#ECEDEE',
@@ -38,8 +40,13 @@ export const Colors = {
     surface: '#1F2123',
     surfaceMuted: '#27292B',
     border: '#2A2D2F',
+    overlay: 'rgba(0,0,0,0.6)',
+    onPrimary: '#FFFFFF',
   },
-};
+} as const;
+
+export type ColorScheme = keyof typeof Colors;
+export type ColorToken = keyof (typeof Colors)['light'];
 
 export const Fonts = Platform.select({
   ios: {

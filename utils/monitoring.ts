@@ -1,16 +1,18 @@
 import * as Sentry from '@sentry/react-native';
 
+import { env } from '@/utils/env';
+
 type CaptureContext = {
   tags?: Record<string, string>;
   extra?: Record<string, unknown>;
 };
 
 export function initMonitoring() {
+  if (__DEV__ || !env.sentryDsn) return;
   Sentry.init({
-    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-    environment: __DEV__ ? 'development' : 'production',
-    tracesSampleRate: __DEV__ ? 1.0 : 0.2,
-    enabled: !__DEV__,
+    dsn: env.sentryDsn,
+    environment: 'production',
+    tracesSampleRate: 0.2,
   });
 }
 

@@ -101,7 +101,7 @@ export function useCreateCategory() {
         .select('id')
         .single();
       if (error) throw error;
-      return data as { id: string };
+      return data;
     },
     onSuccess: () => {
       if (walletId) {
@@ -111,13 +111,19 @@ export function useCreateCategory() {
   });
 }
 
-export type CategoryHasTransactionsError = Error & {
-  code: 'has_transactions';
-  transactionCount: number;
-};
+export class CategoryHasTransactionsError extends Error {
+  readonly code = 'has_transactions' as const;
+  readonly transactionCount: number;
+
+  constructor(transactionCount: number) {
+    super(`Category has ${transactionCount} transactions`);
+    this.name = 'CategoryHasTransactionsError';
+    this.transactionCount = transactionCount;
+  }
+}
 
 export function isCategoryHasTransactionsError(e: unknown): e is CategoryHasTransactionsError {
-  return e instanceof Error && (e as CategoryHasTransactionsError).code === 'has_transactions';
+  return e instanceof CategoryHasTransactionsError;
 }
 
 export function useUpdateCategory() {
@@ -136,7 +142,7 @@ export function useUpdateCategory() {
         .select('id')
         .single();
       if (error) throw error;
-      return data as { id: string };
+      return data;
     },
     onSuccess: () => {
       if (walletId) {
@@ -158,10 +164,7 @@ export function useDeleteCategory() {
         .eq('category_id', id);
       if (countError) throw countError;
       if (count && count > 0) {
-        const err = new Error('has_transactions') as CategoryHasTransactionsError;
-        err.code = 'has_transactions';
-        err.transactionCount = count;
-        throw err;
+        throw new CategoryHasTransactionsError(count);
       }
       const { error } = await supabase.from('categories').delete().eq('id', id);
       if (error) throw error;
