@@ -11,8 +11,6 @@ import type { Href } from 'expo-router';
 export const ROUTES = {
   authentication: '/authentication' satisfies Href,
   home: '/(tabs)/(status)' satisfies Href,
-  account: '/(tabs)/account' satisfies Href,
-  transactions: '/(tabs)/transactions' satisfies Href,
   createTransaction: '/create' satisfies Href,
 } as const;
 

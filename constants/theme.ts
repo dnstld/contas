@@ -25,6 +25,7 @@ export const Colors = {
     border: '#E4E4E7',
     overlay: 'rgba(0,0,0,0.4)',
     onPrimary: '#FFFFFF',
+    shadow: '#000000',
   },
   dark: {
     text: '#ECEDEE',
@@ -42,6 +43,7 @@ export const Colors = {
     border: '#2A2D2F',
     overlay: 'rgba(0,0,0,0.6)',
     onPrimary: '#FFFFFF',
+    shadow: '#000000',
   },
 } as const;
 

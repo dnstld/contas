@@ -11,10 +11,10 @@ import {
   useDeleteCategory,
   isCategoryHasTransactionsError,
 } from '@/hooks/use-finance-mutations';
-import { useCurrency } from '@/hooks/use-currency';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useCategories } from '@/hooks/use-finance-queries';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useModalChrome } from '@/hooks/use-modal-chrome';
+import { useWallet } from '@/hooks/use-wallet';
 import { Fonts } from '@/constants/theme';
 import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
 
@@ -43,17 +43,19 @@ export function CategoryFormModal({
   const [deleteWarning, setDeleteWarning] = useState<string | null>(null);
   const nameInputRef = useRef<TextInput>(null);
 
-  const { currency } = useCurrency();
+  const { currency } = useWallet();
   const { formatDecimal, currencySymbol } = useFormatters();
   const symbol = currencySymbol(currency);
 
-  const textColor = useThemeColor({}, 'text');
-  const mutedColor = useThemeColor({}, 'textMuted');
-  const borderColor = useThemeColor({}, 'border');
-  const accentColor = useThemeColor({}, 'positive');
-  const dangerColor = useThemeColor({}, 'negative');
-  const inputBackground = useThemeColor({}, 'surfaceMuted');
-  const onPrimary = useThemeColor({}, 'onPrimary');
+  const {
+    text: textColor,
+    textMuted: mutedColor,
+    border: borderColor,
+    accent: accentColor,
+    danger: dangerColor,
+    inputBackground,
+    onPrimary,
+  } = useModalChrome();
 
   const { data: allCategories = [] } = useCategories();
   const isLastOfType = allCategories.filter((c) => c.type === type).length <= 1;

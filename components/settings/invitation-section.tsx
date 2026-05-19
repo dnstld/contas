@@ -6,6 +6,7 @@ import { Surface, Text } from '@/components/ui';
 import { RedeemCodeModal } from '@/components/settings/redeem-code-modal';
 import { useCreateInvitation } from '@/hooks/use-wallet-invitation';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { captureError } from '@/utils/monitoring';
 
 interface InvitationSectionProps {
   onRedeemSuccess: () => void;
@@ -15,21 +16,25 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
   const { t } = useTranslation();
   const [code, setCode] = useState<string | null>(null);
   const [redeemVisible, setRedeemVisible] = useState(false);
+  const [inviteError, setInviteError] = useState(false);
 
   const borderColor = useThemeColor({}, 'border');
   const mutedColor = useThemeColor({}, 'textMuted');
   const accentColor = useThemeColor({}, 'positive');
+  const dangerColor = useThemeColor({}, 'negative');
   const onPrimary = useThemeColor({}, 'onPrimary');
 
   const createInvitation = useCreateInvitation();
 
   const handleInvite = async () => {
     if (createInvitation.isPending) return;
+    setInviteError(false);
     try {
       const generated = await createInvitation.mutateAsync();
       setCode(generated);
-    } catch {
-      // swallow — user can retry
+    } catch (err) {
+      captureError(err, { tags: { context: 'invitation' } });
+      setInviteError(true);
     }
   };
 
@@ -115,6 +120,11 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
                 </Text>
               </Pressable>
             </View>
+            {inviteError ? (
+              <Text variant="caption" style={[styles.error, { color: dangerColor }]}>
+                {t('wallet.invitation.inviteError')}
+              </Text>
+            ) : null}
           </>
         )}
       </Surface>
@@ -176,5 +186,8 @@ const styles = StyleSheet.create({
   linkBtn: {
     alignItems: 'center',
     paddingVertical: 4,
+  },
+  error: {
+    textAlign: 'center',
   },
 });

@@ -159,7 +159,8 @@
       "redeemButton": "Join",
       "redeeming": "Joining…",
       "redeemError": "That code didn't work — it may have expired. Try again.",
-      "redeemCancel": "Cancel"
+      "redeemCancel": "Cancel",
+      "inviteError": "Couldn't create an invite. Give it another try."
     },
     "leave": {
       "button": "Leave wallet",

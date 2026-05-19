@@ -180,7 +180,7 @@ function randomInt(min: number, max: number, seed: number) {
 }
 
 function pickRandom<T>(array: T[], seed: number): T {
-  return array[Math.floor(seededRandom(seed) * array.length)];
+  return array[Math.floor(seededRandom(seed) * array.length)]!;
 }
 
 function formatAmount(value: number) {
@@ -223,7 +223,7 @@ const YEAR_INTENSITY: Record<number, number> = {
 };
 
 function expenseScale(year: number, month: number): number {
-  return MONTH_INTENSITY[month] * (YEAR_INTENSITY[year] ?? 1);
+  return (MONTH_INTENSITY[month] ?? 1) * (YEAR_INTENSITY[year] ?? 1);
 }
 
 function sumMonthExpenses(transactions: Transaction[], year: number, month: number): number {
@@ -326,7 +326,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
             categoryId: category.id,
             categoryName: category.name,
             amount,
-            description: pickRandom(descriptions[category.id], seed + i + 50),
+            description: pickRandom(descriptions[category.id] ?? [category.name], seed + i + 50),
             status: 'completed',
             recurrence: 'none',
             date: transactionDate.toISOString(),
@@ -360,7 +360,6 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
   const publicCategories: Category[] = categories.map(({ behavior: _behavior, ...rest }) => rest);
 
   return {
-    generatedAt: new Date().toISOString(),
     years: YEARS,
     currency,
     categories: publicCategories,

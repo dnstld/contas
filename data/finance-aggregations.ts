@@ -194,8 +194,8 @@ function buildMonthMode(mock: Finance, year: number, month: number, locale: stri
   const categories = expenseCategories.map((c) =>
     toCardData(
       c,
-      current[c.id],
-      previousBucket[c.id],
+      current[c.id] ?? emptyBucket(),
+      previousBucket[c.id] ?? emptyBucket(),
       monthExpenses,
       c.monthlyBudget,
       prevMonthLabel,
@@ -240,7 +240,7 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     if (inYear(d, year)) {
       if (isCompletedExpense(t)) {
         yearExpenses += t.amount;
-        monthExpense[d.getMonth()] += t.amount;
+        monthExpense[d.getMonth()] = (monthExpense[d.getMonth()] ?? 0) + t.amount;
       } else if (isCompletedIncome(t)) {
         yearRevenue += t.amount;
       }
@@ -253,7 +253,7 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     } else if (inYear(d, prevYear)) {
       if (isCompletedExpense(t)) {
         prevYearExpenses += t.amount;
-        prevMonthExpense[d.getMonth()] += t.amount;
+        prevMonthExpense[d.getMonth()] = (prevMonthExpense[d.getMonth()] ?? 0) + t.amount;
       } else if (isCompletedIncome(t)) {
         prevYearRevenue += t.amount;
       }
@@ -265,11 +265,15 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     }
   }
 
-  const timeline: MonthlyTimelinePoint[] = MONTHS.map((monthKey, idx) => ({
-    month: monthKey,
-    value: monthExpense[idx],
-    delta: monthExpense[idx] - prevMonthExpense[idx],
-  })).filter((p) => p.value > 0 || p.delta !== 0);
+  const timeline: MonthlyTimelinePoint[] = MONTHS.map((monthKey, idx) => {
+    const value = monthExpense[idx] ?? 0;
+    const previous = prevMonthExpense[idx] ?? 0;
+    return {
+      month: monthKey,
+      value,
+      delta: value - previous,
+    };
+  }).filter((p) => p.value > 0 || p.delta !== 0);
 
   const hasPrevYear = mock.years.includes(prevYear);
 
@@ -284,7 +288,7 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     expenses: yearExpenses,
     net: yearRevenue - yearExpenses,
     timeline,
-    currentMonth: year === now.getFullYear() ? MONTHS[now.getMonth()] : undefined,
+    currentMonth: year === now.getFullYear() ? MONTHS[now.getMonth()]! : undefined,
   };
 
   const yearActive = yearActiveCategoryIds(mock, year);
@@ -292,7 +296,14 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     (c) => c.type === 'expense' && isCategoryVisibleInYear(c, year, yearActive),
   );
   const categories = expenseCategories.map((c) =>
-    toCardData(c, current[c.id], previous[c.id], yearExpenses, undefined, prevYearLabel),
+    toCardData(
+      c,
+      current[c.id] ?? emptyBucket(),
+      previous[c.id] ?? emptyBucket(),
+      yearExpenses,
+      undefined,
+      prevYearLabel,
+    ),
   );
 
   return {
@@ -313,7 +324,7 @@ export function buildDashboard(
 
   if (filter.all) return buildYearMode(mock, year, now);
 
-  const monthKey = filter.months[0] ?? MONTHS[now.getMonth()];
+  const monthKey: Month = filter.months[0] ?? MONTHS[now.getMonth()]!;
   const month = MONTHS.indexOf(monthKey);
   return buildMonthMode(mock, year, month, locale);
 }

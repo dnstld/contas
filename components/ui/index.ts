@@ -34,7 +34,7 @@ export { TransactionRow } from './molecules/transaction-row';
 // Organisms
 export { CategoryCard } from './organisms/category-card';
 export { CategoryFilter } from './organisms/category-filter';
-export { CategoryGrid } from './organisms/category-grid';
+export { CategoryGridControls } from './organisms/category-grid';
 export { FinanceTimeFilter } from './organisms/finance-time-filter';
 export { MonthlyTimeline } from './organisms/monthly-timeline';
 export { Overview } from './organisms/overview';

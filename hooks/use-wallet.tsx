@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { DEFAULT_CURRENCY, normalizeCurrency, type SupportedCurrency } from '@/data/currency';
 import { useAuth } from '@/hooks/use-auth';
 import { getKVStore } from '@/utils/kv-store';
 import { captureError } from '@/utils/monitoring';
@@ -17,24 +18,23 @@ import { supabase } from '@/utils/supabase';
 type WalletContextValue = {
   walletId: string | null;
   name: string | null;
-  currency: string;
+  currency: SupportedCurrency;
   loading: boolean;
   switchWallet: (id: string) => void;
   refresh: () => Promise<void>;
-  setCurrency: (next: string) => Promise<void>;
+  setCurrency: (next: SupportedCurrency) => Promise<void>;
 };
 
 const WalletContext = createContext<WalletContextValue | null>(null);
 
 const KEY_PREFIX = 'wallet:selected-id:';
-const DEFAULT_CURRENCY = 'BRL';
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
   const [walletId, setWalletId] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
-  const [currency, setCurrencyState] = useState<string>(DEFAULT_CURRENCY);
+  const [currency, setCurrencyState] = useState<SupportedCurrency>(DEFAULT_CURRENCY);
   const requestRef = useRef(0);
 
   const loading = userId != null && walletId == null;
@@ -50,7 +50,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       captureError(error, { tags: { context: 'wallet' } });
       return;
     }
-    if (data?.currency) setCurrencyState(data.currency);
+    if (data?.currency) setCurrencyState(normalizeCurrency(data.currency));
     if (data?.name) setName(data.name);
   }, []);
 
@@ -61,6 +61,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const storage = await getKVStore();
       if (reqId !== requestRef.current) return;
 
+      // Optimistic paint from kv-store so the UI has a wallet ID before the
+      // RPC round-trip completes.
       let cachedId: string | null = null;
       if (storage) {
         try {
@@ -78,66 +80,53 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Fetch all wallet_members rows visible to this user (RLS lets us see all
-      // co-members of wallets we belong to). Pick the wallet with the most
-      // members; ties broken by most-recent join. For a couples app, this means
-      // a shared wallet always wins over an empty personal one.
-      const { data: rows } = await supabase
-        .from('wallet_members')
-        .select('wallet_id, user_id, joined_at');
+      // Single source of truth for the wallet-selection heuristic. The RPC
+      // honors `p_preferred` when the caller is still a member of it,
+      // otherwise picks the wallet with the most members (tiebreaker:
+      // caller's most recent join). Returns NULL when the user has no
+      // memberships yet.
+      const { data: resolvedId, error: resolveErr } = await supabase.rpc(
+        'resolve_default_wallet',
+        cachedId ? { p_preferred: cachedId } : {},
+      );
       if (reqId !== requestRef.current) return;
+      if (resolveErr) {
+        captureError(resolveErr, { tags: { context: 'wallet' } });
+        return;
+      }
 
-      if (rows && rows.length > 0) {
-        const stats = new Map<string, { count: number; myJoinedAt: string }>();
-        for (const row of rows) {
-          const entry = stats.get(row.wallet_id) ?? { count: 0, myJoinedAt: '' };
-          entry.count += 1;
-          if (row.user_id === uid) entry.myJoinedAt = row.joined_at;
-          stats.set(row.wallet_id, entry);
-        }
-
-        const mine = [...stats.entries()].filter(([, v]) => v.myJoinedAt);
-        if (mine.length > 0) {
-          mine.sort((a, b) => {
-            if (b[1].count !== a[1].count) return b[1].count - a[1].count;
-            return b[1].myJoinedAt.localeCompare(a[1].myJoinedAt);
-          });
-
-          // Honour the user's last manual selection if they're still a member.
-          const cachedIsValid =
-            cachedId != null && mine.some(([wid]) => wid === cachedId);
-          const preferred: string = cachedIsValid && cachedId ? cachedId : mine[0][0];
-
-          setWalletId(preferred);
-          if (!cachedIsValid && storage) {
-            try {
-              await storage.setItem(key, JSON.stringify(preferred));
-            } catch {
-              // swallow — next launch will reconcile again
-            }
+      if (resolvedId) {
+        setWalletId(resolvedId);
+        if (resolvedId !== cachedId && storage) {
+          try {
+            await storage.setItem(key, JSON.stringify(resolvedId));
+          } catch {
+            // swallow — next launch will reconcile again
           }
-          fetchWalletData(preferred, reqId);
-          return;
         }
+        fetchWalletData(resolvedId, reqId);
+        return;
       }
 
       // No memberships yet — bootstrap a personal wallet.
-      const { data, error } = await supabase.rpc('get_or_create_default_wallet');
+      const { data: bootstrapped, error: bootstrapErr } = await supabase.rpc(
+        'get_or_create_default_wallet',
+      );
       if (reqId !== requestRef.current) return;
-      if (error) {
-        captureError(error, { tags: { context: 'wallet' } });
+      if (bootstrapErr) {
+        captureError(bootstrapErr, { tags: { context: 'wallet' } });
         return;
       }
-      if (!data) return;
-      setWalletId(data);
+      if (!bootstrapped) return;
+      setWalletId(bootstrapped);
       if (storage) {
         try {
-          await storage.setItem(key, JSON.stringify(data));
+          await storage.setItem(key, JSON.stringify(bootstrapped));
         } catch {
           // swallow — next launch will reconcile via RPC again
         }
       }
-      if (data !== cachedId) fetchWalletData(data, reqId);
+      fetchWalletData(bootstrapped, reqId);
     },
     [fetchWalletData],
   );
@@ -154,7 +143,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [userId, resolve]);
 
   const setCurrency = useCallback(
-    async (next: string) => {
+    async (next: SupportedCurrency) => {
       if (!walletId) return;
       const previous = currency;
       setCurrencyState(next);
@@ -185,9 +174,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setWalletId(id);
         setName(null);
         setCurrencyState(DEFAULT_CURRENCY);
-        getKVStore().then((storage) => {
-          storage?.setItem(KEY_PREFIX + userId, JSON.stringify(id));
-        });
+        getKVStore()
+          .then((storage) => storage?.setItem(KEY_PREFIX + userId, JSON.stringify(id)))
+          .catch((err) => captureError(err, { tags: { context: 'wallet' } }));
         fetchWalletData(id, requestRef.current);
       },
       setCurrency,

@@ -1,6 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/hooks/use-auth';
+import { useWallet } from '@/hooks/use-wallet';
+import { walletMemberKeys } from '@/hooks/use-wallet-members';
 import { supabase } from '@/utils/supabase';
 
 export const myProfileKey = (userId: string) => ['my-profile', userId] as const;
@@ -29,4 +31,33 @@ export function useMyProfile() {
     avatarUrl: query.data?.avatar_url ?? null,
     isLoading: query.isLoading,
   };
+}
+
+export function useUpdateMyProfile() {
+  const { session } = useAuth();
+  const { walletId } = useWallet();
+  const qc = useQueryClient();
+  const userId = session?.user.id ?? null;
+
+  return useMutation({
+    mutationFn: async ({ displayName }: { displayName: string }) => {
+      const trimmed = displayName.trim();
+      if (!trimmed) throw new Error('displayName is required');
+
+      const [authResult, profileResult] = await Promise.all([
+        supabase.auth.updateUser({ data: { full_name: trimmed } }),
+        userId
+          ? supabase.from('profiles').update({ display_name: trimmed }).eq('id', userId)
+          : Promise.resolve({ error: null }),
+      ]);
+
+      if (authResult.error) throw authResult.error;
+      if (profileResult.error) throw profileResult.error;
+      return trimmed;
+    },
+    onSuccess: () => {
+      if (userId) qc.invalidateQueries({ queryKey: myProfileKey(userId) });
+      if (walletId) qc.invalidateQueries({ queryKey: walletMemberKeys.list(walletId) });
+    },
+  });
 }

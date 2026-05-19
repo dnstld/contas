@@ -7,7 +7,6 @@ import { useFinance } from '@/hooks/use-finance';
 import { type TimeFilterState } from '@/hooks/use-time-filter';
 
 const EMPTY_FINANCE: Finance = {
-  generatedAt: '',
   years: [],
   currency: 'BRL',
   categories: [],

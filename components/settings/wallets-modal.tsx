@@ -6,13 +6,13 @@ import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
 import { Text } from '@/components/ui/atoms/text';
 import { SortMenu } from '@/components/ui/molecules/sort-menu';
 import { WalletItem } from '@/components/settings/wallet-item';
-import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/hooks/use-currency';
+import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
 import { Fonts } from '@/constants/theme';
 import { MAX_WALLETS_PER_USER } from '@/constants/limits';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 import { useCreateWallet } from '@/hooks/use-wallet-mutations';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useRouter } from 'expo-router';
 import { ROUTES } from '@/constants/routes';
 
@@ -47,12 +47,14 @@ export function WalletsModal({ visible, onClose, defaultView = 'list' }: Wallets
     }
   }, [visible, defaultView]);
 
-  const borderColor = useThemeColor({}, 'border');
-  const textColor = useThemeColor({}, 'text');
-  const mutedColor = useThemeColor({}, 'textMuted');
-  const positiveColor = useThemeColor({}, 'positive');
-  const inputBackground = useThemeColor({}, 'surfaceMuted');
-  const onPrimary = useThemeColor({}, 'onPrimary');
+  const {
+    border: borderColor,
+    text: textColor,
+    textMuted: mutedColor,
+    accent: positiveColor,
+    inputBackground,
+    onPrimary,
+  } = useModalChrome();
 
   const currencyOptions = useMemo(
     () =>

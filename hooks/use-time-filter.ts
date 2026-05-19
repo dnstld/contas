@@ -57,19 +57,24 @@ export interface UseTimeFilterOptions {
 
 const DEFAULT_KEY = 'time-filter:v2';
 
+function currentMonth(now: Date): Month {
+  return MONTHS[now.getMonth()]!;
+}
+
 export function defaultTimeFilterState(now: Date = new Date()): TimeFilterState {
   return {
     years: [now.getFullYear()],
-    months: [MONTHS[now.getMonth()]],
+    months: [currentMonth(now)],
     all: false,
   };
 }
 
 function normalize(state: TimeFilterState, now: Date): TimeFilterState {
-  const years = state.years && state.years.length > 0 ? [state.years[0]] : [now.getFullYear()];
+  const firstYear = state.years?.[0];
+  const years = firstYear !== undefined ? [firstYear] : [now.getFullYear()];
   if (state.all) return { years, months: [], all: true };
-  const months: Month[] =
-    state.months && state.months.length > 0 ? [state.months[0]] : [MONTHS[now.getMonth()]];
+  const firstMonth = state.months?.[0];
+  const months: Month[] = [firstMonth ?? currentMonth(now)];
   return { years, months, all: false };
 }
 

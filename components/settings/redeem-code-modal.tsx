@@ -5,8 +5,8 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
 import { Text } from '@/components/ui/atoms/text';
 import { Fonts } from '@/constants/theme';
+import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useRedeemInvitation } from '@/hooks/use-wallet-invitation';
-import { useThemeColor } from '@/hooks/use-theme-color';
 
 interface RedeemCodeModalProps {
   visible: boolean;
@@ -20,13 +20,15 @@ export function RedeemCodeModal({ visible, onClose, onSuccess }: RedeemCodeModal
   const [error, setError] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  const textColor = useThemeColor({}, 'text');
-  const mutedColor = useThemeColor({}, 'textMuted');
-  const borderColor = useThemeColor({}, 'border');
-  const accentColor = useThemeColor({}, 'positive');
-  const dangerColor = useThemeColor({}, 'negative');
-  const inputBackground = useThemeColor({}, 'surfaceMuted');
-  const onPrimary = useThemeColor({}, 'onPrimary');
+  const {
+    text: textColor,
+    textMuted: mutedColor,
+    border: borderColor,
+    accent: accentColor,
+    danger: dangerColor,
+    inputBackground,
+    onPrimary,
+  } = useModalChrome();
 
   const redeem = useRedeemInvitation();
 

@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { env } from '@/utils/env';
+import { getErrorCode } from '@/utils/error';
 import { captureError, captureMessage, setMonitoringUser } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
 
@@ -68,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             throw new Error('No session returned');
           }
         } catch (err) {
-          const code = (err as { code?: string } | null)?.code;
+          const code = getErrorCode(err);
           if (code !== statusCodes.SIGN_IN_CANCELLED && code !== statusCodes.IN_PROGRESS) {
             captureError(err, { tags: { context: 'auth' } });
           }

@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -7,28 +7,24 @@ import {
   type TransactionFormValues,
 } from '@/components/transactions/transaction-form';
 import { transactionDate } from '@/data/finance-types';
-import { useFinance } from '@/hooks/use-finance';
 import { useDeleteTransaction, useUpdateTransaction } from '@/hooks/use-finance-mutations';
+import { useTransaction } from '@/hooks/use-finance-queries';
+import { getErrorMessage } from '@/utils/error';
 
 export default function EditScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data } = useFinance();
+  const { data: transaction, isLoading } = useTransaction(id ?? null);
   const updateMutation = useUpdateTransaction();
   const deleteMutation = useDeleteTransaction();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const transaction = useMemo(
-    () => data?.transactions.find((entry) => entry.id === id),
-    [data, id],
-  );
-
   useEffect(() => {
-    if (data && !transaction) {
+    if (!isLoading && transaction === null) {
       router.back();
     }
-  }, [data, transaction, router]);
+  }, [isLoading, transaction, router]);
 
   if (!transaction) return null;
 
@@ -53,7 +49,7 @@ export default function EditScreen() {
           await updateMutation.mutateAsync({ id: transaction.id, values });
           router.back();
         } catch (e) {
-          setErrorMessage(e instanceof Error ? e.message : t('edit.updateError'));
+          setErrorMessage(getErrorMessage(e, t('edit.updateError')));
         }
       }}
       onDelete={async () => {
@@ -62,7 +58,7 @@ export default function EditScreen() {
           await deleteMutation.mutateAsync(transaction.id);
           router.back();
         } catch (e) {
-          setErrorMessage(e instanceof Error ? e.message : t('edit.deleteError'));
+          setErrorMessage(getErrorMessage(e, t('edit.deleteError')));
         }
       }}
     />

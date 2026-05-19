@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { TransactionForm } from '@/components/transactions/transaction-form';
 import { useCreateTransaction } from '@/hooks/use-finance-mutations';
+import { getErrorMessage } from '@/utils/error';
 
 export default function CreateScreen() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function CreateScreen() {
           await createMutation.mutateAsync(values);
           router.back();
         } catch (e) {
-          setErrorMessage(e instanceof Error ? e.message : t('create.error'));
+          setErrorMessage(getErrorMessage(e, t('create.error')));
         }
       }}
     />

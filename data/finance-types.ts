@@ -45,7 +45,6 @@ export function transactionDate(t: Transaction): string {
 }
 
 export type Finance = {
-  generatedAt: string;
   years: number[];
   currency: string;
   categories: Category[];

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { DeleteWalletResult } from '@/data/finance-types';
+import { DeleteWalletResultSchema } from '@/data/schemas';
 import { useAuth } from '@/hooks/use-auth';
 import { walletKeys } from '@/hooks/use-wallet-list';
 import { useWallet } from '@/hooks/use-wallet';
@@ -38,10 +39,11 @@ export function useRequestOrDeleteWallet() {
         p_wallet_id: targetWalletId,
       });
       if (error) throw error;
-      if (data !== 'deleted' && data !== 'pending') {
+      const parsed = DeleteWalletResultSchema.safeParse(data);
+      if (!parsed.success) {
         throw new Error(`Unexpected request_or_delete_wallet result: ${String(data)}`);
       }
-      return data;
+      return parsed.data;
     },
     onSuccess: async (result, targetWalletId) => {
       if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });

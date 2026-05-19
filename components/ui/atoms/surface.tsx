@@ -30,6 +30,7 @@ export function Surface({
     (variant === 'muted' ? 'surfaceMuted' : variant === 'elevated' ? 'background' : 'surface');
   const backgroundColor = useThemeColor({}, surfaceTone);
   const borderColor = useThemeColor({}, 'border');
+  const shadowColor = useThemeColor({}, 'shadow');
 
   return (
     <View
@@ -40,7 +41,7 @@ export function Surface({
           padding,
           borderRadius: radius,
           ...(bordered ? { borderWidth: StyleSheet.hairlineWidth, borderColor } : null),
-          ...(variant === 'elevated' ? styles.elevated : null),
+          ...(variant === 'elevated' ? { ...styles.elevated, shadowColor } : null),
         },
         style,
       ]}
@@ -55,7 +56,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   elevated: {
-    shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },

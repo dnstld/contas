@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useCurrency } from '@/hooks/use-currency';
+import { useWallet } from '@/hooks/use-wallet';
 
 export function useFormatters() {
   const { i18n } = useTranslation();
-  const { currency: userCurrency } = useCurrency();
+  const { currency: userCurrency } = useWallet();
   const locale = i18n.language || 'en';
 
   return useMemo(

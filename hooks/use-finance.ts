@@ -7,8 +7,8 @@ import {
   type Finance,
   type Transaction,
 } from '@/data/finance-types';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
-import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useWallet } from '@/hooks/use-wallet';
 
 export type UseFinanceResult = {
@@ -30,7 +30,6 @@ function assembleFinance(
   ).sort((a, b) => a - b);
 
   return {
-    generatedAt: new Date().toISOString(),
     years,
     currency,
     categories,
@@ -39,7 +38,7 @@ function assembleFinance(
 }
 
 export function useFinance(): UseFinanceResult {
-  const [demoMode] = usePersistedState('settings:demo-mode', false);
+  const { enabled: demoMode } = useDemoMode();
   const { currency } = useWallet();
   const categoriesQ = useCategories();
   const transactionsQ = useTransactions();
@@ -47,6 +46,14 @@ export function useFinance(): UseFinanceResult {
   const demoData = useMemo(
     () => (demoMode ? generateDemoFinance(currency) : undefined),
     [demoMode, currency],
+  );
+
+  const liveData = useMemo(
+    () =>
+      categoriesQ.data && transactionsQ.data
+        ? assembleFinance(categoriesQ.data, transactionsQ.data, currency)
+        : undefined,
+    [categoriesQ.data, transactionsQ.data, currency],
   );
 
   if (demoMode) {
@@ -60,13 +67,8 @@ export function useFinance(): UseFinanceResult {
     };
   }
 
-  const data =
-    categoriesQ.data && transactionsQ.data
-      ? assembleFinance(categoriesQ.data, transactionsQ.data, currency)
-      : undefined;
-
   return {
-    data,
+    data: liveData,
     isLoading: categoriesQ.isPending || transactionsQ.isPending,
     isError: categoriesQ.isError || transactionsQ.isError,
     error: categoriesQ.error ?? transactionsQ.error,

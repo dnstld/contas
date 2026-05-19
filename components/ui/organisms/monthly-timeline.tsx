@@ -37,7 +37,7 @@ function orderPoints(
 export function MonthlyTimeline({
   points,
   currency = 'USD',
-  currentMonth = MONTHS[new Date().getMonth()],
+  currentMonth = MONTHS[new Date().getMonth()]!,
 }: MonthlyTimelineProps) {
   const ordered = orderPoints(points, currentMonth);
   const { monthName } = useFormatters();

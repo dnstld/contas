@@ -19,10 +19,10 @@ import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/se
 import { Text } from '@/components/ui/atoms/text';
 import { ChipGroup, type ChipGroupItem } from '@/components/ui/molecules/chip-group';
 import { Fonts } from '@/constants/theme';
-import { useCurrency } from '@/hooks/use-currency';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useWallet } from '@/hooks/use-wallet';
 import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from '@/constants/limits';
 
 export type TransactionType = 'expense' | 'income';
@@ -59,7 +59,7 @@ export function TransactionForm({
   const { t } = useTranslation();
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
-  const { currency } = useCurrency();
+  const { currency } = useWallet();
   const { formatDecimal } = useFormatters();
 
   const textColor = useThemeColor({}, 'text');
@@ -121,7 +121,10 @@ export function TransactionForm({
     // Pin the selected/newly-created category to slot 0.
     if (newCategoryId) {
       const idx = items.findIndex((i) => i.id === newCategoryId);
-      if (idx > 0) items.unshift(items.splice(idx, 1)[0]);
+      if (idx > 0) {
+        const [picked] = items.splice(idx, 1);
+        if (picked) items.unshift(picked);
+      }
     }
 
     return items;
@@ -334,7 +337,7 @@ export function TransactionForm({
               },
             ]}
           >
-            <Icon name="checkmark" size={18} color="#fff" />
+            <Icon name="checkmark" size={18} color={onPrimary} />
             <Text
               variant="subtitle"
               weight="bold"

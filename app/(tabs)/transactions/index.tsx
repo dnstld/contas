@@ -16,14 +16,13 @@ import {
 import { editTransactionHref } from '@/constants/routes';
 import type { Finance } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';
-import { useCurrency } from '@/hooks/use-currency';
 import { useFinance } from '@/hooks/use-finance';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useWallet } from '@/hooks/use-wallet';
 
 const EMPTY_FINANCE: Finance = {
-  generatedAt: '',
   years: [],
   currency: 'BRL',
   categories: [],
@@ -34,7 +33,7 @@ export default function TransactionsScreen() {
   const background = useThemeColor({}, 'background');
   const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
-  const { currency } = useCurrency();
+  const { currency } = useWallet();
   const { locale } = useFormatters();
 
   const now = useMemo(() => new Date(), []);

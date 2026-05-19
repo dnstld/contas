@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -7,12 +6,8 @@ import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
 import { Text } from '@/components/ui/atoms/text';
 import { Fonts } from '@/constants/theme';
 import { DISPLAY_NAME_MAX_LENGTH } from '@/constants/limits';
-import { useAuth } from '@/hooks/use-auth';
-import { myProfileKey } from '@/hooks/use-my-profile';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useWallet } from '@/hooks/use-wallet';
-import { walletMemberKeys } from '@/hooks/use-wallet-members';
-import { supabase } from '@/utils/supabase';
+import { useModalChrome } from '@/hooks/use-modal-chrome';
+import { useUpdateMyProfile } from '@/hooks/use-my-profile';
 
 export interface EditDisplayNameModalProps {
   visible: boolean;
@@ -22,47 +17,40 @@ export interface EditDisplayNameModalProps {
 
 export function EditDisplayNameModal({ visible, currentName, onClose }: EditDisplayNameModalProps) {
   const { t } = useTranslation();
-  const { session } = useAuth();
-  const { walletId } = useWallet();
-  const queryClient = useQueryClient();
+  const updateProfile = useUpdateMyProfile();
   const [name, setName] = useState('');
-  const [isPending, setIsPending] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  const textColor = useThemeColor({}, 'text');
-  const mutedColor = useThemeColor({}, 'textMuted');
-  const borderColor = useThemeColor({}, 'border');
-  const accentColor = useThemeColor({}, 'positive');
-  const inputBackground = useThemeColor({}, 'surfaceMuted');
-  const onPrimary = useThemeColor({}, 'onPrimary');
+  const {
+    text: textColor,
+    textMuted: mutedColor,
+    border: borderColor,
+    accent: accentColor,
+    inputBackground,
+    onPrimary,
+  } = useModalChrome();
 
+  const resetMutation = updateProfile.reset;
   useEffect(() => {
     if (visible) {
       setName(currentName ?? '');
-      setIsPending(false);
+      resetMutation();
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [visible, currentName]);
+  }, [visible, currentName, resetMutation]);
 
   const handleSave = async () => {
     const trimmed = name.trim();
-    if (!trimmed || isPending) return;
-    setIsPending(true);
-    const userId = session?.user.id;
-    const [authResult, profileResult] = await Promise.all([
-      supabase.auth.updateUser({ data: { full_name: trimmed } }),
-      userId
-        ? supabase.from('profiles').update({ display_name: trimmed }).eq('id', userId)
-        : Promise.resolve({ error: null }),
-    ]);
-    setIsPending(false);
-    if (!authResult.error && !profileResult.error) {
-      if (userId) queryClient.invalidateQueries({ queryKey: myProfileKey(userId) });
-      if (walletId) queryClient.invalidateQueries({ queryKey: walletMemberKeys.list(walletId) });
+    if (!trimmed || updateProfile.isPending) return;
+    try {
+      await updateProfile.mutateAsync({ displayName: trimmed });
       onClose();
+    } catch {
+      // surfaced via updateProfile.error state if we choose to render it
     }
   };
 
+  const isPending = updateProfile.isPending;
   const canSave = name.trim().length > 0 && !isPending;
 
   return (

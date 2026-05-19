@@ -95,7 +95,7 @@ export function buildTransactionsList(
       sections.push({ title: labelFor(date), data: [tx] });
       currentKey = key;
     } else {
-      sections[sections.length - 1].data.push(tx);
+      sections[sections.length - 1]!.data.push(tx);
     }
   }
 

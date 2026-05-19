@@ -20,12 +20,13 @@ import { EditDisplayNameModal } from '@/components/settings/edit-display-name-mo
 import { InvitationSection } from '@/components/settings/invitation-section';
 import { WalletsModal } from '@/components/settings/wallets-modal';
 import { useAuth } from '@/hooks/use-auth';
-import { useCurrency, type SupportedCurrency } from '@/hooks/use-currency';
+import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useLanguage } from '@/hooks/use-language';
 import { useMyProfile } from '@/hooks/use-my-profile';
+import { useRevenueVisible } from '@/hooks/use-revenue-visible';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
-import { usePersistedState } from '@/hooks/use-persisted-state';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
 import { MAX_WALLETS_PER_USER } from '@/constants/limits';
@@ -59,9 +60,9 @@ export default function SettingsScreen() {
   const atWalletLimit = wallets.length >= MAX_WALLETS_PER_USER;
 
   const { language, setLanguage, supported } = useLanguage();
-  const { currency, setCurrency, supported: supportedCurrencies } = useCurrency();
-  const [revenueVisible, setRevenueVisible] = usePersistedState('dashboard:revenue-visible', false);
-  const [demoMode, setDemoMode] = usePersistedState('settings:demo-mode', false);
+  const { currency, setCurrency } = useWallet();
+  const [revenueVisible, setRevenueVisible] = useRevenueVisible();
+  const { enabled: demoMode, set: setDemoMode } = useDemoMode();
 
   const { members, refetch: refetchMembers } = useWalletMembers();
 
@@ -84,11 +85,11 @@ export default function SettingsScreen() {
 
   const currencyOptions = useMemo(
     () =>
-      supportedCurrencies.map((code) => ({
+      SUPPORTED_CURRENCIES.map((code) => ({
         value: code,
         label: t(`settings.currencies.${code}`),
       })),
-    [supportedCurrencies, t],
+    [t],
   );
 
   return (

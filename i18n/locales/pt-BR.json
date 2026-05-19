@@ -159,7 +159,8 @@
       "redeemButton": "Entrar",
       "redeeming": "Entrando…",
       "redeemError": "Esse código não funcionou — pode ter expirado. Tente novamente.",
-      "redeemCancel": "Cancelar"
+      "redeemCancel": "Cancelar",
+      "inviteError": "Não foi possível criar o convite. Tente de novo."
     },
     "leave": {
       "button": "Sair da carteira",

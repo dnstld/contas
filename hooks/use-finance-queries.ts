@@ -1,7 +1,8 @@
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 
 import type { Category, Transaction } from '@/data/finance-types';
-import { usePersistedState } from '@/hooks/use-persisted-state';
+import { RecurrenceSchema, TransactionTypeSchema } from '@/data/schemas';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
 import type { Tables } from '@/types/database.types';
@@ -10,6 +11,8 @@ export const financeKeys = {
   all: (walletId: string) => ['finance', walletId] as const,
   categories: (walletId: string) => ['finance', walletId, 'categories'] as const,
   transactions: (walletId: string) => ['finance', walletId, 'transactions'] as const,
+  transaction: (walletId: string, transactionId: string) =>
+    ['finance', walletId, 'transaction', transactionId] as const,
 };
 
 type CategoryRow = Tables<'categories'>;
@@ -19,7 +22,7 @@ function adaptCategory(row: CategoryRow): Category {
   return {
     id: row.id,
     name: row.name,
-    type: row.type === 'income' ? 'income' : 'expense',
+    type: TransactionTypeSchema.catch('expense').parse(row.type),
     monthlyBudget: row.monthly_budget_cents == null ? undefined : row.monthly_budget_cents / 100,
     createdAt: row.created_at,
   };
@@ -27,6 +30,7 @@ function adaptCategory(row: CategoryRow): Category {
 
 function adaptTransaction(row: TransactionRow, categoryById: Map<string, Category>): Transaction {
   const cat = categoryById.get(row.category_id);
+  const recurrence = RecurrenceSchema.catch('none').parse(row.recurrence);
   const base = {
     id: row.id,
     type: cat?.type ?? ('expense' as const),
@@ -36,11 +40,11 @@ function adaptTransaction(row: TransactionRow, categoryById: Map<string, Categor
     description: row.description,
     status: row.status === 'scheduled' ? ('scheduled' as const) : ('completed' as const),
   };
-  if (row.recurrence === 'daily' || row.recurrence === 'weekly' || row.recurrence === 'monthly') {
+  if (recurrence !== 'none') {
     return {
       ...base,
       kind: 'recurring',
-      recurrence: row.recurrence,
+      recurrence,
       startDate: row.occurred_at,
       nextOccurrence: row.occurred_at,
     };
@@ -64,7 +68,7 @@ async function fetchCategories(walletId: string): Promise<Category[]> {
 
 export function useCategories(): UseQueryResult<Category[]> {
   const { walletId } = useWallet();
-  const [demoMode] = usePersistedState('settings:demo-mode', false);
+  const { enabled: demoMode } = useDemoMode();
 
   return useQuery({
     queryKey: walletId ? financeKeys.categories(walletId) : ['finance', 'unbound', 'categories'],
@@ -73,9 +77,50 @@ export function useCategories(): UseQueryResult<Category[]> {
   });
 }
 
+export function useTransaction(transactionId: string | null): UseQueryResult<Transaction | null> {
+  const { walletId } = useWallet();
+  const { enabled: demoMode } = useDemoMode();
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey:
+      walletId && transactionId
+        ? financeKeys.transaction(walletId, transactionId)
+        : ['finance', 'unbound', 'transaction', transactionId ?? 'null'],
+    enabled: !!walletId && !!transactionId && !demoMode,
+    queryFn: async () => {
+      const wid = walletId!;
+      const tid = transactionId!;
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(
+          'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, updated_at',
+        )
+        .eq('id', tid)
+        .eq('wallet_id', wid)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+
+      // Reuse the cached categories list when available; otherwise fetch once.
+      const cached = queryClient.getQueryData<Category[]>(financeKeys.categories(wid));
+      const categories: Category[] =
+        cached ??
+        (await queryClient.fetchQuery<Category[]>({
+          queryKey: financeKeys.categories(wid),
+          queryFn: () => fetchCategories(wid),
+        }));
+      const categoryById = new Map(categories.map((c) => [c.id, c]));
+
+      return adaptTransaction(data, categoryById);
+    },
+  });
+}
+
 export function useTransactions(): UseQueryResult<Transaction[]> {
   const { walletId } = useWallet();
-  const [demoMode] = usePersistedState('settings:demo-mode', false);
+  const { enabled: demoMode } = useDemoMode();
   const queryClient = useQueryClient();
 
   return useQuery({

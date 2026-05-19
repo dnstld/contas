@@ -19,7 +19,6 @@ export interface TimeFilterBarProps extends UseTimeFilterOptions {
   availableYears?: number[];
   /** Optional controlled API. When provided, the bar does not own its state. */
   api?: TimeFilterApi;
-  onChange?: (state: { years: number[]; months: Month[]; all: boolean }) => void;
 }
 
 export function TimeFilterBar({ api, ...rest }: TimeFilterBarProps) {
@@ -29,7 +28,6 @@ export function TimeFilterBar({ api, ...rest }: TimeFilterBarProps) {
 
 function TimeFilterBarUncontrolled({
   now = new Date(),
-  onChange,
   yearsRange,
   availableYears,
   ...filterOptions
@@ -41,7 +39,6 @@ function TimeFilterBarUncontrolled({
       now={now}
       yearsRange={yearsRange}
       availableYears={availableYears}
-      onChange={onChange}
     />
   );
 }
@@ -51,16 +48,9 @@ interface ViewProps {
   now?: Date;
   yearsRange?: number;
   availableYears?: number[];
-  onChange?: TimeFilterBarProps['onChange'];
 }
 
-function TimeFilterBarView({
-  api,
-  now = new Date(),
-  yearsRange = 4,
-  availableYears,
-  onChange,
-}: ViewProps) {
+function TimeFilterBarView({ api, now = new Date(), yearsRange = 4, availableYears }: ViewProps) {
   const { state, selectAll, toggleYear, toggleMonth } = api;
   const { t } = useTranslation();
   const { monthName } = useFormatters();
@@ -82,29 +72,24 @@ function TimeFilterBarView({
         ? availableYears
         : [now.getFullYear()];
 
-  // Auto-correct selected year when the available list changes and the selection is stale.
-  const availableYearsKey = availableYears?.join(',');
+  // Auto-correct the selected year when the available list no longer contains it.
+  // Idempotent: if the selection is still valid, the inner check short-circuits.
   useEffect(() => {
     if (!availableYears || availableYears.length === 0) return;
     const selectedYear = state.years[0];
     if (selectedYear !== undefined && !availableYears.includes(selectedYear)) {
-      toggleYear(availableYears[availableYears.length - 1]);
+      toggleYear(availableYears[availableYears.length - 1]!);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availableYearsKey]);
+  }, [availableYears, state.years, toggleYear]);
 
   const months = useMemo(() => {
     const start = now.getMonth();
     const arr: Month[] = [];
     for (let i = 0; i < MONTHS.length; i++) {
-      arr.push(MONTHS[(start - i + MONTHS.length) % MONTHS.length]);
+      arr.push(MONTHS[(start - i + MONTHS.length) % MONTHS.length]!);
     }
     return arr;
   }, [now]);
-
-  useEffect(() => {
-    onChange?.(state);
-  }, [state, onChange]);
 
   return (
     <ScrollView
