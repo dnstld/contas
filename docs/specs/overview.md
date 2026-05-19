@@ -14,8 +14,10 @@ And a specific year and a specific month are selected in the time filter
 And the full-year chip is not selected
 When the dashboard overview is rendered
 Then it must display the total expenses for the selected month as the primary metric
-And the primaryLabel must read "<month name> <year>" with the month name produced by Intl.DateTimeFormat in the active language
-  (e.g. pt-BR: "Maio 2026", en: "May 2026")
+And the primaryLabel must read "<prefix> <month name> <year>", uppercased, with:
+  - the prefix from key "overview.primaryPrefix" (en: "Bills" / pt-BR: "Contas")
+  - the month name produced by Intl.DateTimeFormat in the active language
+  (e.g. pt-BR: "CONTAS MAIO 2026", en: "BILLS MAY 2026")
 And it must display the previous month's total expenses as the baseline comparison
 And the previous-month comparison must cross the year boundary when the selected month is January
   (e.g. January 2026 compares against December 2025)
@@ -33,6 +35,8 @@ Given that a specific year is selected in the time filter
 And the full-year chip is selected
 When the dashboard overview is rendered
 Then it must display the total expenses for the selected year as the primary metric
+And the primaryLabel must read "<prefix> <year>", uppercased, with the prefix from key "overview.primaryPrefix"
+  (e.g. en: "BILLS 2026" / pt-BR: "CONTAS 2026")
 And it must display the previous year's total expenses as the baseline comparison
 And it must display a horizontal timeline below the comparison
 And the timeline header must come from key "overview.allMonths"
@@ -40,6 +44,11 @@ And the timeline header must come from key "overview.allMonths"
 And the timeline must list one entry per month with that month's total
 And each timeline entry's month label must come from Intl.DateTimeFormat with style "short" in the active language
 And the current month must be visually highlighted in the timeline (only when the selected year is the current year)
+And each timeline cell's tone must be:
+  - neutral when the cell's value is 0 (no activity yet, including months in the future)
+  - neutral when no delta is computable
+  - positive (green) when delta ≥ 0
+  - negative (red) when delta < 0
 And a mode badge from key "overview.modes.year" must be visible in the card header
   (en: "YEAR" / pt-BR: "ANO")
 ```
@@ -52,8 +61,9 @@ When the comparison row is displayed
 Then it must contain a directional indicator, a signed percentage, and a baseline phrase
 And the baseline phrase must be built from the i18next key "overview.vsPrevious" with the placeholders {{label}} and {{value}}
   - {{label}} is the comparison period label (month name in the active language, or year as a 4-digit string)
-  - {{value}} is the previous-period absolute amount formatted as a plain number in the active language
-  (e.g. en: "vs April: 4,700.00"; pt-BR: "vs Abril: 4.700,00"; year mode: "vs 2025: 50.000,00")
+  - {{value}} is the previous-period absolute amount formatted as currency via Intl.NumberFormat
+    using the active language as the locale and the user-selected currency
+  (e.g. en + USD: "vs April: $4,700.00"; pt-BR + BRL: "vs Abril: R$ 4.700,00"; year mode pt-BR + BRL: "vs 2025: R$ 50.000,00")
 And the absolute delta amount must be hidden — only the percentage is shown next to the indicator
 And the indicator's icon and tone must reflect the movement:
   - delta > 0 → up-right arrow, tone reflects the lens-specific favorability (red/green per "Per-lens comparison semantics")
@@ -150,11 +160,13 @@ And the persisted storage key for this toggle is "dashboard:revenue-visible"
 Given that the active language is one of the supported languages
 When any overview content is rendered
 Then every label must be sourced from i18next using these keys:
+  - primary label prefix: "overview.primaryPrefix" (en: "Bills" / pt-BR: "Contas")
   - segmented control:  "overview.expenses" / "overview.revenue" / "overview.balance"
   - metric rows:        "overview.revenue" / "overview.expenses" / "overview.balance"
   - mode badges:        "overview.modes.month" / "overview.modes.year" / "overview.modes.all"
   - timeline header:    "overview.allMonths"
   - comparison phrase:  "overview.vsPrevious" with {{label}} + {{value}}
+                        ({{value}} is pre-formatted as currency before interpolation)
 And every monetary value must be formatted via Intl.NumberFormat using the active language as the locale and the user-selected currency
 And percentages must use the active language's decimal separator (en: ".", pt-BR: ",")
 And month names in the primaryLabel, comparisonLabel, and timeline labels must be produced by Intl.DateTimeFormat in the active language

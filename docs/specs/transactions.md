@@ -13,12 +13,14 @@ Given that the user is logged in
 And they navigate to the Transactions tab
 When the screen is rendered
 Then the layout must follow this vertical order:
-  1. The shared time filter (FinanceTimeFilter)
-  2. A bordered "total" card displaying the net total for the period
-  3. A SectionList of completed transactions, grouped by calendar day
+  1. The shared time filter (FinanceTimeFilter) — pinned above the scrolling content
+  2. A SectionList of completed transactions, grouped by calendar day, whose
+     ListHeaderComponent renders the bordered "total" card with the net total for the period
+And the total card therefore scrolls with the list (it is not a static element above the list);
+  only the time filter remains pinned at the top
 And the content must sit below the transparent global header (paddingTop = useHeaderHeight())
   so no element is occluded by the header chrome
-And the spacing between the filter, the total card, and the section list must be 32 points
+And the spacing between the time filter and the total card must be 32 points
   to match the section spacing used on the Balance screen
 ```
 
@@ -42,8 +44,9 @@ And the visible years range must be 2 (current year + previous year), matching B
 ```
 Given that the Transactions screen has completed loading
 When the total card is rendered
-Then it must display a caption label sourced from key "transactions.net"
-  (en: "NET" / pt-BR: "SALDO"), uppercased, with the muted secondary tone
+Then it must render inside the SectionList's ListHeaderComponent so it scrolls with the list
+And it must display a caption label sourced from key "transactions.net"
+  (en: "Balance" / pt-BR: "Saldo"), uppercased, with the muted secondary tone
 And below the caption it must display a single large PriceText with size "xl"
 And the displayed value must equal income − expenses for the filtered period
   (only completed transactions count; scheduled transactions are excluded)
@@ -52,6 +55,16 @@ And the value must be formatted via Intl.NumberFormat using the active language 
 And no income / expense breakdown rows must be rendered under the total
 And no positive/negative color tinting must be applied to the value — it always renders in the neutral text color
   (negatives are conveyed by the auto sign display, e.g. "−R$ 50,00")
+```
+
+### Scroll reset on filter change
+
+```
+Given that the Transactions screen has been scrolled down
+When the user changes the time filter (year, month, or full-year chip)
+Then the SectionList must animate back to the top of the page
+So the user always sees the total card after a filter change,
+  instead of being stranded mid-list.
 ```
 
 ### Filter resolution rules
@@ -130,8 +143,9 @@ And no other affordance (ellipsis menu, swipe action, long-press) is wired in th
 Given that the filter produces no completed transactions for the selected period
 When the screen is rendered
 Then the section list must not be mounted
-And in its place the EmptyState molecule must be rendered, vertically centered in the remaining space
-  (below the total card, occupying the rest of the screen)
+And the total card must still render at the top of the scrollable area (it is not part of the section list in this state)
+And below the total card the EmptyState molecule must be rendered, vertically centered in the remaining space
+  (occupying the rest of the screen)
 And the EmptyState icon must be "chart.bar.fill"
 And the EmptyState title must come from key "transactions.empty.title"
   (en: "No transactions" / pt-BR: "Sem transações")

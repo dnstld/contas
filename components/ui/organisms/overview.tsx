@@ -63,7 +63,7 @@ export function Overview({
 }: OverviewProps) {
   const [lens, setLens] = useState<OverviewLens>('expenses');
   const { t } = useTranslation();
-  const { formatCurrency, formatNumber, locale } = useFormatters();
+  const { formatCurrency, locale } = useFormatters();
 
   const lensOptions = useMemo(
     () => [
@@ -120,7 +120,7 @@ export function Overview({
     <Surface variant="plain" bordered padding={16} style={styles.card}>
       <View style={styles.headerRow}>
         <Text variant="caption" tone="textMuted" weight="semibold">
-          {primaryLabel.toUpperCase()}
+          {`${t('overview.primaryPrefix')} ${primaryLabel}`.toUpperCase()}
         </Text>
         <Text variant="caption" tone="textMuted">
           {t(`overview.modes.${mode}`)}
@@ -147,7 +147,7 @@ export function Overview({
             <Text variant="caption" tone="textMuted">
               {t('overview.vsPrevious', {
                 label: comparisonLabel,
-                value: formatNumber(comparison.prev),
+                value: formatCurrency(comparison.prev, currency),
               })}
             </Text>
           ) : null}

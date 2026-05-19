@@ -34,7 +34,8 @@ Then it must offer exactly these three options, in this order:
   3. value "overBudget"     — label from key "category.sort.overBudget"
      (en: "Over budget"     / pt-BR: "Acima do orçamento")
 And the menu trigger must read "<sort label>: <current>" with:
-  - the leading sort label from key "category.sort.label" (en: "Sort" / pt-BR: "Ordenar")
+  - the leading sort label from key "category.sort.label"
+    (en: "Sort categories by" / pt-BR: "Ordenar categorias por" — no trailing colon; the ": " separator is appended by the SortMenu)
   - the active option's translated label
   (The leading label is explicitly opted into for this picker; other picker uses — such as Settings → Language & Currency — render only the current value.)
 ```
@@ -63,10 +64,27 @@ And categories without a defined budget must sink to the bottom of the list
 ```
 Given that the category grid is rendered
 When the filter chip row is displayed
-Then it must list one chip per expense category
-And chips must be multi-selectable
-And selecting one or more chips must filter the grid to only those categories
-And deselecting all chips must restore the full category list
+Then the first chip must be an "All" chip with label from key "category.filter.all"
+  (en: "All" / pt-BR: "Todas")
+And the remaining chips must list one chip per expense category, in their existing order
+And category chips must be multi-selectable
+And selecting one or more category chips must filter the grid to only those categories
+  (the "All" chip becomes deselected automatically)
+And the "All" chip must appear selected whenever no category chips are selected
+  (so on first render — with no active filter — "All" is the selected chip)
+And tapping the "All" chip while categories are selected must clear the selection
+  and restore the full category list
+```
+
+### Scroll reset on filter change
+
+```
+Given that the dashboard screen has been scrolled down
+When the user changes the time filter (year, month, or full-year chip)
+  OR changes the category filter chip selection (including tapping "All")
+Then the scrollable container must animate back to the top of the page
+So the user always sees the Overview and the controls after a filter change,
+  instead of being stranded inside the grid below.
 ```
 
 ### Filter summary line
@@ -142,6 +160,7 @@ When the grid is rendered
 Then every label must be sourced from i18next using these keys:
   - sort trigger leading label: "category.sort.label"
   - sort options:               "category.sort.highestExpense" / "category.sort.mostUsed" / "category.sort.overBudget"
+  - filter "All" chip:          "category.filter.all"
   - filter summary count:       "category.selectedCount" with {{count}} (uses plural rules)
   - filter summary totals:      "overview.expenses" / "overview.revenue"
   - filter summary period:      "category.perMonth" / "category.perYear"

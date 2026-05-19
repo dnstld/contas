@@ -155,8 +155,8 @@ When the t(...) call passes the matching named argument
 Then the placeholder must be replaced verbatim with the argument value
 And no HTML/JSX escaping must be applied (escapeValue: false)
 Currently interpolated keys:
-  - category.vsPrevious — {{label}}, {{value}}
-  - overview.vsPrevious — {{label}}, {{value}}
+  - category.vsPrevious — {{label}}, {{value}} ({{value}} is pre-formatted as currency before interpolation)
+  - overview.vsPrevious — {{label}}, {{value}} ({{value}} is pre-formatted as currency before interpolation)
   - dangerZone.delete.partnerDescription — {{partner}}
   - dangerZone.delete.partnerMessage — {{partner}}
   - dangerZone.delete.waitingCaption — {{partner}}

@@ -56,7 +56,15 @@ export function MonthlyTimeline({
             delta={p.delta}
             currency={currency}
             current={p.month === currentMonth}
-            tone={p.delta === undefined ? 'neutral' : p.delta >= 0 ? 'positive' : 'negative'}
+            tone={
+              p.value === 0
+                ? 'neutral'
+                : p.delta === undefined
+                  ? 'neutral'
+                  : p.delta >= 0
+                    ? 'positive'
+                    : 'negative'
+            }
           />
         </View>
       ))}

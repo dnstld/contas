@@ -111,6 +111,7 @@
       "year": "ANO",
       "all": "TUDO"
     },
+    "primaryPrefix": "Contas",
     "vsPrevious": "vs {{label}}: {{value}}"
   },
   "timeFilter": {
@@ -257,8 +258,11 @@
       "title": "Nenhuma categoria",
       "body": "Ajuste os filtros para ver suas categorias."
     },
+    "filter": {
+      "all": "Todas"
+    },
     "sort": {
-      "label": "Ordenar",
+      "label": "Ordenar categorias por",
       "highestExpense": "Maior despesa",
       "mostUsed": "Mais usadas",
       "overBudget": "Acima da meta"

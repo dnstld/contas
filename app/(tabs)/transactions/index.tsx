@@ -1,6 +1,6 @@
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, SectionList, StyleSheet, View } from 'react-native';
 
@@ -60,31 +60,47 @@ export default function TransactionsScreen() {
     [router],
   );
 
+  const listRef = useRef<SectionList>(null);
+  const skipFirstScrollReset = useRef(true);
+  const filterKey = `${filterApi.state.years.join(',')}|${filterApi.state.months.join(',')}|${filterApi.state.all}`;
+
+  useEffect(() => {
+    if (skipFirstScrollReset.current) {
+      skipFirstScrollReset.current = false;
+      return;
+    }
+    listRef.current?.getScrollResponder()?.scrollTo({ y: 0, animated: true });
+  }, [filterKey]);
+
+  const totalCard = (
+    <Surface variant="plain" bordered padding={16} style={styles.totalCard}>
+      <Text variant="caption" tone="textMuted" weight="semibold">
+        {t('transactions.net').toUpperCase()}
+      </Text>
+      <PriceText
+        value={totals.net}
+        currency={currency}
+        locale={locale}
+        tone="neutral"
+        size="xl"
+      />
+    </Surface>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
       <View style={styles.header}>
         <FinanceTimeFilter api={filterApi} now={now} availableYears={data?.years} />
-
-        <Surface variant="plain" bordered padding={16} style={styles.totalCard}>
-          <Text variant="caption" tone="textMuted" weight="semibold">
-            {t('transactions.net').toUpperCase()}
-          </Text>
-          <PriceText
-            value={totals.net}
-            currency={currency}
-            locale={locale}
-            tone="neutral"
-            size="xl"
-          />
-        </Surface>
       </View>
 
       {hasTransactions ? (
         <SectionList
+          ref={listRef}
           sections={sections}
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={styles.listContent}
+          ListHeaderComponent={<View style={styles.listHeader}>{totalCard}</View>}
           initialNumToRender={20}
           windowSize={10}
           removeClippedSubviews={Platform.OS === 'android'}
@@ -105,13 +121,16 @@ export default function TransactionsScreen() {
           ItemSeparatorComponent={Divider}
         />
       ) : showEmpty ? (
-        <View style={styles.emptyWrap}>
-          <EmptyState
-            icon="chart.bar.fill"
-            title={t('transactions.empty.title')}
-            body={t('transactions.empty.body')}
-          />
-        </View>
+        <>
+          <View style={styles.emptyHeader}>{totalCard}</View>
+          <View style={styles.emptyWrap}>
+            <EmptyState
+              icon="chart.bar.fill"
+              title={t('transactions.empty.title')}
+              body={t('transactions.empty.body')}
+            />
+          </View>
+        </>
       ) : null}
     </View>
   );
@@ -124,14 +143,20 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    gap: 32,
   },
   totalCard: {
     gap: 8,
   },
-  listContent: {
+  listHeader: {
+    paddingTop: 32,
+    paddingBottom: 32,
+  },
+  emptyHeader: {
     paddingHorizontal: 16,
     paddingTop: 32,
+  },
+  listContent: {
+    paddingHorizontal: 16,
     paddingBottom: 64,
   },
   sectionHeader: {

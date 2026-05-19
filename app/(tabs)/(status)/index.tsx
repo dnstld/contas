@@ -1,6 +1,6 @@
 import { useHeaderHeight } from '@react-navigation/elements';
 import { FlashList } from '@shopify/flash-list';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
@@ -40,6 +40,19 @@ export default function HomeScreen() {
     currency,
     period: dashboard.mode,
   });
+
+  const listRef = useRef<React.ComponentRef<typeof FlashList<(typeof grid.sorted)[number]>>>(null);
+  const skipFirstScrollReset = useRef(true);
+  const filterKey = `${filterApi.state.years.join(',')}|${filterApi.state.months.join(',')}|${filterApi.state.all}`;
+  const selectedKey = grid.selected.join(',');
+
+  useEffect(() => {
+    if (skipFirstScrollReset.current) {
+      skipFirstScrollReset.current = false;
+      return;
+    }
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [filterKey, selectedKey]);
 
   const header = (
     <View style={styles.headerStack}>
@@ -96,6 +109,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
       <FlashList
+        ref={listRef}
         data={grid.sorted}
         keyExtractor={(item) => item.id}
         numColumns={2}

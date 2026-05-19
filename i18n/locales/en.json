@@ -32,7 +32,7 @@
   },
   "transactions": {
     "title": "Transactions",
-    "net": "Net",
+    "net": "Balance",
     "today": "Today",
     "yesterday": "Yesterday",
     "empty": {
@@ -111,6 +111,7 @@
       "year": "YEAR",
       "all": "ALL"
     },
+    "primaryPrefix": "Bills",
     "vsPrevious": "vs {{label}}: {{value}}"
   },
   "timeFilter": {
@@ -257,8 +258,11 @@
       "title": "No categories",
       "body": "Adjust the filters to see your categories."
     },
+    "filter": {
+      "all": "All"
+    },
     "sort": {
-      "label": "Sort",
+      "label": "Sort categories by",
       "highestExpense": "Highest expense",
       "mostUsed": "Most used",
       "overBudget": "Above goal"
