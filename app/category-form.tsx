@@ -218,7 +218,6 @@ export default function CategoryFormScreen() {
               {t('category.create.budgetCaption')}
             </Text>
           </View>
-
         </Transition.ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>

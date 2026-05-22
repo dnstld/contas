@@ -4,13 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 import Transition from 'react-native-screen-transitions';
 
-import {
-  CategoryDetailSkeleton,
-  Divider,
-  EmptyState,
-  Text,
-  TransactionRow,
-} from '@/components/ui';
+import { CategoryDetailSkeleton, Divider, EmptyState, Text, TransactionRow } from '@/components/ui';
 import { editTransactionHref } from '@/constants/routes';
 import type { Finance, Transaction } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';

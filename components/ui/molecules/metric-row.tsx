@@ -28,7 +28,11 @@ export function MetricRow({
       <View style={styles.right}>
         {valueLeading}
         {value !== undefined ? (
-          <Text variant="body" weight={emphasis === 'strong' ? 'semibold' : 'medium'} tone={valueTone}>
+          <Text
+            variant="body"
+            weight={emphasis === 'strong' ? 'semibold' : 'medium'}
+            tone={valueTone}
+          >
             {value}
           </Text>
         ) : null}

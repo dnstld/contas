@@ -80,13 +80,7 @@ export default function TransactionsScreen() {
       <Text variant="caption" tone="textMuted" weight="semibold">
         {t('transactions.net').toUpperCase()}
       </Text>
-      <PriceText
-        value={totals.net}
-        currency={currency}
-        locale={locale}
-        tone="neutral"
-        size="xl"
-      />
+      <PriceText value={totals.net} currency={currency} locale={locale} tone="neutral" size="xl" />
     </Surface>
   );
 

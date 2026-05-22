@@ -19,7 +19,7 @@ jobs:
     type: submit
     needs: [build_ios]
     env:
-      EXPO_DEBUG: "1"
+      EXPO_DEBUG: '1'
     params:
       profile: production
       build_id: ${{ needs.build_ios.outputs.build_id }}

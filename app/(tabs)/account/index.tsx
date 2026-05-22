@@ -101,76 +101,75 @@ export default function SettingsScreen() {
             }
           />
           <Surface padding={0} radius={16} bordered>
-          <View style={styles.profileRow}>
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-            ) : (
-              <Surface
-                variant="elevated"
-                padding={0}
-                radius={22}
-                style={[styles.avatar, styles.avatarFallback]}
-              >
-                <Text variant="subtitle" weight="semibold">
-                  {userInitials(displayName)}
-                </Text>
-              </Surface>
-            )}
-            <View style={styles.profileText}>
-              <Text variant="subtitle" weight="semibold" numberOfLines={1}>
-                {displayName ?? email}
-              </Text>
-              {displayName && email ? (
-                <Text variant="caption" tone="textMuted" numberOfLines={1}>
-                  {email}
-                </Text>
-              ) : null}
-            </View>
-            <ActionMenu
-              items={[
-                {
-                  label: t('profile.actions.editName'),
-                  action: () => router.push(ROUTES.editDisplayName),
-                  systemImage: 'pencil',
-                } satisfies ActionMenuItem,
-                {
-                  label: t('profile.actions.signOut'),
-                  action: signOut,
-                  destructive: true,
-                  systemImage: 'rectangle.portrait.and.arrow.right',
-                } satisfies ActionMenuItem,
-              ]}
-            />
-          </View>
-
-          {partner ? (
-            <>
-              <Divider inset={16} />
-              <View style={styles.profileRow}>
-                {partner.avatarUrl ? (
-                  <Image source={{ uri: partner.avatarUrl }} style={styles.avatar} />
-                ) : (
-                  <Surface
-                    variant="elevated"
-                    padding={0}
-                    radius={22}
-                    style={[styles.avatar, styles.avatarFallback]}
-                  >
-                    <Text variant="subtitle" weight="semibold">
-                      {userInitials(partner.displayName)}
-                    </Text>
-                  </Surface>
-                )}
-                <View style={styles.profileText}>
-                  <Text variant="subtitle" weight="semibold" numberOfLines={1}>
-                    {partner.displayName ?? t('wallet.partner.unnamed')}
+            <View style={styles.profileRow}>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+              ) : (
+                <Surface
+                  variant="elevated"
+                  padding={0}
+                  radius={22}
+                  style={[styles.avatar, styles.avatarFallback]}
+                >
+                  <Text variant="subtitle" weight="semibold">
+                    {userInitials(displayName)}
                   </Text>
-                </View>
+                </Surface>
+              )}
+              <View style={styles.profileText}>
+                <Text variant="subtitle" weight="semibold" numberOfLines={1}>
+                  {displayName ?? email}
+                </Text>
+                {displayName && email ? (
+                  <Text variant="caption" tone="textMuted" numberOfLines={1}>
+                    {email}
+                  </Text>
+                ) : null}
               </View>
-            </>
-          ) : null}
+              <ActionMenu
+                items={[
+                  {
+                    label: t('profile.actions.editName'),
+                    action: () => router.push(ROUTES.editDisplayName),
+                    systemImage: 'pencil',
+                  } satisfies ActionMenuItem,
+                  {
+                    label: t('profile.actions.signOut'),
+                    action: signOut,
+                    destructive: true,
+                    systemImage: 'rectangle.portrait.and.arrow.right',
+                  } satisfies ActionMenuItem,
+                ]}
+              />
+            </View>
 
-        </Surface>
+            {partner ? (
+              <>
+                <Divider inset={16} />
+                <View style={styles.profileRow}>
+                  {partner.avatarUrl ? (
+                    <Image source={{ uri: partner.avatarUrl }} style={styles.avatar} />
+                  ) : (
+                    <Surface
+                      variant="elevated"
+                      padding={0}
+                      radius={22}
+                      style={[styles.avatar, styles.avatarFallback]}
+                    >
+                      <Text variant="subtitle" weight="semibold">
+                        {userInitials(partner.displayName)}
+                      </Text>
+                    </Surface>
+                  )}
+                  <View style={styles.profileText}>
+                    <Text variant="subtitle" weight="semibold" numberOfLines={1}>
+                      {partner.displayName ?? t('wallet.partner.unnamed')}
+                    </Text>
+                  </View>
+                </View>
+              </>
+            ) : null}
+          </Surface>
         </View>
 
         <View style={styles.accountSection}>
