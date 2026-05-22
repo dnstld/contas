@@ -11,6 +11,7 @@ import {
   PriceText,
   Surface,
   Text,
+  TransactionListSkeleton,
   TransactionRow,
 } from '@/components/ui';
 import { editTransactionHref } from '@/constants/routes';
@@ -38,7 +39,7 @@ export default function TransactionsScreen() {
 
   const now = useMemo(() => new Date(), []);
   const filterApi = useFinanceTimeFilter(now);
-  const { data, isLoading } = useFinance();
+  const { data, isLoading, isError, refetch } = useFinance();
 
   const { sections, totals } = useMemo(
     () =>
@@ -50,7 +51,9 @@ export default function TransactionsScreen() {
   );
 
   const hasTransactions = sections.length > 0;
-  const showEmpty = !isLoading && !hasTransactions;
+  const showSkeleton = isLoading && !data;
+  const showError = isError && !data;
+  const showEmpty = !isLoading && !showError && !hasTransactions;
   const router = useRouter();
 
   const handlePressTransaction = useCallback(
@@ -93,7 +96,21 @@ export default function TransactionsScreen() {
         <FinanceTimeFilter api={filterApi} now={now} availableYears={data?.years} />
       </View>
 
-      {hasTransactions ? (
+      {showSkeleton ? (
+        <TransactionListSkeleton />
+      ) : showError ? (
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            tone="error"
+            title={t('errorFallback.title')}
+            body={t('errorFallback.body')}
+            actionLabel={t('errorFallback.retry')}
+            onAction={() => {
+              void refetch();
+            }}
+          />
+        </View>
+      ) : hasTransactions ? (
         <SectionList
           ref={listRef}
           sections={sections}

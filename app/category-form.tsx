@@ -1,81 +1,97 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text as RNText, TextInput, View } from 'react-native';
-
-import { ModalSheet } from '@/components/ui/molecules/modal-sheet';
-import { Text } from '@/components/ui/atoms/text';
-import type { TransactionType } from '@/components/transactions/transaction-form';
 import {
-  useCreateCategory,
-  useUpdateCategory,
-  useDeleteCategory,
-  isCategoryHasTransactionsError,
-} from '@/hooks/use-finance-mutations';
-import { useFormatters } from '@/hooks/use-formatters';
-import { useCategories } from '@/hooks/use-finance-queries';
-import { useModalChrome } from '@/hooks/use-modal-chrome';
-import { useWallet } from '@/hooks/use-wallet';
-import { Fonts } from '@/constants/theme';
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text as RNText,
+  TextInput,
+  View,
+} from 'react-native';
+import Transition from 'react-native-screen-transitions';
+
+import { PressableButton } from '@/components/ui/atoms/pressable-button';
+import { Text } from '@/components/ui/atoms/text';
+import type { TransactionType } from '@/data/finance-types';
 import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
+import { Fonts } from '@/constants/theme';
+import {
+  isCategoryHasTransactionsError,
+  useCreateCategory,
+  useDeleteCategory,
+  useUpdateCategory,
+} from '@/hooks/use-finance-mutations';
+import { useCategories } from '@/hooks/use-finance-queries';
+import { useFormatters } from '@/hooks/use-formatters';
+import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
+import { useModalChrome } from '@/hooks/use-modal-chrome';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { useWallet } from '@/hooks/use-wallet';
+import { categoryFormBridge } from '@/utils/modal-bridge';
 
-export interface CategoryFormModalProps {
-  visible: boolean;
-  type: TransactionType;
-  editCategory?: { id: string; name: string; monthlyBudget?: number };
-  onCreated: (categoryId: string) => void;
-  onDeleted?: (categoryId: string) => void;
-  onClose: () => void;
-}
-
-export function CategoryFormModal({
-  visible,
-  type,
-  editCategory,
-  onCreated,
-  onDeleted,
-  onClose,
-}: CategoryFormModalProps) {
+export default function CategoryFormScreen() {
+  const router = useRouter();
   const { t } = useTranslation();
-  const isEdit = !!editCategory;
+  const params = useLocalSearchParams<{
+    type: TransactionType;
+    bridgeId: string;
+    editId?: string;
+  }>();
 
-  const [name, setName] = useState('');
-  const [budgetCents, setBudgetCents] = useState(0);
-  const [deleteWarning, setDeleteWarning] = useState<string | null>(null);
-  const nameInputRef = useRef<TextInput>(null);
+  const type = params.type;
+  const bridgeId = params.bridgeId;
+  const editId = params.editId ?? null;
+  const isEdit = !!editId;
+
+  const { data: allCategories = [] } = useCategories();
+  const editCategory = isEdit ? (allCategories.find((c) => c.id === editId) ?? null) : null;
+
+  const isLastOfType = allCategories.filter((c) => c.type === type).length <= 1;
 
   const { currency } = useWallet();
   const { formatDecimal, currencySymbol } = useFormatters();
   const symbol = currencySymbol(currency);
 
+  const bottomPadding = useModalBottomPadding();
+  const backgroundColor = useThemeColor({}, 'modalBackground');
   const {
     text: textColor,
     textMuted: mutedColor,
     border: borderColor,
-    accent: accentColor,
     danger: dangerColor,
     inputBackground,
-    onPrimary,
   } = useModalChrome();
-
-  const { data: allCategories = [] } = useCategories();
-  const isLastOfType = allCategories.filter((c) => c.type === type).length <= 1;
 
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();
   const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
-
   const isPending = isCreating || isUpdating || isDeleting;
 
+  const [name, setName] = useState(editCategory?.name ?? '');
+  const [budgetCents, setBudgetCents] = useState(
+    editCategory?.monthlyBudget != null ? Math.round(editCategory.monthlyBudget * 100) : 0,
+  );
+  const [deleteWarning, setDeleteWarning] = useState<string | null>(null);
+  const nameInputRef = useRef<TextInput>(null);
+  const hasHydratedEdit = useRef(false);
+
   useEffect(() => {
-    if (visible) {
-      setName(editCategory?.name ?? '');
+    if (isEdit && editCategory && !hasHydratedEdit.current) {
+      hasHydratedEdit.current = true;
+      setName(editCategory.name);
       setBudgetCents(
-        editCategory?.monthlyBudget != null ? Math.round(editCategory.monthlyBudget * 100) : 0,
+        editCategory.monthlyBudget != null ? Math.round(editCategory.monthlyBudget * 100) : 0,
       );
-      setDeleteWarning(null);
-      if (!isEdit) setTimeout(() => nameInputRef.current?.focus(), 100);
     }
-  }, [visible, editCategory?.name, editCategory?.monthlyBudget, isEdit]);
+  }, [isEdit, editCategory]);
+
+  useEffect(() => {
+    if (!isEdit) {
+      const handle = setTimeout(() => nameInputRef.current?.focus(), 250);
+      return () => clearTimeout(handle);
+    }
+  }, [isEdit]);
 
   const handleBudgetChange = (text: string) => {
     const digits = text.replace(/\D/g, '');
@@ -97,7 +113,7 @@ export function CategoryFormModal({
           name: trimmed,
           ...(budgetCents > 0 && { monthlyBudgetCents: budgetCents }),
         },
-        { onSuccess: () => onClose() },
+        { onSuccess: () => router.back() },
       );
     } else {
       createCategory(
@@ -108,8 +124,8 @@ export function CategoryFormModal({
         },
         {
           onSuccess: (data) => {
-            onCreated(data.id);
-            onClose();
+            categoryFormBridge.emit(bridgeId, 'created', data.id);
+            router.back();
           },
         },
       );
@@ -121,8 +137,8 @@ export function CategoryFormModal({
     setDeleteWarning(null);
     deleteCategory(editCategory.id, {
       onSuccess: (id) => {
-        onDeleted?.(id);
-        onClose();
+        categoryFormBridge.emit(bridgeId, 'deleted', id);
+        router.back();
       },
       onError: (err) => {
         if (isCategoryHasTransactionsError(err)) {
@@ -136,8 +152,21 @@ export function CategoryFormModal({
   const formattedBudget = formatDecimal(budgetCents / 100);
 
   return (
-    <ModalSheet visible={visible} onRequestClose={onClose} animationType="fade">
-      <View style={styles.sheetInner}>
+    <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
+      <View style={styles.dragHandleWrap}>
+        <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Transition.ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Text variant="subtitle" weight="semibold" style={[styles.title, { color: textColor }]}>
             {isEdit ? t('category.edit.title') : t('category.create.title')}
           </Text>
@@ -190,79 +219,63 @@ export function CategoryFormModal({
             </Text>
           </View>
 
-          <View style={styles.actions}>
-            <Pressable
-              onPress={onClose}
-              style={({ pressed }) => [
-                styles.cancelBtn,
-                { borderColor, opacity: pressed ? 0.6 : 1 },
-              ]}
-            >
-              <Text variant="body" weight="medium" style={{ color: mutedColor }}>
-                {t('category.create.cancel')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={handleSave}
-              disabled={!canSave}
-              style={({ pressed }) => [
-                styles.saveBtn,
-                {
-                  backgroundColor: accentColor,
-                  opacity: canSave ? (pressed ? 0.8 : 1) : 0.4,
-                },
-              ]}
-            >
-              <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
-                {isEdit
-                  ? isUpdating
-                    ? t('category.edit.saving')
-                    : t('category.edit.saveButton')
-                  : isCreating
-                    ? t('category.create.creating')
-                    : t('category.create.createButton')}
-              </Text>
-            </Pressable>
-          </View>
+        </Transition.ScrollView>
+
+        <View style={[styles.footer, { borderTopColor: borderColor }]}>
+          <PressableButton
+            label={isEdit ? t('category.edit.saveButton') : t('category.create.createButton')}
+            variant="primary"
+            size="large"
+            loading={isCreating || isUpdating}
+            disabled={!canSave}
+            onPress={handleSave}
+          />
 
           {isEdit && !isLastOfType ? (
-            <View style={styles.deleteSection}>
+            <View style={styles.deleteWrap}>
               {deleteWarning ? (
                 <Text variant="caption" style={[styles.deleteWarning, { color: dangerColor }]}>
                   {deleteWarning}
                 </Text>
               ) : null}
-              <Pressable
+              <PressableButton
+                label={t('category.edit.delete')}
+                variant="destructive"
+                size="large"
+                loading={isDeleting}
+                disabled={isPending && !isDeleting}
                 onPress={handleDelete}
-                disabled={isPending}
-                style={({ pressed }) => [
-                  styles.deleteBtn,
-                  {
-                    borderColor: dangerColor,
-                    backgroundColor: pressed ? `${dangerColor}14` : 'transparent',
-                    opacity: isPending ? 0.5 : 1,
-                  },
-                ]}
-              >
-                <Text variant="body" weight="medium" style={{ color: dangerColor }}>
-                  {isDeleting ? t('category.edit.deleting') : t('category.edit.delete')}
-                </Text>
-              </Pressable>
+              />
             </View>
           ) : null}
-      </View>
-    </ModalSheet>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
-// Keep legacy export so existing import in transaction-form.tsx keeps working
-// until we update it in the next step.
-export const CreateCategoryModal = CategoryFormModal;
-export type CreateCategoryModalProps = CategoryFormModalProps;
-
 const styles = StyleSheet.create({
-  sheetInner: {
+  root: {
+    flex: 1,
+  },
+  flex: {
+    flex: 1,
+  },
+  dragHandleWrap: {
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
+  dragHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    opacity: 0.6,
+  },
+  content: {
     paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
     gap: 20,
   },
   title: {
@@ -302,39 +315,17 @@ const styles = StyleSheet.create({
     padding: 0,
     textAlignVertical: 'center',
   },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  cancelBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  saveBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 999,
-  },
-  deleteSection: {
+  deleteWrap: {
+    marginTop: 12,
     gap: 8,
-    marginTop: -4,
   },
   deleteWarning: {
     textAlign: 'center',
-  },
-  deleteBtn: {
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
   },
 });

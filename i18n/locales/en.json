@@ -258,6 +258,12 @@
       "title": "No categories",
       "body": "Adjust the filters to see your categories."
     },
+    "detail": {
+      "empty": {
+        "title": "No transactions",
+        "body": "No transactions in this category for the selected period."
+      }
+    },
     "filter": {
       "all": "All"
     },

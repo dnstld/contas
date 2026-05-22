@@ -1,21 +1,18 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Surface, Text } from '@/components/ui';
-import { RedeemCodeModal } from '@/components/settings/redeem-code-modal';
+import { ROUTES } from '@/constants/routes';
 import { useCreateInvitation } from '@/hooks/use-wallet-invitation';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { captureError } from '@/utils/monitoring';
 
-interface InvitationSectionProps {
-  onRedeemSuccess: () => void;
-}
-
-export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
+export function InvitationSection() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [code, setCode] = useState<string | null>(null);
-  const [redeemVisible, setRedeemVisible] = useState(false);
   const [inviteError, setInviteError] = useState(false);
 
   const borderColor = useThemeColor({}, 'border');
@@ -79,7 +76,7 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
             </View>
 
             <Pressable
-              onPress={() => setRedeemVisible(true)}
+              onPress={() => router.push(ROUTES.redeemCode)}
               style={({ pressed }) => [styles.linkBtn, { opacity: pressed ? 0.5 : 1 }]}
             >
               <Text variant="caption" style={{ color: mutedColor }}>
@@ -112,7 +109,7 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
               </Pressable>
 
               <Pressable
-                onPress={() => setRedeemVisible(true)}
+                onPress={() => router.push(ROUTES.redeemCode)}
                 style={({ pressed }) => [styles.pill, { borderColor, opacity: pressed ? 0.7 : 1 }]}
               >
                 <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
@@ -128,12 +125,6 @@ export function InvitationSection({ onRedeemSuccess }: InvitationSectionProps) {
           </>
         )}
       </Surface>
-
-      <RedeemCodeModal
-        visible={redeemVisible}
-        onClose={() => setRedeemVisible(false)}
-        onSuccess={onRedeemSuccess}
-      />
     </View>
   );
 }

@@ -17,16 +17,19 @@ export interface UseFinanceDashboardResult extends DashboardData {
   data: Finance | undefined;
   currency: string;
   isLoading: boolean;
+  isError: boolean;
+  error: unknown;
   isDemo: boolean;
+  refetch: () => Promise<void>;
 }
 
 export function useFinanceDashboard(filter: TimeFilterState, now: Date): UseFinanceDashboardResult {
-  const { data, isLoading, isDemo, currency } = useFinance();
+  const { data, isLoading, isError, error, isDemo, currency, refetch } = useFinance();
   const { i18n } = useTranslation();
   const dashboard = useMemo(
     () => buildDashboard(data ?? EMPTY_FINANCE, filter, now, i18n.language),
     [data, filter, now, i18n.language],
   );
 
-  return { data, currency, isLoading, isDemo, ...dashboard };
+  return { data, currency, isLoading, isError, error, isDemo, refetch, ...dashboard };
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { generateDemoFinance } from '@/data/finance-demo';
 import {
@@ -18,6 +18,7 @@ export type UseFinanceResult = {
   error: unknown;
   isDemo: boolean;
   currency: string;
+  refetch: () => Promise<void>;
 };
 
 function assembleFinance(
@@ -56,6 +57,10 @@ export function useFinance(): UseFinanceResult {
     [categoriesQ.data, transactionsQ.data, currency],
   );
 
+  const refetch = useCallback(async () => {
+    await Promise.all([categoriesQ.refetch(), transactionsQ.refetch()]);
+  }, [categoriesQ, transactionsQ]);
+
   if (demoMode) {
     return {
       data: demoData,
@@ -64,6 +69,7 @@ export function useFinance(): UseFinanceResult {
       error: null,
       isDemo: true,
       currency,
+      refetch,
     };
   }
 
@@ -74,5 +80,6 @@ export function useFinance(): UseFinanceResult {
     error: categoriesQ.error ?? transactionsQ.error,
     isDemo: false,
     currency,
+    refetch,
   };
 }

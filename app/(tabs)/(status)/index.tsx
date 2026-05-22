@@ -1,19 +1,23 @@
 import { useHeaderHeight } from '@react-navigation/elements';
 import { FlashList } from '@shopify/flash-list';
-import { useEffect, useMemo, useRef } from 'react';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   CategoryCard,
   CategoryGridControls,
+  CategoryGridSkeleton,
   EmptyState,
   FinanceTimeFilter,
   Icon,
   Overview,
+  OverviewSkeleton,
   Surface,
   Text,
 } from '@/components/ui';
+import { categoryDetailHref } from '@/constants/routes';
 import { useCategoryGrid } from '@/hooks/use-category-grid';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
@@ -28,6 +32,7 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { currency } = useWallet();
 
+  const router = useRouter();
   const filterApi = useFinanceTimeFilter(now);
   const [revenueVisible] = useRevenueVisible();
   const dashboard = useFinanceDashboard(filterApi.state, now);
@@ -53,6 +58,13 @@ export default function HomeScreen() {
     }
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [filterKey, selectedKey]);
+
+  const handleCategoryPress = useCallback(
+    (id: string) => {
+      router.push(categoryDetailHref(id, filterApi.state));
+    },
+    [router, filterApi.state],
+  );
 
   const header = (
     <View style={styles.headerStack}>
@@ -100,9 +112,34 @@ export default function HomeScreen() {
     </View>
   );
 
-  if (dashboard.isLoading && !hasTransactions) {
+  if (dashboard.isLoading && !dashboard.data) {
     return (
-      <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]} />
+      <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
+        <ScrollView contentContainerStyle={styles.content} scrollEnabled={false}>
+          <View style={styles.skeletonStack}>
+            <OverviewSkeleton />
+            <CategoryGridSkeleton />
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  if (dashboard.isError && !dashboard.data) {
+    return (
+      <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
+        <View style={styles.errorWrap}>
+          <EmptyState
+            tone="error"
+            title={t('errorFallback.title')}
+            body={t('errorFallback.body')}
+            actionLabel={t('errorFallback.retry')}
+            onAction={() => {
+              void dashboard.refetch();
+            }}
+          />
+        </View>
+      </View>
     );
   }
 
@@ -126,7 +163,12 @@ export default function HomeScreen() {
         }
         renderItem={({ item }) => (
           <View style={styles.cell}>
-            <CategoryCard data={item} currency={currency} revenueVisible={revenueVisible} />
+            <CategoryCard
+              data={item}
+              currency={currency}
+              revenueVisible={revenueVisible}
+              onPress={handleCategoryPress}
+            />
           </View>
         )}
       />
@@ -158,5 +200,12 @@ const styles = StyleSheet.create({
   },
   cell: {
     padding: 6,
+  },
+  skeletonStack: {
+    gap: 32,
+  },
+  errorWrap: {
+    flex: 1,
+    justifyContent: 'center',
   },
 });

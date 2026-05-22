@@ -258,6 +258,12 @@
       "title": "Nenhuma categoria",
       "body": "Ajuste os filtros para ver suas categorias."
     },
+    "detail": {
+      "empty": {
+        "title": "Nenhuma transação",
+        "body": "Sem transações nesta categoria no período selecionado."
+      }
+    },
     "filter": {
       "all": "Todas"
     },

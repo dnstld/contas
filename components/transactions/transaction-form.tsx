@@ -1,20 +1,22 @@
-import { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Transition from 'react-native-screen-transitions';
 
-import { CategoryFormModal } from '@/components/transactions/create-category-modal';
+import { categoryFormHref } from '@/constants/routes';
 import { transactionDate } from '@/data/finance-types';
+import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
+import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
-import { Icon } from '@/components/ui/atoms/icon';
+import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
 import { Text } from '@/components/ui/atoms/text';
 import { ChipGroup, type ChipGroupItem } from '@/components/ui/molecules/chip-group';
@@ -57,34 +59,42 @@ export function TransactionForm({
   errorMessage = null,
 }: TransactionFormProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
   const { currency } = useWallet();
   const { formatDecimal } = useFormatters();
+  const bridgeId = useRef(makeBridgeId()).current;
+  const bottomPadding = useModalBottomPadding();
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
   const backgroundColor = useThemeColor({}, 'modalBackground');
   const borderColor = useThemeColor({}, 'border');
-  const accentColor = useThemeColor({}, 'positive');
   const dangerColor = useThemeColor({}, 'negative');
   const surfaceMutedColor = useThemeColor({}, 'surfaceMuted');
-  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const [type, setType] = useState<TransactionType>(initialValues?.type ?? 'expense');
   const [amountCents, setAmountCents] = useState<number>(initialValues?.amountCents ?? 0);
   const [date, setDate] = useState<Date>(initialValues?.date ?? new Date());
   const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
   const [description, setDescription] = useState<string>(initialValues?.description ?? '');
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCategoryId, setNewCategoryId] = useState<string | null>(
     initialValues?.categoryId ?? null,
   );
-  const [editingCategory, setEditingCategory] = useState<{
-    id: string;
-    name: string;
-    monthlyBudget?: number;
-  } | null>(null);
+
+  useEffect(() => {
+    return categoryFormBridge.subscribe(bridgeId, {
+      created: (id) => {
+        setCategoryId(id);
+        setNewCategoryId(id);
+      },
+      deleted: (id) => {
+        setCategoryId((current) => (current === id ? null : current));
+        setNewCategoryId((current) => (current === id ? null : current));
+      },
+    });
+  }, [bridgeId]);
 
   const typeOptions: SegmentedOption<TransactionType>[] = useMemo(
     () => [
@@ -147,7 +157,7 @@ export function TransactionForm({
   const handleCategoryLongPress = (id: string) => {
     const cat = categories.find((c) => c.id === id);
     if (!cat) return;
-    setEditingCategory({ id: cat.id, name: cat.name, monthlyBudget: cat.monthlyBudget });
+    router.push(categoryFormHref({ type, bridgeId, editId: cat.id }));
   };
 
   const handleTypeChange = (next: TransactionType) => {
@@ -171,7 +181,7 @@ export function TransactionForm({
   };
 
   return (
-    <SafeAreaView edges={['bottom']} style={[styles.root, { backgroundColor }]}>
+    <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
       <View style={styles.dragHandleWrap}>
         <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
       </View>
@@ -180,7 +190,7 @@ export function TransactionForm({
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView
+        <Transition.ScrollView
           style={styles.flex}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -235,7 +245,7 @@ export function TransactionForm({
               showCheckWhenSelected
               leading={
                 <Pressable
-                  onPress={() => setShowCreateModal(true)}
+                  onPress={() => router.push(categoryFormHref({ type, bridgeId }))}
                   style={({ pressed }) => [
                     styles.newCategoryChip,
                     { borderColor, opacity: pressed ? 0.6 : 1 },
@@ -253,29 +263,6 @@ export function TransactionForm({
               </Text>
             ) : null}
           </View>
-
-          <CategoryFormModal
-            visible={showCreateModal}
-            type={type}
-            onCreated={(id) => {
-              setCategoryId(id);
-              setNewCategoryId(id);
-            }}
-            onClose={() => setShowCreateModal(false)}
-          />
-          <CategoryFormModal
-            visible={!!editingCategory}
-            type={type}
-            editCategory={editingCategory ?? undefined}
-            onCreated={() => {}}
-            onDeleted={(id) => {
-              if (categoryId === id) {
-                setCategoryId(null);
-                setNewCategoryId(null);
-              }
-            }}
-            onClose={() => setEditingCategory(null)}
-          />
 
           <View style={styles.field}>
             <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
@@ -305,7 +292,7 @@ export function TransactionForm({
               </Text>
             </View>
           </View>
-        </ScrollView>
+        </Transition.ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
           {errorMessage ? (
@@ -321,56 +308,31 @@ export function TransactionForm({
             </View>
           ) : null}
 
-          <Pressable
-            onPress={handleSubmit}
+          <PressableButton
+            label={submitLabel ?? t('create.save')}
+            iconName="checkmark"
+            variant="primary"
+            size="large"
+            loading={isSubmitting}
             disabled={!canSubmit}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canSubmit, busy: isSubmitting }}
-            style={({ pressed }) => [
-              styles.submit,
-              {
-                backgroundColor: accentColor,
-                shadowColor: accentColor,
-                shadowOpacity: canSubmit ? (pressed ? 0.18 : 0.32) : 0.12,
-                transform: [{ scale: pressed && canSubmit ? 0.98 : 1 }],
-                opacity: canSubmit ? 1 : 0.5,
-              },
-            ]}
-          >
-            <Icon name="checkmark" size={18} color={onPrimary} />
-            <Text
-              variant="subtitle"
-              weight="bold"
-              style={[styles.submitLabel, { color: onPrimary }]}
-            >
-              {submitLabel ?? t('create.save')}
-            </Text>
-          </Pressable>
+            onPress={handleSubmit}
+          />
 
           {onDelete ? (
-            <Pressable
-              onPress={onDelete}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityState={{ disabled: busy, busy: isDeleting }}
-              style={({ pressed }) => [
-                styles.delete,
-                {
-                  borderColor: dangerColor,
-                  backgroundColor: pressed ? `${dangerColor}14` : 'transparent',
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                  opacity: busy ? 0.5 : 1,
-                },
-              ]}
-            >
-              <Text variant="subtitle" weight="semibold" style={{ color: dangerColor }}>
-                {deleteLabel ?? t('edit.delete')}
-              </Text>
-            </Pressable>
+            <View style={styles.deleteWrap}>
+              <PressableButton
+                label={deleteLabel ?? t('edit.delete')}
+                variant="destructive"
+                size="large"
+                loading={isDeleting}
+                disabled={busy && !isDeleting}
+                onPress={onDelete}
+              />
+            </View>
           ) : null}
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -442,29 +404,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  submit: {
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 18,
-    borderRadius: 999,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  submitLabel: {
-    letterSpacing: 0.3,
-  },
-  delete: {
+  deleteWrap: {
     marginTop: 12,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
   },
   errorBanner: {
     marginBottom: 12,

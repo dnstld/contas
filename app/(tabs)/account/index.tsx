@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
@@ -16,9 +16,7 @@ import {
 import { SectionHeader } from '@/components/ui/molecules/section-header';
 import { ActionMenu, type ActionMenuItem } from '@/components/ui/molecules/action-menu';
 import { DangerZone } from '@/components/settings/danger-zone';
-import { EditDisplayNameModal } from '@/components/settings/edit-display-name-modal';
 import { InvitationSection } from '@/components/settings/invitation-section';
-import { WalletsModal } from '@/components/settings/wallets-modal';
 import { useAuth } from '@/hooks/use-auth';
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
 import { useDemoMode } from '@/hooks/use-demo-mode';
@@ -30,7 +28,7 @@ import { useWalletList } from '@/hooks/use-wallet-list';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
 import { MAX_WALLETS_PER_USER } from '@/constants/limits';
-import { ROUTES } from '@/constants/routes';
+import { ROUTES, walletsHref } from '@/constants/routes';
 import { type SupportedLanguage } from '@/i18n';
 
 function userInitials(name: string | null): string {
@@ -53,8 +51,6 @@ export default function SettingsScreen() {
   const email = session?.user?.email ?? null;
   const currentUserId = session?.user?.id ?? null;
 
-  const [editNameVisible, setEditNameVisible] = useState(false);
-  const [createWalletVisible, setCreateWalletVisible] = useState(false);
   const { walletId, switchWallet } = useWallet();
   const { data: wallets = [] } = useWalletList();
   const atWalletLimit = wallets.length >= MAX_WALLETS_PER_USER;
@@ -134,7 +130,7 @@ export default function SettingsScreen() {
               items={[
                 {
                   label: t('profile.actions.editName'),
-                  action: () => setEditNameVisible(true),
+                  action: () => router.push(ROUTES.editDisplayName),
                   systemImage: 'pencil',
                 } satisfies ActionMenuItem,
                 {
@@ -177,7 +173,7 @@ export default function SettingsScreen() {
         </Surface>
         </View>
 
-        {!partner ? <InvitationSection onRedeemSuccess={() => {}} /> : null}
+        {!partner ? <InvitationSection /> : null}
 
         <View style={styles.accountSection}>
           <SectionHeader
@@ -210,7 +206,7 @@ export default function SettingsScreen() {
                       : [
                           {
                             label: t('wallets.createTitle'),
-                            action: () => setCreateWalletVisible(true),
+                            action: () => router.push(walletsHref()),
                             systemImage: 'plus',
                             dividerBefore: true,
                           } satisfies ActionMenuItem,
@@ -264,17 +260,6 @@ export default function SettingsScreen() {
           hasParter={!!partner}
         />
       </ScrollView>
-
-      <EditDisplayNameModal
-        visible={editNameVisible}
-        currentName={displayName}
-        onClose={() => setEditNameVisible(false)}
-      />
-      <WalletsModal
-        visible={createWalletVisible}
-        defaultView="create"
-        onClose={() => setCreateWalletVisible(false)}
-      />
     </>
   );
 }

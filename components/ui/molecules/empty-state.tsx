@@ -5,26 +5,34 @@ import { Icon, type IconName } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
+export type EmptyStateTone = 'neutral' | 'error';
+
 export interface EmptyStateProps {
   icon?: IconName;
   title: string;
   body?: string;
   actionLabel?: string;
   onAction?: () => void;
+  tone?: EmptyStateTone;
 }
 
 export function EmptyState({
-  icon = 'chart.bar.fill',
+  icon,
   title,
   body,
   actionLabel,
   onAction,
+  tone = 'neutral',
 }: EmptyStateProps) {
   const muted = useThemeColor({}, 'textMuted');
+  const negative = useThemeColor({}, 'negative');
+  const resolvedIcon: IconName =
+    icon ?? (tone === 'error' ? 'exclamationmark.triangle.fill' : 'chart.bar.fill');
+  const iconColor = tone === 'error' ? negative : muted;
 
   return (
     <View style={styles.container}>
-      <Icon name={icon} size={36} color={muted} />
+      <Icon name={resolvedIcon} size={36} color={iconColor} />
       <View style={styles.text}>
         <Text variant="subtitle" weight="semibold">
           {title}
