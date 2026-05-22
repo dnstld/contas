@@ -1,22 +1,17 @@
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Surface, Text } from '@/components/ui';
-import { ROUTES } from '@/constants/routes';
 import { useCreateInvitation } from '@/hooks/use-wallet-invitation';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { captureError } from '@/utils/monitoring';
 
 export function InvitationSection() {
   const { t } = useTranslation();
-  const router = useRouter();
   const [code, setCode] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState(false);
 
-  const borderColor = useThemeColor({}, 'border');
-  const mutedColor = useThemeColor({}, 'textMuted');
   const accentColor = useThemeColor({}, 'positive');
   const dangerColor = useThemeColor({}, 'negative');
   const onPrimary = useThemeColor({}, 'onPrimary');
@@ -74,15 +69,6 @@ export function InvitationSection() {
                 </Text>
               </Pressable>
             </View>
-
-            <Pressable
-              onPress={() => router.push(ROUTES.redeemCode)}
-              style={({ pressed }) => [styles.linkBtn, { opacity: pressed ? 0.5 : 1 }]}
-            >
-              <Text variant="caption" style={{ color: mutedColor }}>
-                {t('wallet.invitation.haveCodeLink')}
-              </Text>
-            </Pressable>
           </>
         ) : (
           <>
@@ -106,15 +92,6 @@ export function InvitationSection() {
                     {t('wallet.invitation.inviteButton')}
                   </Text>
                 )}
-              </Pressable>
-
-              <Pressable
-                onPress={() => router.push(ROUTES.redeemCode)}
-                style={({ pressed }) => [styles.pill, { borderColor, opacity: pressed ? 0.7 : 1 }]}
-              >
-                <Text variant="caption" weight="medium" style={{ color: mutedColor }}>
-                  {t('wallet.invitation.haveCodeButton')}
-                </Text>
               </Pressable>
             </View>
             {inviteError ? (
@@ -173,10 +150,6 @@ const styles = StyleSheet.create({
   },
   pillFilled: {
     borderWidth: 0,
-  },
-  linkBtn: {
-    alignItems: 'center',
-    paddingVertical: 4,
   },
   error: {
     textAlign: 'center',

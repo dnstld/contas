@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useWallet } from '@/hooks/use-wallet';
+import { walletKeys } from '@/hooks/use-wallet-list';
 import { walletMemberKeys } from '@/hooks/use-wallet-members';
 import { supabase } from '@/utils/supabase';
 
@@ -25,6 +26,7 @@ export function useCreateInvitation() {
 
 export function useRedeemInvitation() {
   const { switchWallet } = useWallet();
+  const { session } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -39,6 +41,10 @@ export function useRedeemInvitation() {
     onSuccess: (joinedWalletId: string) => {
       switchWallet(joinedWalletId);
       queryClient.invalidateQueries({ queryKey: walletMemberKeys.list(joinedWalletId) });
+      const userId = session?.user.id;
+      if (userId) {
+        queryClient.invalidateQueries({ queryKey: walletKeys.list(userId) });
+      }
     },
   });
 }

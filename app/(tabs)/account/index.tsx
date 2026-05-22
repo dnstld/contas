@@ -15,6 +15,7 @@ import {
 } from '@/components/ui';
 import { SectionHeader } from '@/components/ui/molecules/section-header';
 import { ActionMenu, type ActionMenuItem } from '@/components/ui/molecules/action-menu';
+import { AddWalletCard } from '@/components/settings/add-wallet-card';
 import { DangerZone } from '@/components/settings/danger-zone';
 import { InvitationSection } from '@/components/settings/invitation-section';
 import { useAuth } from '@/hooks/use-auth';
@@ -28,7 +29,7 @@ import { useWalletList } from '@/hooks/use-wallet-list';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
 import { MAX_WALLETS_PER_USER } from '@/constants/limits';
-import { ROUTES, walletsHref } from '@/constants/routes';
+import { ROUTES } from '@/constants/routes';
 import { type SupportedLanguage } from '@/i18n';
 
 function userInitials(name: string | null): string {
@@ -53,7 +54,6 @@ export default function SettingsScreen() {
 
   const { walletId, switchWallet } = useWallet();
   const { data: wallets = [] } = useWalletList();
-  const atWalletLimit = wallets.length >= MAX_WALLETS_PER_USER;
 
   const { language, setLanguage, supported } = useLanguage();
   const { currency, setCurrency } = useWallet();
@@ -173,8 +173,6 @@ export default function SettingsScreen() {
         </Surface>
         </View>
 
-        {!partner ? <InvitationSection /> : null}
-
         <View style={styles.accountSection}>
           <SectionHeader
             title={t('settings.sections.wallets')}
@@ -190,32 +188,22 @@ export default function SettingsScreen() {
               description={wallets.length > 0 ? wallets.map((w) => w.name).join(', ') : undefined}
               trailing={
                 <ActionMenu
-                  items={[
-                    ...wallets.map<ActionMenuItem>((w) => ({
-                      label: w.name,
-                      action: () => {
-                        if (w.id !== walletId) {
-                          switchWallet(w.id);
-                          router.navigate(ROUTES.home);
-                        }
-                      },
-                      systemImage: w.id === walletId ? 'checkmark' : undefined,
-                    })),
-                    ...(atWalletLimit
-                      ? []
-                      : [
-                          {
-                            label: t('wallets.createTitle'),
-                            action: () => router.push(walletsHref()),
-                            systemImage: 'plus',
-                            dividerBefore: true,
-                          } satisfies ActionMenuItem,
-                        ]),
-                  ]}
+                  items={wallets.map<ActionMenuItem>((w) => ({
+                    label: w.name,
+                    action: () => {
+                      if (w.id !== walletId) {
+                        switchWallet(w.id);
+                        router.navigate(ROUTES.home);
+                      }
+                    },
+                    systemImage: w.id === walletId ? 'checkmark' : undefined,
+                  }))}
                 />
               }
             />
           </Surface>
+          <AddWalletCard />
+          {!partner ? <InvitationSection /> : null}
         </View>
 
         <SettingsSection title={t('settings.sections.display')}>
@@ -272,7 +260,7 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   accountSection: {
-    gap: 8,
+    gap: 16,
   },
   profileRow: {
     flexDirection: 'row',

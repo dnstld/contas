@@ -10,6 +10,7 @@ import { Fonts } from '@/constants/theme';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { ROUTES } from '@/constants/routes';
 import { useRedeemInvitation } from '@/hooks/use-wallet-invitation';
 
 export default function RedeemCodeScreen() {
@@ -42,7 +43,7 @@ export default function RedeemCodeScreen() {
     setError(false);
     try {
       await redeem.mutateAsync(trimmed);
-      router.back();
+      router.dismissTo(ROUTES.home);
     } catch {
       setError(true);
     }

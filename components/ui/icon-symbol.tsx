@@ -45,6 +45,8 @@ const MAPPING = {
   magnifyingglass: 'search',
   plus: 'add',
   minus: 'remove',
+  envelope: 'mail',
+  'lock.fill': 'lock',
   ellipsis: 'more-horiz',
   eye: 'visibility',
   'eye.slash': 'visibility-off',

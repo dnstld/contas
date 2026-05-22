@@ -150,11 +150,9 @@
       "sectionTitle": "Dividir com alguém",
       "description": "Divida esta carteira com alguém. Ao aceitar o convite, vocês passam a ver e organizar as contas da casa juntos.",
       "inviteButton": "Convidar",
-      "haveCodeButton": "Recebi um convite",
-      "codeLabel": "Compartilhe este código",
+      "codeLabel": "Seu código de convite",
       "shareCode": "Enviar convite",
       "codeExpiry": "Expira em 7 dias · uso único",
-      "haveCodeLink": "Recebi um convite",
       "redeemTitle": "Entrar com convite",
       "codeInputPlaceholder": "Cole ou digite seu código",
       "redeemButton": "Entrar",
@@ -167,7 +165,7 @@
       "button": "Sair da carteira",
       "disabledCaption": "Você é o único membro desta carteira.",
       "confirmTitle": "Sair da carteira?",
-      "confirmBody": "Seu parceiro(a) continuará com acesso. Você começará uma nova carteira pessoal.",
+      "confirmBody": "Quem compartilha a carteira continuará com acesso. Você começará uma nova carteira pessoal.",
       "confirmLeave": "Sair",
       "confirmCancel": "Cancelar",
       "errorToast": "Algo deu errado. Tente de novo."
@@ -205,9 +203,15 @@
   "wallets": {
     "modalTitle": "Minhas Carteiras",
     "createTitle": "Criar Carteira",
+    "addCard": {
+      "sectionTitle": "Adicionar carteira",
+      "description": "Crie uma carteira só sua ou entre em uma compartilhada com um convite.",
+      "createButton": "Criar",
+      "redeemButton": "Recebi um convite"
+    },
     "nameLabel": "Nome",
     "namePlaceholder": "Nome da carteira",
-    "freeTierLimit": "Você chegou ao limite de 2 carteiras",
+    "freeTierLimit": "Você chegou ao limite de {{count}} carteiras",
     "activeLabel": "Ativa",
     "switchButton": "Mudar",
     "membersOne": "1 membro",

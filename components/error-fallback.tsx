@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -11,8 +12,6 @@ type Props = {
 export function ErrorFallback({ onReset }: Props) {
   const { t } = useTranslation();
   const background = useThemeColor({}, 'background');
-  const tint = useThemeColor({}, 'tint');
-  const onPrimary = useThemeColor({}, 'onPrimary');
 
   return (
     <View style={[styles.container, { backgroundColor: background }]}>
@@ -22,19 +21,12 @@ export function ErrorFallback({ onReset }: Props) {
       <Text variant="body" tone="textMuted" style={styles.center}>
         {t('errorFallback.body')}
       </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('errorFallback.retry')}
+      <PressableButton
+        variant="primary"
+        label={t('errorFallback.retry')}
         onPress={onReset}
-        style={({ pressed }) => [
-          styles.button,
-          { backgroundColor: tint, opacity: pressed ? 0.75 : 1 },
-        ]}
-      >
-        <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
-          {t('errorFallback.retry')}
-        </Text>
-      </Pressable>
+        style={styles.button}
+      />
     </View>
   );
 }
@@ -52,8 +44,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
+    alignSelf: 'center',
+    paddingHorizontal: 32,
   },
 });
