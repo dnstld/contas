@@ -183,6 +183,7 @@
       "title": "Excluir Carteira",
       "soloDescription": "Exclui permanentemente todos os dados da carteira.",
       "partnerDescription": "Precisa da aprovação de {{partner}} antes de excluir.",
+      "lastWalletDescription": "Pelo menos 1 carteira é necessária. Crie outra antes para poder excluir esta.",
       "button": "Excluir",
       "soloTitle": "Excluir Carteira?",
       "soloMessage": "Isso excluirá permanentemente a carteira e todos os seus dados. Essa ação não pode ser desfeita.",

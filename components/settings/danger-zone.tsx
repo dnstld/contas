@@ -26,6 +26,7 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
   const { data: wallets = [] } = useWalletList();
   const currentWallet = wallets.find((w) => w.id === walletId) ?? null;
   const memberCount = currentWallet?.memberCount ?? 1;
+  const isLastWallet = wallets.length <= 1;
   const pending = currentWallet?.pendingDeleteRequest ?? null;
   const iAmRequester = pending?.requestedByUserId === currentUserId;
   const partnerIsRequester = !!pending && !iAmRequester;
@@ -157,19 +158,21 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
                 {t('dangerZone.delete.title')}
               </Text>
               <Text variant="caption" tone="textMuted">
-                {memberCount <= 1
-                  ? t('dangerZone.delete.soloDescription')
-                  : t('dangerZone.delete.partnerDescription', { partner: displayPartner })}
+                {isLastWallet
+                  ? t('dangerZone.delete.lastWalletDescription')
+                  : memberCount <= 1
+                    ? t('dangerZone.delete.soloDescription')
+                    : t('dangerZone.delete.partnerDescription', { partner: displayPartner })}
               </Text>
             </View>
             <Pressable
               onPress={handleDeletePress}
-              disabled={requestOrDelete.isPending}
+              disabled={requestOrDelete.isPending || isLastWallet}
               style={({ pressed }) => [
                 styles.actionBtn,
                 {
                   borderColor: dangerColor,
-                  opacity: pressed || requestOrDelete.isPending ? 0.5 : 1,
+                  opacity: isLastWallet ? 0.4 : pressed || requestOrDelete.isPending ? 0.5 : 1,
                 },
               ]}
             >

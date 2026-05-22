@@ -183,6 +183,7 @@
       "title": "Delete Wallet",
       "soloDescription": "Permanently deletes all wallet data.",
       "partnerDescription": "Needs {{partner}}'s approval before deleting.",
+      "lastWalletDescription": "At least 1 wallet is required. Create another before you can delete this one.",
       "button": "Delete",
       "soloTitle": "Delete Wallet?",
       "soloMessage": "This will permanently delete the wallet and all its data. This cannot be undone.",
