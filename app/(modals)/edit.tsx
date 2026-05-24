@@ -10,19 +10,19 @@ import {
 import { Skeleton } from '@/components/ui/atoms/skeleton';
 import { EmptyState } from '@/components/ui/molecules/empty-state';
 import { transactionDate } from '@/data/finance-types';
-import { useDeleteTransaction, useUpdateTransaction } from '@/hooks/use-finance-mutations';
+import {
+  isDemoModeReadOnlyError,
+  useDeleteTransaction,
+  useUpdateTransaction,
+} from '@/hooks/use-finance-mutations';
 import { useTransaction } from '@/hooks/use-finance-queries';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getErrorMessage } from '@/utils/error';
 
 function EditSkeleton() {
   const background = useThemeColor({}, 'modalBackground');
-  const borderColor = useThemeColor({}, 'border');
   return (
     <View style={[styles.skeletonRoot, { backgroundColor: background }]}>
-      <View style={styles.dragHandleWrap}>
-        <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
-      </View>
       <View style={styles.skeletonContent}>
         <Skeleton width="100%" height={36} borderRadius={999} />
         <View style={styles.skeletonAmount}>
@@ -94,7 +94,11 @@ export default function EditScreen() {
           await updateMutation.mutateAsync({ id: transaction.id, values });
           router.back();
         } catch (e) {
-          setErrorMessage(getErrorMessage(e, t('edit.updateError')));
+          if (isDemoModeReadOnlyError(e)) {
+            setErrorMessage(t('edit.demoReadOnly'));
+          } else {
+            setErrorMessage(getErrorMessage(e, t('edit.updateError')));
+          }
         }
       }}
       onDelete={async () => {
@@ -103,7 +107,11 @@ export default function EditScreen() {
           await deleteMutation.mutateAsync(transaction.id);
           router.back();
         } catch (e) {
-          setErrorMessage(getErrorMessage(e, t('edit.deleteError')));
+          if (isDemoModeReadOnlyError(e)) {
+            setErrorMessage(t('edit.demoReadOnly'));
+          } else {
+            setErrorMessage(getErrorMessage(e, t('edit.deleteError')));
+          }
         }
       }}
     />
@@ -113,17 +121,6 @@ export default function EditScreen() {
 const styles = StyleSheet.create({
   skeletonRoot: {
     flex: 1,
-  },
-  dragHandleWrap: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    borderRadius: 3,
-    opacity: 0.6,
   },
   skeletonContent: {
     paddingHorizontal: 20,

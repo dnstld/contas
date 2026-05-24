@@ -1,6 +1,6 @@
+import type { SymbolViewProps } from 'expo-symbols';
 import { useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import type { SFSymbol } from 'sf-symbols-typescript';
 
 import * as Compose from '@expo/ui/jetpack-compose';
 import * as SwiftUI from '@expo/ui/swift-ui';
@@ -8,6 +8,15 @@ import { disabled as disabledMod, fixedSize, font } from '@expo/ui/swift-ui/modi
 import { Button as SwiftUIButton } from '@expo/ui/swift-ui';
 
 import { Icon } from '@/components/ui/atoms/icon';
+
+/**
+ * SF Symbol name. Derived from `expo-symbols` (which is already used by
+ * `IconSymbol`) rather than a separate `sf-symbols-typescript` dep. We extract
+ * the plain string side of `SymbolViewProps['name']` so it matches the
+ * `SFSymbols7_0` union that `@expo/ui/swift-ui` Button's `systemImage` expects
+ * — same trick used by `components/ui/icon-symbol.tsx`.
+ */
+type SFSymbol = Extract<SymbolViewProps['name'], string>;
 
 export interface ActionMenuItem {
   label: string;

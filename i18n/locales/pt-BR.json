@@ -140,7 +140,8 @@
     "save": "Salvar alterações",
     "delete": "Excluir",
     "updateError": "Não foi possível atualizar. Tente de novo.",
-    "deleteError": "Não foi possível remover. Tente de novo."
+    "deleteError": "Não foi possível remover. Tente de novo.",
+    "demoReadOnly": "O modo demo é somente leitura. Desative em Ajustes para fazer alterações."
   },
   "wallet": {
     "partner": {

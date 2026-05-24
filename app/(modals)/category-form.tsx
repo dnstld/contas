@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text as RNText,
   TextInput,
   View,
 } from 'react-native';
-import Transition from 'react-native-screen-transitions';
 
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
@@ -22,6 +22,7 @@ import {
   useDeleteCategory,
   useUpdateCategory,
 } from '@/hooks/use-finance-mutations';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCategories } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
@@ -63,6 +64,7 @@ export default function CategoryFormScreen() {
     inputBackground,
   } = useModalChrome();
 
+  const { enabled: demoMode } = useDemoMode();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();
   const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
@@ -148,20 +150,16 @@ export default function CategoryFormScreen() {
     });
   };
 
-  const canSave = name.trim().length > 0 && !isPending;
+  const canSave = name.trim().length > 0 && !isPending && !demoMode;
   const formattedBudget = formatDecimal(budgetCents / 100);
 
   return (
     <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
-      <View style={styles.dragHandleWrap}>
-        <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
-      </View>
-
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Transition.ScrollView
+        <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -218,7 +216,7 @@ export default function CategoryFormScreen() {
               {t('category.create.budgetCaption')}
             </Text>
           </View>
-        </Transition.ScrollView>
+        </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
           <PressableButton
@@ -242,7 +240,7 @@ export default function CategoryFormScreen() {
                 variant="destructive"
                 size="large"
                 loading={isDeleting}
-                disabled={isPending && !isDeleting}
+                disabled={(isPending && !isDeleting) || demoMode}
                 onPress={handleDelete}
               />
             </View>
@@ -259,17 +257,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
-  },
-  dragHandleWrap: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    borderRadius: 3,
-    opacity: 0.6,
   },
   content: {
     paddingHorizontal: 20,

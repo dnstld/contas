@@ -1,15 +1,15 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
-import Transition from 'react-native-screen-transitions';
 
 import { categoryFormHref } from '@/constants/routes';
 import { transactionDate } from '@/data/finance-types';
@@ -64,7 +64,9 @@ export function TransactionForm({
   const { data: transactions = [] } = useTransactions();
   const { currency } = useWallet();
   const { formatDecimal } = useFormatters();
-  const bridgeId = useRef(makeBridgeId()).current;
+  // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
+  // access during render) and gives us a one-time value identical to a ref.
+  const [bridgeId] = useState(() => makeBridgeId());
   const bottomPadding = useModalBottomPadding();
 
   const textColor = useThemeColor({}, 'text');
@@ -182,15 +184,11 @@ export function TransactionForm({
 
   return (
     <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
-      <View style={styles.dragHandleWrap}>
-        <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
-      </View>
-
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Transition.ScrollView
+        <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -292,7 +290,7 @@ export function TransactionForm({
               </Text>
             </View>
           </View>
-        </Transition.ScrollView>
+        </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
           {errorMessage ? (
@@ -342,17 +340,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
-  },
-  dragHandleWrap: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    borderRadius: 3,
-    opacity: 0.6,
   },
   content: {
     paddingHorizontal: 20,

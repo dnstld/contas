@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 
+import { generateDemoFinance } from '@/data/finance-demo';
 import type { Category, Transaction } from '@/data/finance-types';
 import { RecurrenceSchema, TransactionTypeSchema } from '@/data/schemas';
 import { useDemoMode } from '@/hooks/use-demo-mode';
@@ -78,19 +79,24 @@ export function useCategories(): UseQueryResult<Category[]> {
 }
 
 export function useTransaction(transactionId: string | null): UseQueryResult<Transaction | null> {
-  const { walletId } = useWallet();
+  const { walletId, currency } = useWallet();
   const { enabled: demoMode } = useDemoMode();
   const queryClient = useQueryClient();
 
   return useQuery({
     queryKey:
       walletId && transactionId
-        ? financeKeys.transaction(walletId, transactionId)
-        : ['finance', 'unbound', 'transaction', transactionId ?? 'null'],
-    enabled: !!walletId && !!transactionId && !demoMode,
+        ? [...financeKeys.transaction(walletId, transactionId), demoMode ? 'demo' : 'live']
+        : ['finance', 'unbound', 'transaction', transactionId ?? 'null', demoMode ? 'demo' : 'live'],
+    enabled: !!walletId && !!transactionId,
     queryFn: async () => {
       const wid = walletId!;
       const tid = transactionId!;
+
+      if (demoMode) {
+        const demo = generateDemoFinance(currency);
+        return demo.transactions.find((t) => t.id === tid) ?? null;
+      }
 
       const { data, error } = await supabase
         .from('transactions')

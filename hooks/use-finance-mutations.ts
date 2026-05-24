@@ -4,9 +4,23 @@ import type {
   TransactionFormValues,
   TransactionType,
 } from '@/components/transactions/transaction-form';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
+
+export class DemoModeReadOnlyError extends Error {
+  readonly code = 'demo_mode_read_only' as const;
+
+  constructor() {
+    super('Demo mode is read-only');
+    this.name = 'DemoModeReadOnlyError';
+  }
+}
+
+export function isDemoModeReadOnlyError(e: unknown): e is DemoModeReadOnlyError {
+  return e instanceof DemoModeReadOnlyError;
+}
 
 function ensureCategoryId(values: TransactionFormValues): string {
   if (!values.categoryId) throw new Error('categoryId is required');
@@ -15,10 +29,12 @@ function ensureCategoryId(values: TransactionFormValues): string {
 
 export function useCreateTransaction() {
   const { walletId } = useWallet();
+  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (values: TransactionFormValues) => {
+      if (demoMode) throw new DemoModeReadOnlyError();
       if (!walletId) throw new Error('no wallet');
       const { data, error } = await supabase
         .from('transactions')
@@ -51,10 +67,12 @@ export type UpdateTransactionInput = {
 
 export function useUpdateTransaction() {
   const { walletId } = useWallet();
+  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, values }: UpdateTransactionInput) => {
+      if (demoMode) throw new DemoModeReadOnlyError();
       const { data, error } = await supabase
         .from('transactions')
         .update({
@@ -79,6 +97,7 @@ export function useUpdateTransaction() {
 
 export function useCreateCategory() {
   const { walletId } = useWallet();
+  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
@@ -87,6 +106,7 @@ export function useCreateCategory() {
       type: TransactionType;
       monthlyBudgetCents?: number;
     }) => {
+      if (demoMode) throw new DemoModeReadOnlyError();
       if (!walletId) throw new Error('no wallet');
       const { data, error } = await supabase
         .from('categories')
@@ -128,10 +148,12 @@ export function isCategoryHasTransactionsError(e: unknown): e is CategoryHasTran
 
 export function useUpdateCategory() {
   const { walletId } = useWallet();
+  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (values: { id: string; name: string; monthlyBudgetCents?: number }) => {
+      if (demoMode) throw new DemoModeReadOnlyError();
       const { data, error } = await supabase
         .from('categories')
         .update({
@@ -154,10 +176,12 @@ export function useUpdateCategory() {
 
 export function useDeleteCategory() {
   const { walletId } = useWallet();
+  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (demoMode) throw new DemoModeReadOnlyError();
       const { count, error: countError } = await supabase
         .from('transactions')
         .select('id', { count: 'exact', head: true })
@@ -180,10 +204,12 @@ export function useDeleteCategory() {
 
 export function useDeleteTransaction() {
   const { walletId } = useWallet();
+  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (demoMode) throw new DemoModeReadOnlyError();
       const { error } = await supabase.from('transactions').delete().eq('id', id);
       if (error) throw error;
       return id;

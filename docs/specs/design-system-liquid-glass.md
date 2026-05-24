@@ -87,13 +87,26 @@ And the glassEffect must always be combined with explicit content sizing
 
 ```
 Given that the NativeTabs container is rendered on iOS 26+
+  (Expo SDK 56 / expo-router 56.x / react-native-screens 4.25.x)
 When the tab bar appears at the bottom of the screen
 Then the visible triggers must render inside a single grouped glass capsule
-And the capsule must remain visible at all scroll positions
-  (achieved with disableTransparentOnScrollEdge)
-And the bar must NOT minimize on scroll
-  (achieved with minimizeBehavior="never")
 And the selected pill must be tinted with the theme's primary tint
+And no explicit prop is required to enable the capsule —
+  iOS 26 renders it automatically when the tab bar's parent is a native
+  UINavigationController (expo-router's <Stack>)
+And the (tabs) route MUST live at the root inside expo-router's <Stack>,
+  NOT inside any JS-driven custom navigator
+  (a non-native navigator parent prevents iOS 26 from rendering the capsule;
+   selected pill still works but the grouped container does not)
+And modal routes live in the app/(modals)/ group with their own _layout.tsx,
+  presented via `presentation: 'modal'` on the group screen in the root layout —
+  this keeps the modal group OFF the tab bar's ancestry chain
+And BottomAccessory must NOT be used as a glass-trigger hack
+  (only use it for real accessory content like a mini-player)
+And blurEffect must NOT be set
+  (it overrides the system liquid-glass material with a legacy UIBlurEffect)
+And backgroundColor must NOT be set
+  (it overrides the system glass with a solid color)
 ```
 
 ### Tint color semantics

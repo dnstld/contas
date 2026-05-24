@@ -1,4 +1,3 @@
-import { useHeaderHeight } from '@react-navigation/elements';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -21,6 +20,7 @@ import { categoryDetailHref } from '@/constants/routes';
 import { useCategoryGrid } from '@/hooks/use-category-grid';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
+import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useRevenueVisible } from '@/hooks/use-revenue-visible';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';

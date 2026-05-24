@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AccessibilityInfo,
   Animated,
@@ -21,7 +21,9 @@ export interface SkeletonProps {
 export function Skeleton({ width = '100%', height = 16, borderRadius = 8, style }: SkeletonProps) {
   const backgroundColor = useThemeColor({}, 'surfaceMuted');
   const [reduceMotion, setReduceMotion] = useState(false);
-  const opacity = useRef(new Animated.Value(0.6)).current;
+  // Lazy useState keeps a single Animated.Value across renders without
+  // touching a ref's `.current` during render (react-hooks/refs).
+  const [opacity] = useState(() => new Animated.Value(0.6));
 
   useEffect(() => {
     let mounted = true;

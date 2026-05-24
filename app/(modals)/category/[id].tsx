@@ -1,8 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, View } from 'react-native';
-import Transition from 'react-native-screen-transitions';
+import { FlatList, Platform, StyleSheet, View } from 'react-native';
 
 import { CategoryDetailSkeleton, Divider, EmptyState, Text, TransactionRow } from '@/components/ui';
 import { editTransactionHref } from '@/constants/routes';
@@ -48,7 +47,6 @@ function parseFilter(
 export default function CategoryDetailModal() {
   const background = useThemeColor({}, 'modalBackground');
   const bottomPadding = useModalBottomPadding();
-  const borderColor = useThemeColor({}, 'border');
   const router = useRouter();
   const { t } = useTranslation();
   const { currency } = useWallet();
@@ -137,10 +135,6 @@ export default function CategoryDetailModal() {
 
   return (
     <View style={[styles.root, { backgroundColor: background, paddingBottom: bottomPadding }]}>
-      <View style={styles.dragHandleWrap}>
-        <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
-      </View>
-
       {showSkeleton ? (
         <CategoryDetailSkeleton />
       ) : showError ? (
@@ -156,7 +150,7 @@ export default function CategoryDetailModal() {
           />
         </View>
       ) : hasTransactions ? (
-        <Transition.FlatList
+        <FlatList
           data={rows}
           keyExtractor={(item: unknown) => (item as Row).id}
           contentContainerStyle={styles.listContent}
@@ -181,17 +175,6 @@ export default function CategoryDetailModal() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  dragHandleWrap: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    borderRadius: 3,
-    opacity: 0.6,
   },
   listContent: {
     paddingHorizontal: 20,

@@ -2,7 +2,7 @@
 
 The app gates all financial data behind Supabase Auth. The only sign-in method currently exposed is **Google**, using the native sign-in flow (`@react-native-google-signin/google-signin`) and passing the resulting ID token to `supabase.auth.signInWithIdToken`. The Supabase client persists sessions via `expo-sqlite/localStorage`, so a successful sign-in survives kill/relaunch.
 
-Route protection is implemented in the root layout (`app/_layout.tsx`) by an imperative `router.replace` driven by the auth context. The custom `createBlankStackNavigator` from `react-native-screen-transitions` does not expose Expo Router's `Stack.Protected`, so gating uses `useRouter` + `useSegments` to redirect when session state diverges from the current route.
+Route protection is implemented in the root layout (`app/_layout.tsx`) by an imperative `router.replace` driven by the auth context. Gating uses `useRouter` + `useSegments` to redirect when session state diverges from the current route.
 
 All user-visible labels on the authentication and sign-out surfaces are sourced from i18next — see the [Localization spec](localization.md).
 

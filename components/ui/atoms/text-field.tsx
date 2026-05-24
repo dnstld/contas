@@ -18,21 +18,23 @@ export function TextField({
   secure = false,
   autoFocus,
 }: TextFieldProps) {
+  const text = SwiftUI.useNativeState(defaultValue);
+
   if (Platform.OS === 'ios') {
     return (
       <SwiftUI.Host matchContents={{ vertical: true }} style={styles.full}>
         {secure ? (
           <SwiftUI.SecureField
             placeholder={placeholder ?? ''}
-            defaultValue={defaultValue}
-            onValueChange={onValueChange}
+            text={text}
+            onTextChange={onValueChange}
           />
         ) : (
           <SwiftUI.TextField
             placeholder={placeholder ?? ''}
-            defaultValue={defaultValue}
+            text={text}
             autoFocus={autoFocus}
-            onValueChange={onValueChange}
+            onTextChange={onValueChange}
           />
         )}
       </SwiftUI.Host>
@@ -43,7 +45,7 @@ export function TextField({
     return (
       <Compose.Host matchContents={{ vertical: true }} style={styles.full}>
         <Compose.TextField
-          defaultValue={defaultValue}
+          value={text}
           singleLine
           onValueChange={onValueChange}
           keyboardOptions={secure ? { keyboardType: 'password' } : undefined}

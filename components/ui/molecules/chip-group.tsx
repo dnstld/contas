@@ -68,7 +68,7 @@ export function ChipGroup<T extends string>({
             <View key={item.id} style={styles.chipWrap}>
               {chip}
               <Pressable
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 onPress={() => onToggle(item.id)}
                 onLongPress={() => onLongPress(item.id)}
                 delayLongPress={500}

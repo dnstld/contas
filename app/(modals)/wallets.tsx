@@ -1,8 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
-import Transition from 'react-native-screen-transitions';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
@@ -62,15 +68,11 @@ export default function WalletsScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
-      <View style={styles.dragHandleWrap}>
-        <View style={[styles.dragHandle, { backgroundColor: borderColor }]} />
-      </View>
-
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Transition.ScrollView
+        <ScrollView
           style={styles.flex}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.content}
@@ -110,7 +112,7 @@ export default function WalletsScreen() {
               onChange={setNewCurrency}
             />
           </View>
-        </Transition.ScrollView>
+        </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
           <PressableButton
@@ -133,17 +135,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
-  },
-  dragHandleWrap: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 6,
-  },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    borderRadius: 3,
-    opacity: 0.6,
   },
   content: {
     paddingHorizontal: 20,

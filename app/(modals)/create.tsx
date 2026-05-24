@@ -3,7 +3,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { TransactionForm } from '@/components/transactions/transaction-form';
-import { useCreateTransaction } from '@/hooks/use-finance-mutations';
+import {
+  isDemoModeReadOnlyError,
+  useCreateTransaction,
+} from '@/hooks/use-finance-mutations';
 import { getErrorMessage } from '@/utils/error';
 
 export default function CreateScreen() {
@@ -22,7 +25,11 @@ export default function CreateScreen() {
           await createMutation.mutateAsync(values);
           router.back();
         } catch (e) {
-          setErrorMessage(getErrorMessage(e, t('create.error')));
+          if (isDemoModeReadOnlyError(e)) {
+            setErrorMessage(t('edit.demoReadOnly'));
+          } else {
+            setErrorMessage(getErrorMessage(e, t('create.error')));
+          }
         }
       }}
     />

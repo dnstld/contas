@@ -140,7 +140,8 @@
     "save": "Save changes",
     "delete": "Delete",
     "updateError": "Couldn't update this. Give it another try.",
-    "deleteError": "Couldn't remove this. Give it another try."
+    "deleteError": "Couldn't remove this. Give it another try.",
+    "demoReadOnly": "Demo mode is read-only. Turn it off in Account to make changes."
   },
   "wallet": {
     "partner": {

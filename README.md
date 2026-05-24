@@ -4,8 +4,8 @@ A personal-and-shared finance app built with Expo Router (file-based routing), S
 
 ## Stack
 
-- **Expo SDK 55** with the new architecture, Reanimated 4, custom screen transitions
-- **Expo Router** with file-based routing and a custom `createBlankStackNavigator` from `react-native-screen-transitions`
+- **Expo SDK 55** with the new architecture, Reanimated 4
+- **Expo Router** with file-based routing; modal screens use native `presentation: 'modal'`
 - **Supabase JS** client persisted via `expo-sqlite/localStorage` (no AsyncStorage dependency)
 - **Google native sign-in** via `@react-native-google-signin/google-signin` → `supabase.auth.signInWithIdToken`
 - **i18next** + `expo-localization` for en / pt-BR
