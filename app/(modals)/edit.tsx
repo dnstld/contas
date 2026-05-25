@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
 import {
   TransactionForm,
@@ -101,18 +101,27 @@ export default function EditScreen() {
           }
         }
       }}
-      onDelete={async () => {
-        setErrorMessage(null);
-        try {
-          await deleteMutation.mutateAsync(transaction.id);
-          router.back();
-        } catch (e) {
-          if (isDemoModeReadOnlyError(e)) {
-            setErrorMessage(t('edit.demoReadOnly'));
-          } else {
-            setErrorMessage(getErrorMessage(e, t('edit.deleteError')));
-          }
-        }
+      onDelete={() => {
+        Alert.alert(t('edit.deleteConfirmTitle'), t('edit.deleteConfirmMessage'), [
+          { text: t('edit.deleteConfirmCancel'), style: 'cancel' },
+          {
+            text: t('edit.deleteConfirmAction'),
+            style: 'destructive',
+            onPress: async () => {
+              setErrorMessage(null);
+              try {
+                await deleteMutation.mutateAsync(transaction.id);
+                router.back();
+              } catch (e) {
+                if (isDemoModeReadOnlyError(e)) {
+                  setErrorMessage(t('edit.demoReadOnly'));
+                } else {
+                  setErrorMessage(getErrorMessage(e, t('edit.deleteError')));
+                }
+              }
+            },
+          },
+        ]);
       }}
     />
   );

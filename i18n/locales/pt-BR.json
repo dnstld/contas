@@ -141,7 +141,11 @@
     "delete": "Excluir",
     "updateError": "Não foi possível atualizar. Tente de novo.",
     "deleteError": "Não foi possível remover. Tente de novo.",
-    "demoReadOnly": "O modo demo é somente leitura. Desative em Ajustes para fazer alterações."
+    "demoReadOnly": "O modo demo é somente leitura. Desative em Ajustes para fazer alterações.",
+    "deleteConfirmTitle": "Excluir esta transação?",
+    "deleteConfirmMessage": "Ela vai sair dos seus registros. Não dá pra desfazer.",
+    "deleteConfirmAction": "Excluir",
+    "deleteConfirmCancel": "Cancelar"
   },
   "wallet": {
     "partner": {

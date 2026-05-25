@@ -141,7 +141,11 @@
     "delete": "Delete",
     "updateError": "Couldn't update this. Give it another try.",
     "deleteError": "Couldn't remove this. Give it another try.",
-    "demoReadOnly": "Demo mode is read-only. Turn it off in Account to make changes."
+    "demoReadOnly": "Demo mode is read-only. Turn it off in Account to make changes.",
+    "deleteConfirmTitle": "Delete this transaction?",
+    "deleteConfirmMessage": "It'll be removed from your records. This can't be undone.",
+    "deleteConfirmAction": "Delete",
+    "deleteConfirmCancel": "Cancel"
   },
   "wallet": {
     "partner": {
