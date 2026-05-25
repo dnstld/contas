@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   useCallback,
@@ -11,6 +12,7 @@ import {
 
 import { DEFAULT_CURRENCY, normalizeCurrency, type SupportedCurrency } from '@/data/currency';
 import { useAuth } from '@/hooks/use-auth';
+import { walletKeys } from '@/hooks/use-wallet-list';
 import { getKVStore } from '@/utils/kv-store';
 import { captureError } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
@@ -32,6 +34,7 @@ const KEY_PREFIX = 'wallet:selected-id:';
 export function WalletProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
+  const qc = useQueryClient();
   const [walletId, setWalletId] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [currency, setCurrencyState] = useState<SupportedCurrency>(DEFAULT_CURRENCY);
@@ -156,8 +159,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setCurrencyState(previous);
         throw error;
       }
+      if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
     },
-    [walletId, currency],
+    [walletId, currency, userId, qc],
   );
 
   const value = useMemo<WalletContextValue>(
@@ -172,8 +176,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       switchWallet(id) {
         if (!userId) return;
         setWalletId(id);
-        setName(null);
-        setCurrencyState(DEFAULT_CURRENCY);
+        const cached = qc
+          .getQueryData<{ id: string; name: string; currency: string }[]>(walletKeys.list(userId))
+          ?.find((w) => w.id === id);
+        setName(cached?.name ?? null);
+        setCurrencyState(cached ? normalizeCurrency(cached.currency) : DEFAULT_CURRENCY);
         getKVStore()
           .then((storage) => storage?.setItem(KEY_PREFIX + userId, JSON.stringify(id)))
           .catch((err) => captureError(err, { tags: { context: 'wallet' } }));
@@ -181,7 +188,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       },
       setCurrency,
     }),
-    [walletId, name, currency, loading, userId, resolve, setCurrency, fetchWalletData],
+    [walletId, name, currency, loading, userId, resolve, setCurrency, fetchWalletData, qc],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

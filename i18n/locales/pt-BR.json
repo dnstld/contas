@@ -11,9 +11,9 @@
     "create": "Criar"
   },
   "tabs": {
-    "balance": "Status",
+    "balance": "Balanço",
     "transactions": "Transações",
-    "settings": "Conta"
+    "settings": "Sua conta"
   },
   "errorFallback": {
     "title": "Algo deu errado",
@@ -23,11 +23,11 @@
   "balance": {
     "empty": {
       "title": "Nada por aqui ainda",
-      "body": "Ative o Modo demo em Ajustes para ver dados de exemplo."
+      "body": "Ative o Modo demo em Sua conta para ver o Balanço com dados fictícios"
     },
     "demoBadge": {
       "title": "Modo demo ativado",
-      "body": "Os valores exibidos são dados de exemplo. Desative em Ajustes."
+      "body": "Os valores exibidos são dados de exemplo. Desative em Sua conta."
     }
   },
   "transactions": {
@@ -141,7 +141,7 @@
     "delete": "Excluir",
     "updateError": "Não foi possível atualizar. Tente de novo.",
     "deleteError": "Não foi possível remover. Tente de novo.",
-    "demoReadOnly": "O modo demo é somente leitura. Desative em Ajustes para fazer alterações.",
+    "demoReadOnly": "O modo demo é somente leitura. Desative em Sua conta para fazer alterações.",
     "deleteConfirmTitle": "Excluir esta transação?",
     "deleteConfirmMessage": "Ela vai sair dos seus registros. Não dá pra desfazer.",
     "deleteConfirmAction": "Excluir",

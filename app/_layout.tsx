@@ -6,8 +6,10 @@ import {
   useRouter,
   useSegments,
 } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ErrorFallback } from '@/components/error-fallback';
@@ -21,6 +23,8 @@ import { initI18n } from '@/i18n';
 import { ErrorBoundary, initMonitoring, wrap } from '@/utils/monitoring';
 
 initMonitoring();
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootStack() {
   const { session, loading: authLoading } = useAuth();
@@ -44,14 +48,20 @@ function RootStack() {
     }
   }, [session, booting, segments, router]);
 
+  const onRootLayout = useCallback(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
   if (booting) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="authentication" />
-      <Stack.Screen name="(modals)" options={{ presentation: 'modal', headerShown: false }} />
-    </Stack>
+    <View style={{ flex: 1 }} onLayout={onRootLayout}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="authentication" />
+        <Stack.Screen name="(modals)" options={{ presentation: 'modal', headerShown: false }} />
+      </Stack>
+    </View>
   );
 }
 

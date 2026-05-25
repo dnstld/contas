@@ -13,7 +13,7 @@
   "tabs": {
     "balance": "Status",
     "transactions": "Transactions",
-    "settings": "Settings"
+    "settings": "Your account"
   },
   "errorFallback": {
     "title": "Something went wrong",
@@ -23,11 +23,11 @@
   "balance": {
     "empty": {
       "title": "Nothing here yet",
-      "body": "Enable Demo Mode in Settings to see sample data."
+      "body": "Enable Demo mode in Your account to see Status with sample data"
     },
     "demoBadge": {
       "title": "Demo mode on",
-      "body": "Displayed values are sample data. Disable in Settings."
+      "body": "Displayed values are sample data. Disable in Your account."
     }
   },
   "transactions": {
@@ -141,7 +141,7 @@
     "delete": "Delete",
     "updateError": "Couldn't update this. Give it another try.",
     "deleteError": "Couldn't remove this. Give it another try.",
-    "demoReadOnly": "Demo mode is read-only. Turn it off in Account to make changes.",
+    "demoReadOnly": "Demo mode is read-only. Turn it off in Your account to make changes.",
     "deleteConfirmTitle": "Delete this transaction?",
     "deleteConfirmMessage": "It'll be removed from your records. This can't be undone.",
     "deleteConfirmAction": "Delete",
