@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { AnimatedBrand } from '@/components/auth/animated-brand';
 import { Button, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -26,9 +27,7 @@ export default function AuthenticationScreen() {
   return (
     <View style={[styles.root, { backgroundColor: background }]}>
       <View style={styles.copy}>
-        <Text variant="display" weight="bold">
-          {t('auth.welcome.title')}
-        </Text>
+        <AnimatedBrand />
         <Text variant="body" tone="textMuted">
           {t('auth.welcome.body')}
         </Text>
@@ -39,6 +38,7 @@ export default function AuthenticationScreen() {
         disabled={submitting}
         variant="primary"
         size="large"
+        systemImage="arrow.right.circle.fill"
       />
     </View>
   );

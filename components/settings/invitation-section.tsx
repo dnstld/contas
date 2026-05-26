@@ -12,7 +12,7 @@ export function InvitationSection() {
   const [code, setCode] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState(false);
 
-  const accentColor = useThemeColor({}, 'positive');
+  const accentColor = useThemeColor({}, 'tint');
   const dangerColor = useThemeColor({}, 'negative');
   const onPrimary = useThemeColor({}, 'onPrimary');
 

@@ -35,7 +35,7 @@ export function PressableButton({
   onPress,
   variant = 'primary',
   size = 'medium',
-  tone = 'positive',
+  tone = 'tint',
   iconName,
   loading = false,
   disabled = false,

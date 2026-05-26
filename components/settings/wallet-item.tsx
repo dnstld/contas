@@ -16,7 +16,7 @@ export interface WalletItemProps {
 export function WalletItem({ wallet, isActive, onSwitch }: WalletItemProps) {
   const { t } = useTranslation();
   const borderColor = useThemeColor({}, 'border');
-  const positiveColor = useThemeColor({}, 'positive');
+  const tintColor = useThemeColor({}, 'tint');
 
   return (
     <View style={[styles.container, { borderColor }]}>
@@ -39,12 +39,12 @@ export function WalletItem({ wallet, isActive, onSwitch }: WalletItemProps) {
             style={[
               styles.activeBadge,
               {
-                backgroundColor: withAlpha(positiveColor, 0.13),
-                borderColor: withAlpha(positiveColor, 0.27),
+                backgroundColor: withAlpha(tintColor, 0.13),
+                borderColor: withAlpha(tintColor, 0.27),
               },
             ]}
           >
-            <Text variant="caption" weight="semibold" style={{ color: positiveColor }}>
+            <Text variant="caption" weight="semibold" style={{ color: tintColor }}>
               {t('wallets.activeLabel')}
             </Text>
           </View>

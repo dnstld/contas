@@ -22,7 +22,7 @@ export interface BadgeProps {
 
 export function Badge({ label, tone = 'neutral', variant = 'soft' }: BadgeProps) {
   const baseColor = useThemeColor({}, TONE_TO_BG[tone]);
-  const textOnSolid = useThemeColor({}, 'background');
+  const textOnSolid = useThemeColor({}, 'onPrimary');
   const textOnNeutral = useThemeColor({}, 'text');
 
   const isSoft = variant === 'soft';

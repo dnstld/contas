@@ -42,8 +42,9 @@
   },
   "auth": {
     "welcome": {
-      "title": "Bem-vindo ao Finance42",
-      "body": "Entre para ver suas finanças em qualquer dispositivo."
+      "brandPrefix": "Finanças",
+      "brandTagline": "a dois",
+      "body": "Juntos, o dinheiro flui melhor."
     },
     "signInWithGoogle": "Entrar com o Google",
     "signOut": "Sair"

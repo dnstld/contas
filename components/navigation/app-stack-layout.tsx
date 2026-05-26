@@ -50,7 +50,7 @@ function HeaderLogo() {
 
 function HeaderCreateButton({ onPress }: { onPress: () => void }) {
   const scheme = useColorScheme() ?? 'light';
-  const tintColor = Colors[scheme].positive;
+  const tintColor = Colors[scheme].tint;
   const onPrimary = useThemeColor({}, 'onPrimary');
   const { t } = useTranslation();
   const label = t('common.add');

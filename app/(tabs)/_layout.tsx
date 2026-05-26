@@ -1,16 +1,21 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useTranslation } from 'react-i18next';
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const palette = Colors[colorScheme ?? 'light'];
   const { t } = useTranslation();
+  const tabColor = useThemeColor({}, 'text');
 
   return (
-    <NativeTabs tintColor={palette.tint}>
+    <NativeTabs
+      tintColor={tabColor}
+      iconColor={{ default: tabColor, selected: tabColor }}
+      labelStyle={{
+        default: { color: tabColor },
+        selected: { color: tabColor },
+      }}
+    >
       <NativeTabs.Trigger name="(status)">
         <NativeTabs.Trigger.Label>{t('tabs.balance')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="chart.bar.fill" drawable="ic_menu_sort_by_size" />

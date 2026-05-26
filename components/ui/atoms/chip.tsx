@@ -27,7 +27,7 @@ export interface ChipProps {
 
 const VARIANT_TONE: Record<ChipVariant, keyof typeof Colors.light> = {
   primary: 'tint',
-  secondary: 'positive',
+  secondary: 'secondary',
   tertiary: 'icon',
   default: 'textMuted',
 };
@@ -41,7 +41,7 @@ export function Chip({
   disabled,
 }: ChipProps) {
   const tone = useThemeColor({}, VARIANT_TONE[variant]);
-  const labelColor = useThemeColor({}, selected ? 'background' : 'text');
+  const labelColor = useThemeColor({}, selected ? 'onPrimary' : 'text');
 
   if (Platform.OS === 'ios') {
     return (

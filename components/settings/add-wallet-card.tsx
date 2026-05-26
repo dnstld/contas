@@ -17,7 +17,7 @@ export function AddWalletCard() {
 
   const borderColor = useThemeColor({}, 'border');
   const mutedColor = useThemeColor({}, 'textMuted');
-  const accentColor = useThemeColor({}, 'positive');
+  const accentColor = useThemeColor({}, 'tint');
   const onPrimary = useThemeColor({}, 'onPrimary');
 
   return (

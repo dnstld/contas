@@ -49,7 +49,7 @@ export function Button({
   const tintColor = useThemeColor({}, variant === 'destructive' ? 'negative' : 'tint');
   const labelColor = useThemeColor(
     {},
-    variant === 'primary' || variant === 'destructive' ? 'background' : 'text',
+    variant === 'primary' || variant === 'destructive' ? 'onPrimary' : 'text',
   );
 
   if (Platform.OS === 'ios') {
