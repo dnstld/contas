@@ -42,8 +42,7 @@
   },
   "auth": {
     "welcome": {
-      "brandPrefix": "Finance",
-      "brandTagline": "for two",
+      "title": "Finance 42",
       "body": "Money flows better together."
     },
     "signInWithGoogle": "Sign in with Google",

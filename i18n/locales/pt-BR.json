@@ -42,8 +42,7 @@
   },
   "auth": {
     "welcome": {
-      "brandPrefix": "Finanças",
-      "brandTagline": "a dois",
+      "title": "Finanças 42",
       "body": "Juntos, o dinheiro flui melhor."
     },
     "signInWithGoogle": "Entrar com o Google",
