@@ -3,10 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { TransactionForm } from '@/components/transactions/transaction-form';
-import {
-  isDemoModeReadOnlyError,
-  useCreateTransaction,
-} from '@/hooks/use-finance-mutations';
+import { isDemoModeReadOnlyError, useCreateTransaction } from '@/hooks/use-finance-mutations';
 import { getErrorMessage } from '@/utils/error';
 
 export default function CreateScreen() {

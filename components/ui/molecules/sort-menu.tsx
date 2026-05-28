@@ -30,7 +30,7 @@ export function SortMenu<T extends string>({ label, options, value, onChange }: 
 
   if (Platform.OS === 'ios') {
     return (
-      <SwiftUI.Host matchContents>
+      <SwiftUI.Host matchContents={{ horizontal: true }} style={styles.iosHost}>
         <SwiftUI.Menu
           label={displayLabel}
           systemImage="line.3.horizontal.decrease.circle"
@@ -89,6 +89,10 @@ export function SortMenu<T extends string>({ label, options, value, onChange }: 
 }
 
 const styles = StyleSheet.create({
+  iosHost: {
+    height: 32,
+    alignSelf: 'flex-start',
+  },
   androidContainer: {
     alignSelf: 'flex-start',
   },

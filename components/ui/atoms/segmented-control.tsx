@@ -2,7 +2,9 @@ import { Platform, StyleSheet } from 'react-native';
 
 import * as Compose from '@expo/ui/jetpack-compose';
 import * as SwiftUI from '@expo/ui/swift-ui';
-import { pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+import { frame, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+
+const SEGMENTED_HEIGHT = 32;
 
 export interface SegmentedOption<T extends string> {
   value: T;
@@ -22,11 +24,11 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   if (Platform.OS === 'ios') {
     return (
-      <SwiftUI.Host matchContents={{ vertical: true }} style={styles.full}>
+      <SwiftUI.Host style={styles.full}>
         <SwiftUI.Picker
           selection={value}
           onSelectionChange={(next: T) => onChange(next)}
-          modifiers={[pickerStyle('segmented')]}
+          modifiers={[pickerStyle('segmented'), frame({ height: SEGMENTED_HEIGHT })]}
         >
           {options.map((opt) => (
             <SwiftUI.Text key={opt.value} modifiers={[tag(opt.value)]}>
@@ -40,7 +42,7 @@ export function SegmentedControl<T extends string>({
 
   if (Platform.OS === 'android') {
     return (
-      <Compose.Host matchContents={{ vertical: true }} style={styles.full}>
+      <Compose.Host style={styles.full}>
         <Compose.SingleChoiceSegmentedButtonRow>
           {options.map((opt) => (
             <Compose.SegmentedButton
@@ -60,5 +62,5 @@ export function SegmentedControl<T extends string>({
 }
 
 const styles = StyleSheet.create({
-  full: { alignSelf: 'stretch' },
+  full: { alignSelf: 'stretch', height: SEGMENTED_HEIGHT },
 });

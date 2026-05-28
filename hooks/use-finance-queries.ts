@@ -87,7 +87,13 @@ export function useTransaction(transactionId: string | null): UseQueryResult<Tra
     queryKey:
       walletId && transactionId
         ? [...financeKeys.transaction(walletId, transactionId), demoMode ? 'demo' : 'live']
-        : ['finance', 'unbound', 'transaction', transactionId ?? 'null', demoMode ? 'demo' : 'live'],
+        : [
+            'finance',
+            'unbound',
+            'transaction',
+            transactionId ?? 'null',
+            demoMode ? 'demo' : 'live',
+          ],
     enabled: !!walletId && !!transactionId,
     queryFn: async () => {
       const wid = walletId!;

@@ -1,8 +1,7 @@
-import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   CategoryCard,
@@ -46,7 +45,7 @@ export default function HomeScreen() {
     period: dashboard.mode,
   });
 
-  const listRef = useRef<React.ComponentRef<typeof FlashList<(typeof grid.sorted)[number]>>>(null);
+  const listRef = useRef<FlatList<(typeof grid.sorted)[number]>>(null);
   const skipFirstScrollReset = useRef(true);
   const filterKey = `${filterApi.state.years.join(',')}|${filterApi.state.months.join(',')}|${filterApi.state.all}`;
   const selectedKey = grid.selected.join(',');
@@ -145,7 +144,7 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
-      <FlashList
+      <FlatList
         ref={listRef}
         data={grid.sorted}
         keyExtractor={(item) => item.id}
@@ -199,6 +198,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   cell: {
+    flex: 1,
     padding: 6,
   },
   skeletonStack: {
