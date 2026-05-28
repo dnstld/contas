@@ -42,7 +42,7 @@
   },
   "auth": {
     "welcome": {
-      "title": "Finance 42",
+      "title": "Finance for two",
       "body": "Money flows better together."
     },
     "signInWithGoogle": "Sign in with Google",
