@@ -6,7 +6,7 @@ import type { CategoryFilterItem } from '@/components/ui/organisms/category-filt
 import type { SortOption } from '@/components/ui/molecules/sort-menu';
 import { useFormatters } from '@/hooks/use-formatters';
 
-export type CategorySortMode = 'highestExpense' | 'mostUsed' | 'overBudget';
+export type CategorySortMode = 'highestExpense' | 'mostUsed';
 
 export interface UseCategoryGridOptions {
   categories: readonly CategoryCardData[];
@@ -39,7 +39,6 @@ export function useCategoryGrid({
     () => [
       { value: 'highestExpense', label: t('category.sort.highestExpense') },
       { value: 'mostUsed', label: t('category.sort.mostUsed') },
-      { value: 'overBudget', label: t('category.sort.overBudget') },
     ],
     [t],
   );
@@ -86,8 +85,6 @@ export function useCategoryGrid({
           if (countDiff !== 0) return countDiff;
           return b.total - a.total;
         });
-      case 'overBudget':
-        return arr.sort((a, b) => budgetRatio(b) - budgetRatio(a));
       case 'highestExpense':
         return arr.sort((a, b) => b.total - a.total);
       default: {
@@ -106,9 +103,4 @@ export function useCategoryGrid({
     sorted,
     summary,
   };
-}
-
-function budgetRatio(c: CategoryCardData) {
-  if (!c.budget || c.budget === 0) return Number.NEGATIVE_INFINITY;
-  return c.total / c.budget;
 }

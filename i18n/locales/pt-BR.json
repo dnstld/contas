@@ -286,8 +286,7 @@
     "sort": {
       "label": "Ordenar categorias por",
       "highestExpense": "Maior despesa",
-      "mostUsed": "Mais usadas",
-      "overBudget": "Acima da meta"
+      "mostUsed": "Mais usadas"
     }
   }
 }

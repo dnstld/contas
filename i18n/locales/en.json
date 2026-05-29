@@ -286,8 +286,7 @@
     "sort": {
       "label": "Sort categories by",
       "highestExpense": "Highest expense",
-      "mostUsed": "Most used",
-      "overBudget": "Above goal"
+      "mostUsed": "Most used"
     }
   }
 }
