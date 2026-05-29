@@ -46,7 +46,13 @@
       "body": "Juntos, o dinheiro flui melhor."
     },
     "signInWithGoogle": "Entrar com o Google",
-    "signOut": "Sair"
+    "signOut": "Sair",
+    "errors": {
+      "title": "Falha ao entrar",
+      "generic": "Não foi possível entrar. Tente novamente.",
+      "playServices": "O Google Play Services não está disponível neste dispositivo.",
+      "signInRequired": "Entre novamente para continuar."
+    }
   },
   "profile": {
     "actions": {

@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
 import { Button, Text } from '@/components/ui';
-import { useAuth } from '@/hooks/use-auth';
+import { statusCodes, useAuth } from '@/hooks/use-auth';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { getErrorCode } from '@/utils/error';
+
+const ERROR_KEYS: Record<string, string> = {
+  [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: 'auth.errors.playServices',
+  [statusCodes.SIGN_IN_REQUIRED]: 'auth.errors.signInRequired',
+};
 
 export default function AuthenticationScreen() {
   const { t } = useTranslation();
@@ -16,8 +22,9 @@ export default function AuthenticationScreen() {
     setSubmitting(true);
     try {
       await signInWithGoogle();
-    } catch {
-      // Reported in useAuth; nothing to show in the UI yet.
+    } catch (err) {
+      const key = ERROR_KEYS[getErrorCode(err) ?? ''] ?? 'auth.errors.generic';
+      Alert.alert(t('auth.errors.title'), t(key));
     } finally {
       setSubmitting(false);
     }

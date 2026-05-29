@@ -70,9 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } catch (err) {
           const code = getErrorCode(err);
-          if (code !== statusCodes.SIGN_IN_CANCELLED && code !== statusCodes.IN_PROGRESS) {
-            captureError(err, { tags: { context: 'auth' } });
+          if (code === statusCodes.SIGN_IN_CANCELLED || code === statusCodes.IN_PROGRESS) {
+            return;
           }
+          captureError(err, { tags: { context: 'auth' } });
           throw err;
         }
       },

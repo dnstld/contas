@@ -46,7 +46,13 @@
       "body": "Money flows better together."
     },
     "signInWithGoogle": "Sign in with Google",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "errors": {
+      "title": "Sign-in failed",
+      "generic": "Could not sign in. Please try again.",
+      "playServices": "Google Play Services is unavailable on this device.",
+      "signInRequired": "Please sign in again to continue."
+    }
   },
   "profile": {
     "actions": {
