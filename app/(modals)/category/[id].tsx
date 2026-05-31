@@ -6,7 +6,11 @@ import { FlatList, Platform, StyleSheet, View } from 'react-native';
 import { CategoryDetailSkeleton, Divider, EmptyState, Text, TransactionRow } from '@/components/ui';
 import { editTransactionHref } from '@/constants/routes';
 import type { Finance, Transaction } from '@/data/finance-types';
-import { buildTransactionsList } from '@/data/transactions-list';
+import {
+  buildTransactionsList,
+  makeSectionLabeler,
+  type TransactionsSection,
+} from '@/data/transactions-list';
 import { useFinance } from '@/hooks/use-finance';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
@@ -22,7 +26,7 @@ const EMPTY_FINANCE: Finance = {
 };
 
 type Row =
-  | { type: 'header'; id: string; title: string }
+  | { type: 'header'; id: string; section: TransactionsSection }
   | { type: 'item'; id: string; transaction: Transaction; showDivider: boolean };
 
 function parseFilter(
@@ -74,19 +78,22 @@ export default function CategoryDetailModal() {
   );
 
   const { sections } = useMemo(
-    () =>
-      buildTransactionsList(filteredFinance, filter, now, locale, {
-        today: t('transactions.today'),
-        yesterday: t('transactions.yesterday'),
-      }),
-    [filteredFinance, filter, now, locale, t],
+    () => buildTransactionsList(filteredFinance, filter, now),
+    [filteredFinance, filter, now],
   );
+
+  // Labeler is rebuilt on every render so HOJE/ONTEM stay correct against real
+  // current time — `sections` themselves remain cached.
+  const labelFor = makeSectionLabeler(new Date(), locale, {
+    today: t('transactions.today'),
+    yesterday: t('transactions.yesterday'),
+  });
 
   const rows = useMemo<Row[]>(() => {
     const flat: Row[] = [];
     for (let s = 0; s < sections.length; s++) {
       const section = sections[s]!;
-      flat.push({ type: 'header', id: `header-${s}-${section.title}`, title: section.title });
+      flat.push({ type: 'header', id: `header-${section.dayKey}`, section });
       for (let i = 0; i < section.data.length; i++) {
         const tx = section.data[i]!;
         flat.push({ type: 'item', id: tx.id, transaction: tx, showDivider: i > 0 });
@@ -114,7 +121,7 @@ export default function CategoryDetailModal() {
         return (
           <View style={[styles.sectionHeader, { backgroundColor: background }]}>
             <Text variant="caption" tone="textMuted" weight="semibold">
-              {row.title.toUpperCase()}
+              {labelFor(row.section).toUpperCase()}
             </Text>
           </View>
         );
@@ -130,7 +137,7 @@ export default function CategoryDetailModal() {
         </>
       );
     },
-    [background, currency, handlePressTransaction],
+    [background, currency, handlePressTransaction, labelFor],
   );
 
   return (

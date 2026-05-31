@@ -14,8 +14,12 @@ import {
   TransactionRow,
 } from '@/components/ui';
 import { editTransactionHref } from '@/constants/routes';
-import type { Finance } from '@/data/finance-types';
-import { buildTransactionsList } from '@/data/transactions-list';
+import type { Finance, Transaction } from '@/data/finance-types';
+import {
+  buildTransactionsList,
+  makeSectionLabeler,
+  type TransactionsSection,
+} from '@/data/transactions-list';
 import { useFinance } from '@/hooks/use-finance';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useFormatters } from '@/hooks/use-formatters';
@@ -43,13 +47,17 @@ export default function TransactionsScreen() {
   const { data, isLoading, isError, refetch } = useFinance();
 
   const { sections, totals, count } = useMemo(
-    () =>
-      buildTransactionsList(data ?? EMPTY_FINANCE, filterApi.state, now, locale, {
-        today: t('transactions.today'),
-        yesterday: t('transactions.yesterday'),
-      }),
-    [data, filterApi.state, now, locale, t],
+    () => buildTransactionsList(data ?? EMPTY_FINANCE, filterApi.state, now),
+    [data, filterApi.state, now],
   );
+
+  // Labeler is rebuilt on every render so HOJE/ONTEM stay correct as time
+  // passes (e.g. when the user creates a transaction after midnight without
+  // restarting the app). The grouped `sections` above are still cached.
+  const labelFor = makeSectionLabeler(new Date(), locale, {
+    today: t('transactions.today'),
+    yesterday: t('transactions.yesterday'),
+  });
 
   const hasTransactions = sections.length > 0;
   const showSkeleton = isLoading && !data;
@@ -64,7 +72,7 @@ export default function TransactionsScreen() {
     [router],
   );
 
-  const listRef = useRef<SectionList>(null);
+  const listRef = useRef<SectionList<Transaction, TransactionsSection>>(null);
   const skipFirstScrollReset = useRef(true);
   const filterKey = `${filterApi.state.years.join(',')}|${filterApi.state.months.join(',')}|${filterApi.state.all}`;
 
@@ -129,7 +137,7 @@ export default function TransactionsScreen() {
           renderSectionHeader={({ section }) => (
             <View style={[styles.sectionHeader, { backgroundColor: background }]}>
               <Text variant="caption" tone="textMuted" weight="semibold">
-                {section.title.toUpperCase()}
+                {labelFor(section).toUpperCase()}
               </Text>
             </View>
           )}

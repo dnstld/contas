@@ -2,7 +2,10 @@ import { transactionDate, type Finance, type Transaction } from '@/data/finance-
 import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter';
 
 export interface TransactionsSection {
-  title: string;
+  /** Stable per-day identifier (e.g. "2026-4-30"). Same data → same key. */
+  dayKey: string;
+  /** Representative date for this day, used by the labeler for formatting. */
+  date: Date;
   data: Transaction[];
 }
 
@@ -31,7 +34,64 @@ function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-function buildSectionLabeler(now: Date, locale: string, labels: DateLabels) {
+/**
+ * Groups transactions into per-day sections. The `now` argument is only used
+ * to fill missing year/month in the filter — it does NOT affect section
+ * labels. Labels are rendered separately via {@link makeSectionLabeler} so
+ * they stay correct against real current time without re-running this.
+ */
+export function buildTransactionsList(
+  finance: Finance,
+  filter: TimeFilterState,
+  now: Date,
+): TransactionsListResult {
+  const year = filter.years[0] ?? now.getFullYear();
+  const monthKey = filter.all ? undefined : (filter.months[0] ?? MONTHS[now.getMonth()]);
+  const monthIndex = monthKey ? MONTHS.indexOf(monthKey) : undefined;
+
+  const filtered: { tx: Transaction; date: Date }[] = [];
+  let income = 0;
+  let expenses = 0;
+
+  for (const tx of finance.transactions) {
+    if (tx.status !== 'completed') continue;
+    const date = new Date(transactionDate(tx));
+    if (date.getFullYear() !== year) continue;
+    if (monthIndex !== undefined && date.getMonth() !== monthIndex) continue;
+
+    filtered.push({ tx, date });
+    if (tx.type === 'income') income += tx.amount;
+    else expenses += tx.amount;
+  }
+
+  filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  const sections: TransactionsSection[] = [];
+  let current: TransactionsSection | null = null;
+
+  for (const { tx, date } of filtered) {
+    const key = dayKey(date);
+    if (!current || current.dayKey !== key) {
+      current = { dayKey: key, date, data: [tx] };
+      sections.push(current);
+    } else {
+      current.data.push(tx);
+    }
+  }
+
+  return {
+    sections,
+    totals: { income, expenses, net: income - expenses },
+    count: filtered.length,
+  };
+}
+
+/**
+ * Returns a function that maps a section to its display label. Call this at
+ * render time with `new Date()` so HOJE/ONTEM track real current time —
+ * sections themselves stay cached and stable.
+ */
+export function makeSectionLabeler(now: Date, locale: string, labels: DateLabels) {
   const today = startOfDay(now);
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
@@ -50,59 +110,11 @@ function buildSectionLabeler(now: Date, locale: string, labels: DateLabels) {
     year: 'numeric',
   });
 
-  return (d: Date): string => {
-    const key = dayKey(d);
-    if (key === todayKey) return labels.today;
-    if (key === yesterdayKey) return labels.yesterday;
-    return d.getFullYear() === currentYear ? sameYearFmt.format(d) : otherYearFmt.format(d);
-  };
-}
-
-export function buildTransactionsList(
-  mock: Finance,
-  filter: TimeFilterState,
-  now: Date,
-  locale: string,
-  labels: DateLabels,
-): TransactionsListResult {
-  const year = filter.years[0] ?? now.getFullYear();
-  const monthKey = filter.all ? undefined : (filter.months[0] ?? MONTHS[now.getMonth()]);
-  const monthIndex = monthKey ? MONTHS.indexOf(monthKey) : undefined;
-
-  const filtered: { tx: Transaction; date: Date }[] = [];
-  let income = 0;
-  let expenses = 0;
-
-  for (const tx of mock.transactions) {
-    if (tx.status !== 'completed') continue;
-    const date = new Date(transactionDate(tx));
-    if (date.getFullYear() !== year) continue;
-    if (monthIndex !== undefined && date.getMonth() !== monthIndex) continue;
-
-    filtered.push({ tx, date });
-    if (tx.type === 'income') income += tx.amount;
-    else expenses += tx.amount;
-  }
-
-  filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
-
-  const labelFor = buildSectionLabeler(now, locale, labels);
-  const sections: TransactionsSection[] = [];
-  let currentKey: string | null = null;
-
-  for (const { tx, date } of filtered) {
-    const key = dayKey(date);
-    if (key !== currentKey) {
-      sections.push({ title: labelFor(date), data: [tx] });
-      currentKey = key;
-    } else {
-      sections[sections.length - 1]!.data.push(tx);
-    }
-  }
-
-  return {
-    sections,
-    totals: { income, expenses, net: income - expenses },
-    count: filtered.length,
+  return (section: Pick<TransactionsSection, 'dayKey' | 'date'>): string => {
+    if (section.dayKey === todayKey) return labels.today;
+    if (section.dayKey === yesterdayKey) return labels.yesterday;
+    return section.date.getFullYear() === currentYear
+      ? sameYearFmt.format(section.date)
+      : otherYearFmt.format(section.date);
   };
 }
