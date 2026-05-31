@@ -8,7 +8,18 @@
     "done": "Done",
     "loading": "Loading…",
     "saving": "Saving…",
-    "create": "Create"
+    "create": "Create",
+    "errors": {
+      "actionFailed": "Something didn't go through"
+    }
+  },
+  "feedback": {
+    "transactionCreated": "Transaction added",
+    "transactionUpdated": "Transaction updated",
+    "transactionDeleted": "Transaction deleted",
+    "categoryCreated": "Category created",
+    "categoryUpdated": "Category updated",
+    "categoryDeleted": "Category deleted"
   },
   "tabs": {
     "balance": "Overview",

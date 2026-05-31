@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { TransactionForm } from '@/components/transactions/transaction-form';
 import { isDemoModeReadOnlyError, useCreateTransaction } from '@/hooks/use-finance-mutations';
 import { getErrorMessage } from '@/utils/error';
+import { toast } from '@/utils/toast';
 
 export default function CreateScreen() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function CreateScreen() {
         setErrorMessage(null);
         try {
           await createMutation.mutateAsync(values);
+          toast.success(t('feedback.transactionCreated'));
           router.back();
         } catch (e) {
           if (isDemoModeReadOnlyError(e)) {

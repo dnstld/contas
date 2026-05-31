@@ -18,6 +18,7 @@ import {
 import { useTransaction } from '@/hooks/use-finance-queries';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getErrorMessage } from '@/utils/error';
+import { toast } from '@/utils/toast';
 
 function EditSkeleton() {
   const background = useThemeColor({}, 'modalBackground');
@@ -92,6 +93,7 @@ export default function EditScreen() {
         setErrorMessage(null);
         try {
           await updateMutation.mutateAsync({ id: transaction.id, values });
+          toast.success(t('feedback.transactionUpdated'));
           router.back();
         } catch (e) {
           if (isDemoModeReadOnlyError(e)) {
@@ -111,6 +113,7 @@ export default function EditScreen() {
               setErrorMessage(null);
               try {
                 await deleteMutation.mutateAsync(transaction.id);
+                toast.success(t('feedback.transactionDeleted'));
                 router.back();
               } catch (e) {
                 if (isDemoModeReadOnlyError(e)) {

@@ -1,9 +1,17 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 
+import {
+  isCategoryHasTransactionsError,
+  isDemoModeReadOnlyError,
+} from '@/hooks/use-finance-mutations';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
+import i18n from '@/i18n';
+import { getErrorMessage } from '@/utils/error';
+import { captureError } from '@/utils/monitoring';
+import { toast } from '@/utils/toast';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,6 +23,18 @@ export const queryClient = new QueryClient({
       retry: 1,
     },
   },
+  mutationCache: new MutationCache({
+    onError: (err, _vars, _ctx, mutation) => {
+      if (mutation.meta?.silent) return;
+      if (isDemoModeReadOnlyError(err)) {
+        toast.info(i18n.t('edit.demoReadOnly'));
+        return;
+      }
+      if (isCategoryHasTransactionsError(err)) return;
+      toast.error(i18n.t('common.errors.actionFailed'), getErrorMessage(err, ''));
+      captureError(err, { tags: { source: 'mutation' } });
+    },
+  }),
 });
 
 /**

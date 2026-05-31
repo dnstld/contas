@@ -8,7 +8,18 @@
     "done": "Pronto",
     "loading": "Carregando…",
     "saving": "Salvando…",
-    "create": "Criar"
+    "create": "Criar",
+    "errors": {
+      "actionFailed": "Algo não deu certo"
+    }
+  },
+  "feedback": {
+    "transactionCreated": "Transação adicionada",
+    "transactionUpdated": "Transação atualizada",
+    "transactionDeleted": "Transação removida",
+    "categoryCreated": "Categoria criada",
+    "categoryUpdated": "Categoria atualizada",
+    "categoryDeleted": "Categoria removida"
   },
   "tabs": {
     "balance": "Balanço",

@@ -31,6 +31,7 @@ import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
 import { categoryFormBridge } from '@/utils/modal-bridge';
+import { toast } from '@/utils/toast';
 
 export default function CategoryFormScreen() {
   const router = useRouter();
@@ -128,7 +129,12 @@ export default function CategoryFormScreen() {
           name: trimmed,
           ...(budgetCents > 0 && { monthlyBudgetCents: budgetCents }),
         },
-        { onSuccess: () => router.back() },
+        {
+          onSuccess: () => {
+            toast.success(t('feedback.categoryUpdated'));
+            router.back();
+          },
+        },
       );
     } else {
       createCategory(
@@ -139,6 +145,7 @@ export default function CategoryFormScreen() {
         },
         {
           onSuccess: (data) => {
+            toast.success(t('feedback.categoryCreated'));
             categoryFormBridge.emit(bridgeId, 'created', data.id);
             router.back();
           },
@@ -152,6 +159,7 @@ export default function CategoryFormScreen() {
     setDeleteWarning(null);
     deleteCategory(editCategory.id, {
       onSuccess: (id) => {
+        toast.success(t('feedback.categoryDeleted'));
         categoryFormBridge.emit(bridgeId, 'deleted', id);
         router.back();
       },
