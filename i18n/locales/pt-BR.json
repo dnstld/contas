@@ -35,6 +35,8 @@
     "net": "Saldo",
     "today": "Hoje",
     "yesterday": "Ontem",
+    "countInPeriod_one": "{{count}} transação em {{period}}",
+    "countInPeriod_other": "{{count}} transações em {{period}}",
     "empty": {
       "title": "Nada aqui",
       "body": "Nenhum registro neste período."

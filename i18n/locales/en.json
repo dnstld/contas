@@ -35,6 +35,8 @@
     "net": "Balance",
     "today": "Today",
     "yesterday": "Yesterday",
+    "countInPeriod_one": "{{count}} transaction in {{period}}",
+    "countInPeriod_other": "{{count}} transactions in {{period}}",
     "empty": {
       "title": "Nothing here",
       "body": "Nothing logged in this period."

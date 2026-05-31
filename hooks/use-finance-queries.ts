@@ -67,6 +67,28 @@ async function fetchCategories(walletId: string): Promise<Category[]> {
   return (data ?? []).map(adaptCategory);
 }
 
+const TRANSACTIONS_PAGE_SIZE = 1000;
+
+async function fetchTransactionRows(walletId: string): Promise<TransactionRow[]> {
+  const all: TransactionRow[] = [];
+  for (let from = 0; ; from += TRANSACTIONS_PAGE_SIZE) {
+    const to = from + TRANSACTIONS_PAGE_SIZE - 1;
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(
+        'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, updated_at',
+      )
+      .eq('wallet_id', walletId)
+      .order('occurred_at', { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    const page = data ?? [];
+    all.push(...page);
+    if (page.length < TRANSACTIONS_PAGE_SIZE) break;
+  }
+  return all;
+}
+
 export function useCategories(): UseQueryResult<Category[]> {
   const { walletId } = useWallet();
   const { enabled: demoMode } = useDemoMode();
@@ -153,15 +175,8 @@ export function useTransactions(): UseQueryResult<Transaction[]> {
         }));
       const categoryById = new Map(categories.map((c) => [c.id, c]));
 
-      const txns = await supabase
-        .from('transactions')
-        .select(
-          'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, updated_at',
-        )
-        .eq('wallet_id', wid)
-        .order('occurred_at', { ascending: false });
-      if (txns.error) throw txns.error;
-      return (txns.data ?? []).map((row) => adaptTransaction(row, categoryById));
+      const rows = await fetchTransactionRows(wid);
+      return rows.map((row) => adaptTransaction(row, categoryById));
     },
   });
 }

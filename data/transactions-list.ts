@@ -15,6 +15,7 @@ export interface TransactionsTotals {
 export interface TransactionsListResult {
   sections: TransactionsSection[];
   totals: TransactionsTotals;
+  count: number;
 }
 
 export interface DateLabels {
@@ -102,5 +103,6 @@ export function buildTransactionsList(
   return {
     sections,
     totals: { income, expenses, net: income - expenses },
+    count: filtered.length,
   };
 }

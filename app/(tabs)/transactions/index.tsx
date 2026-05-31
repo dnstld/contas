@@ -21,6 +21,7 @@ import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { MONTHS } from '@/hooks/use-time-filter';
 import { useWallet } from '@/hooks/use-wallet';
 
 const EMPTY_FINANCE: Finance = {
@@ -35,13 +36,13 @@ export default function TransactionsScreen() {
   const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { currency } = useWallet();
-  const { locale } = useFormatters();
+  const { locale, monthName } = useFormatters();
 
   const now = useMemo(() => new Date(), []);
   const filterApi = useFinanceTimeFilter(now);
   const { data, isLoading, isError, refetch } = useFinance();
 
-  const { sections, totals } = useMemo(
+  const { sections, totals, count } = useMemo(
     () =>
       buildTransactionsList(data ?? EMPTY_FINANCE, filterApi.state, now, locale, {
         today: t('transactions.today'),
@@ -75,12 +76,22 @@ export default function TransactionsScreen() {
     listRef.current?.getScrollResponder()?.scrollTo({ y: 0, animated: true });
   }, [filterKey]);
 
+  const periodLabel = useMemo(() => {
+    const year = filterApi.state.years[0] ?? now.getFullYear();
+    if (filterApi.state.all) return String(year);
+    const monthKey = filterApi.state.months[0] ?? MONTHS[now.getMonth()]!;
+    return monthName(MONTHS.indexOf(monthKey), 'long');
+  }, [filterApi.state, now, monthName]);
+
   const totalCard = (
     <Surface variant="plain" bordered padding={16} style={styles.totalCard}>
       <Text variant="caption" tone="textMuted" weight="semibold">
         {t('transactions.net').toUpperCase()}
       </Text>
       <PriceText value={totals.net} currency={currency} locale={locale} tone="neutral" size="xl" />
+      <Text variant="caption" tone="textMuted">
+        {t('transactions.countInPeriod', { count, period: periodLabel })}
+      </Text>
     </Surface>
   );
 
