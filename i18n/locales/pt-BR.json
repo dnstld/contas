@@ -188,7 +188,7 @@
     "title": "Avançado",
     "leave": {
       "title": "Sair da Carteira",
-      "description": "Remove você. Seu parceiro(a) mantém todos os dados.",
+      "description": "Remove você. A outra pessoa mantém todos os dados.",
       "soloCaption": "Disponível apenas quando você compartilha esta carteira.",
       "button": "Sair"
     },
@@ -230,8 +230,8 @@
     "switchButton": "Mudar",
     "membersOne": "1 membro",
     "membersMany": "{{count}} membros",
-    "pendingDeleteOwner": "Aguardando seu parceiro(a) confirmar a exclusão.",
-    "pendingDeleteOther": "Seu parceiro(a) quer excluir esta carteira.",
+    "pendingDeleteOwner": "Aguardando a outra pessoa confirmar a exclusão.",
+    "pendingDeleteOther": "A outra pessoa quer excluir esta carteira.",
     "confirmDeleteButton": "Confirmar",
     "cancelDeleteButton": "Cancelar",
     "deleteConfirmTitle": "Excluir Carteira",

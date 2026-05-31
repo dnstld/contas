@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -15,7 +15,7 @@ import {
   Surface,
   Text,
 } from '@/components/ui';
-import { categoryDetailHref } from '@/constants/routes';
+import { categoryDetailHref, categoryFormHref } from '@/constants/routes';
 import { useCategoryGrid } from '@/hooks/use-category-grid';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
@@ -32,6 +32,7 @@ export default function HomeScreen() {
   const { currency } = useWallet();
 
   const router = useRouter();
+  const bridgeId = useId();
   const filterApi = useFinanceTimeFilter(now);
   const [revenueVisible] = useRevenueVisible();
   const dashboard = useFinanceDashboard(filterApi.state, now);
@@ -64,6 +65,17 @@ export default function HomeScreen() {
     },
     [router, filterApi.state],
   );
+
+  const handleCategoryLongPress = useCallback(
+    (id: string) => {
+      router.push(categoryFormHref({ bridgeId, editId: id }));
+    },
+    [router, bridgeId],
+  );
+
+  const handleCreateCategory = useCallback(() => {
+    router.push(categoryFormHref({ bridgeId }));
+  }, [router, bridgeId]);
 
   const header = (
     <View style={styles.headerStack}>
@@ -106,6 +118,7 @@ export default function HomeScreen() {
         filterItems={dashboard.filterItems}
         selectedIds={grid.selected}
         onSelectedChange={grid.setSelected}
+        onCreateCategory={handleCreateCategory}
         summary={grid.summary}
       />
     </View>
@@ -167,6 +180,7 @@ export default function HomeScreen() {
               currency={currency}
               revenueVisible={revenueVisible}
               onPress={handleCategoryPress}
+              onLongPress={handleCategoryLongPress}
             />
           </View>
         )}

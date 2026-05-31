@@ -13,6 +13,7 @@ export interface CategoryGridControlsProps {
   filterItems?: readonly CategoryFilterItem[];
   selectedIds: readonly string[];
   onSelectedChange: (next: readonly string[]) => void;
+  onCreateCategory?: () => void;
   summary: string | null;
 }
 
@@ -28,11 +29,20 @@ export function CategoryGridControls({
   filterItems,
   selectedIds,
   onSelectedChange,
+  onCreateCategory,
   summary,
 }: CategoryGridControlsProps) {
   const { t } = useTranslation();
   return (
     <View style={styles.container}>
+      {(filterItems && filterItems.length > 0) || onCreateCategory ? (
+        <CategoryFilter
+          categories={filterItems ?? []}
+          selectedIds={selectedIds}
+          onChange={onSelectedChange}
+          onCreate={onCreateCategory}
+        />
+      ) : null}
       <View style={styles.controls}>
         <SortMenu
           label={t('category.sort.label')}
@@ -41,13 +51,6 @@ export function CategoryGridControls({
           onChange={onSortChange}
         />
       </View>
-      {filterItems && filterItems.length > 0 ? (
-        <CategoryFilter
-          categories={filterItems}
-          selectedIds={selectedIds}
-          onChange={onSelectedChange}
-        />
-      ) : null}
       {summary ? (
         <Text variant="caption" tone="textMuted" weight="medium">
           {summary}

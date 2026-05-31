@@ -40,15 +40,15 @@ export function walletsHref(): Href {
 }
 
 export function categoryFormHref(args: {
-  type: TransactionType;
+  type?: TransactionType;
   bridgeId: string;
   editId?: string;
 }): Href {
   return {
     pathname: '/category-form',
     params: {
-      type: args.type,
       bridgeId: args.bridgeId,
+      ...(args.type ? { type: args.type } : {}),
       ...(args.editId ? { editId: args.editId } : {}),
     },
   };

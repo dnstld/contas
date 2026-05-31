@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
+import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
 import { Text } from '@/components/ui/atoms/text';
 import type { TransactionType } from '@/data/finance-types';
 import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
@@ -35,18 +36,30 @@ export default function CategoryFormScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{
-    type: TransactionType;
+    type?: TransactionType;
     bridgeId: string;
     editId?: string;
   }>();
 
-  const type = params.type;
   const bridgeId = params.bridgeId;
   const editId = params.editId ?? null;
   const isEdit = !!editId;
 
   const { data: allCategories = [] } = useCategories();
   const editCategory = isEdit ? (allCategories.find((c) => c.id === editId) ?? null) : null;
+
+  const paramType = params.type ?? null;
+  const [pickedType, setPickedType] = useState<TransactionType>(paramType ?? 'expense');
+  const type: TransactionType = editCategory?.type ?? paramType ?? pickedType;
+  const showTypePicker = !isEdit && paramType === null;
+
+  const typeOptions = useMemo(
+    () => [
+      { value: 'expense' as const, label: t('create.types.expense') },
+      { value: 'income' as const, label: t('create.types.income') },
+    ],
+    [t],
+  );
 
   const isLastOfType = allCategories.filter((c) => c.type === type).length <= 1;
 
@@ -168,6 +181,16 @@ export default function CategoryFormScreen() {
           <Text variant="subtitle" weight="semibold" style={[styles.title, { color: textColor }]}>
             {isEdit ? t('category.edit.title') : t('category.create.title')}
           </Text>
+
+          {showTypePicker ? (
+            <View style={styles.field}>
+              <SegmentedControl
+                options={typeOptions}
+                value={pickedType}
+                onChange={setPickedType}
+              />
+            </View>
+          ) : null}
 
           <View style={styles.field}>
             <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>

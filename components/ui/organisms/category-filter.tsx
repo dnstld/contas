@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Chip } from '@/components/ui/atoms/chip';
 import { ChipGroup, type ChipGroupItem } from '@/components/ui/molecules/chip-group';
 
 export type CategoryFilterItem = ChipGroupItem<string>;
@@ -11,9 +12,15 @@ export interface CategoryFilterProps {
   categories: readonly CategoryFilterItem[];
   selectedIds: readonly string[];
   onChange: (next: string[]) => void;
+  onCreate?: () => void;
 }
 
-export function CategoryFilter({ categories, selectedIds, onChange }: CategoryFilterProps) {
+export function CategoryFilter({
+  categories,
+  selectedIds,
+  onChange,
+  onCreate,
+}: CategoryFilterProps) {
   const { t } = useTranslation();
 
   const items = useMemo<readonly CategoryFilterItem[]>(
@@ -30,6 +37,11 @@ export function CategoryFilter({ categories, selectedIds, onChange }: CategoryFi
       multiSelect
       selectedVariant="primary"
       unselectedVariant="default"
+      trailing={
+        onCreate ? (
+          <Chip label={t('category.create.chipLabel')} variant="default" onPress={onCreate} />
+        ) : null
+      }
       onToggle={(id) => {
         if (id === ALL_ID) {
           onChange([]);

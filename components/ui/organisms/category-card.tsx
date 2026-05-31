@@ -34,6 +34,7 @@ export interface CategoryCardProps {
   currency?: string;
   revenueVisible?: boolean;
   onPress?: (id: string) => void;
+  onLongPress?: (id: string) => void;
 }
 
 export function CategoryCard({
@@ -41,6 +42,7 @@ export function CategoryCard({
   currency = 'USD',
   revenueVisible = false,
   onPress,
+  onLongPress,
 }: CategoryCardProps) {
   const iconBg = useThemeColor({}, 'surfaceMuted');
   const iconColor = useThemeColor({}, 'icon');
@@ -107,11 +109,13 @@ export function CategoryCard({
     </Surface>
   );
 
-  if (!onPress) return Body;
+  if (!onPress && !onLongPress) return Body;
 
   return (
     <Pressable
-      onPress={() => onPress(data.id)}
+      onPress={onPress ? () => onPress(data.id) : undefined}
+      onLongPress={onLongPress ? () => onLongPress(data.id) : undefined}
+      delayLongPress={400}
       android_ripple={{ color: iconBg }}
       style={({ pressed }) => [pressed ? styles.pressed : null]}
     >

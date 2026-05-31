@@ -11,7 +11,7 @@
     "create": "Create"
   },
   "tabs": {
-    "balance": "Status",
+    "balance": "Overview",
     "transactions": "Transactions",
     "settings": "Your account"
   },
@@ -23,7 +23,7 @@
   "balance": {
     "empty": {
       "title": "Nothing here yet",
-      "body": "Enable Demo mode in Your account to see Status with sample data"
+      "body": "Enable Demo mode in Your account to see Overview with sample data"
     },
     "demoBadge": {
       "title": "Demo mode on",
@@ -62,7 +62,7 @@
       "signOut": "Sign out"
     },
     "editName": {
-      "title": "Edit name",
+      "title": "Edit Name",
       "nameLabel": "Name",
       "namePlaceholder": "Your name",
       "save": "Save",
@@ -71,7 +71,7 @@
     }
   },
   "settings": {
-    "title": "Settings",
+    "title": "Account",
     "sections": {
       "display": "Display",
       "regional": "Language & Currency",
@@ -79,7 +79,7 @@
       "wallets": "Wallets"
     },
     "walletsRow": {
-      "title": "My Wallets"
+      "title": "My wallets"
     },
     "signOutRow": {
       "title": "Sign out",
@@ -119,14 +119,14 @@
       "year": "YEAR",
       "all": "ALL"
     },
-    "primaryPrefix": "Bills",
+    "primaryPrefix": "",
     "vsPrevious": "vs {{label}}: {{value}}"
   },
   "timeFilter": {
     "fullYear": "Full year"
   },
   "create": {
-    "title": "New transaction",
+    "title": "New Transaction",
     "close": "Close",
     "types": {
       "expense": "Expense",
@@ -144,7 +144,7 @@
     "error": "Something didn't save. Give it another try."
   },
   "edit": {
-    "title": "Edit transaction",
+    "title": "Edit Transaction",
     "save": "Save changes",
     "delete": "Delete",
     "updateError": "Couldn't update this. Give it another try.",
@@ -166,7 +166,7 @@
       "codeLabel": "Your invite code",
       "shareCode": "Send invite",
       "codeExpiry": "Expires in 7 days · single use",
-      "redeemTitle": "Join with invite",
+      "redeemTitle": "Join with Invite",
       "codeInputPlaceholder": "Paste or type your code",
       "redeemButton": "Join",
       "redeeming": "Joining…",
@@ -187,13 +187,13 @@
   "dangerZone": {
     "title": "Advanced",
     "leave": {
-      "title": "Leave Wallet",
-      "description": "Remove yourself. Your partner keeps all data.",
+      "title": "Leave wallet",
+      "description": "Remove yourself. The other person keeps all data.",
       "soloCaption": "Only available when you share this wallet.",
       "button": "Leave"
     },
     "delete": {
-      "title": "Delete Wallet",
+      "title": "Delete wallet",
       "soloDescription": "Permanently deletes all wallet data.",
       "partnerDescription": "Needs {{partner}}'s approval before deleting.",
       "lastWalletDescription": "At least 1 wallet is required. Create another before you can delete this one.",
@@ -203,7 +203,7 @@
       "partnerTitle": "Request Deletion?",
       "partnerMessage": "{{partner}} will receive a deletion request and must approve it before anything is deleted.",
       "confirmAction": "Delete",
-      "requestAction": "Send Request",
+      "requestAction": "Send request",
       "waitingBadge": "Pending",
       "waitingCaption": "Waiting for {{partner}} to approve. You can cancel at any time.",
       "cancelRequest": "Cancel request",
@@ -230,8 +230,8 @@
     "switchButton": "Switch",
     "membersOne": "1 member",
     "membersMany": "{{count}} members",
-    "pendingDeleteOwner": "Waiting for your partner to confirm deletion.",
-    "pendingDeleteOther": "Your partner wants to delete this wallet.",
+    "pendingDeleteOwner": "Waiting for the other person to confirm deletion.",
+    "pendingDeleteOther": "The other person wants to delete this wallet.",
     "confirmDeleteButton": "Confirm",
     "cancelDeleteButton": "Cancel",
     "deleteConfirmTitle": "Delete Wallet",
@@ -239,7 +239,7 @@
     "deleteConfirmAction": "Delete",
     "deleteRequestTitle": "Request Deletion",
     "deleteRequestMessage": "Your partner will need to confirm before the wallet is deleted.",
-    "deleteRequestAction": "Send Request"
+    "deleteRequestAction": "Send request"
   },
   "category": {
     "create": {
@@ -258,7 +258,7 @@
       "title": "Edit Category",
       "saveButton": "Save",
       "saving": "Saving…",
-      "delete": "Delete Category",
+      "delete": "Delete category",
       "deleting": "Deleting…",
       "hasTransactions_one": "This category has {{count}} transaction. Remove or reassign it first.",
       "hasTransactions_other": "This category has {{count}} transactions. Remove or reassign them first."

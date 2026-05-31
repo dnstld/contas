@@ -120,7 +120,7 @@ export function Overview({
     <Surface variant="plain" bordered padding={16} style={styles.card}>
       <View style={styles.headerRow}>
         <Text variant="caption" tone="textMuted" weight="semibold">
-          {`${t('overview.primaryPrefix')} ${primaryLabel}`.toUpperCase()}
+          {`${t('overview.primaryPrefix')} ${primaryLabel}`.trim().toUpperCase()}
         </Text>
         <Text variant="caption" tone="textMuted">
           {t(`overview.modes.${mode}`)}
