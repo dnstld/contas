@@ -48,6 +48,7 @@
     "yesterday": "Ontem",
     "countInPeriod_one": "{{count}} transação em {{period}}",
     "countInPeriod_other": "{{count}} transações em {{period}}",
+    "createdByYou": "Você",
     "empty": {
       "title": "Nada aqui",
       "body": "Nenhum registro neste período."
@@ -152,7 +153,14 @@
     "descriptionCaption": "Aparece nas transações",
     "descriptionCounter": "{{count}}/100",
     "save": "Salvar",
-    "error": "Algo não salvou. Tente de novo."
+    "error": "Algo não salvou. Tente de novo.",
+    "duplicateWarning": {
+      "title": "Possível duplicata",
+      "bodyOne": "Você já tem uma transação com a mesma data, valor e categoria.",
+      "bodyMany": "Você já tem {{count}} transações com a mesma data, valor e categoria.",
+      "saveAnyway": "Salvar mesmo assim",
+      "cancel": "Cancelar"
+    }
   },
   "edit": {
     "title": "Editar transação",

@@ -16,6 +16,7 @@ import { useFormatters } from '@/hooks/use-formatters';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter';
+import { useTransactionCreators } from '@/hooks/use-transaction-creators';
 import { useWallet } from '@/hooks/use-wallet';
 
 const EMPTY_FINANCE: Finance = {
@@ -109,6 +110,8 @@ export default function CategoryDetailModal() {
     [router],
   );
 
+  const resolveCreator = useTransactionCreators();
+
   const hasTransactions = sections.length > 0;
   const showSkeleton = isLoading && !data;
   const showError = isError && !data;
@@ -132,12 +135,13 @@ export default function CategoryDetailModal() {
           <TransactionRow
             transaction={row.transaction}
             currency={currency}
+            creator={resolveCreator(row.transaction.createdByUserId)}
             onPress={() => handlePressTransaction(row.transaction)}
           />
         </>
       );
     },
-    [background, currency, handlePressTransaction, labelFor],
+    [background, currency, handlePressTransaction, labelFor, resolveCreator],
   );
 
   return (

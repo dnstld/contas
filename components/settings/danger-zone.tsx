@@ -2,6 +2,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-nat
 import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components/ui/atoms/text';
+import { ListCardRow } from '@/components/ui/molecules/list-card-row';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { withAlpha } from '@/utils/color';
 import { useWallet } from '@/hooks/use-wallet';
@@ -119,32 +120,34 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
         {/* Leave wallet — only shown when there is a partner AND the user has another wallet to fall back to */}
         {hasParter && wallets.length > 1 && (
           <>
-            <View style={styles.row}>
-              <View style={styles.rowText}>
-                <Text variant="body" weight="medium">
-                  {t('dangerZone.leave.title')}
-                </Text>
-                <Text variant="caption" tone="textMuted">
-                  {t('dangerZone.leave.description')}
-                </Text>
-              </View>
-              <Pressable
-                onPress={handleLeave}
-                disabled={leaveWallet.isPending}
-                style={({ pressed }) => [
-                  styles.actionBtn,
-                  { borderColor: dangerColor, opacity: pressed || leaveWallet.isPending ? 0.5 : 1 },
-                ]}
-              >
-                {leaveWallet.isPending ? (
-                  <ActivityIndicator size="small" color={dangerColor} />
-                ) : (
-                  <Text variant="caption" weight="semibold" style={{ color: dangerColor }}>
-                    {t('dangerZone.leave.button')}
-                  </Text>
-                )}
-              </Pressable>
-            </View>
+            <ListCardRow
+              size="sm"
+              density="comfortable"
+              style={styles.rowPadding}
+              title={t('dangerZone.leave.title')}
+              subtitle={t('dangerZone.leave.description')}
+              trailing={
+                <Pressable
+                  onPress={handleLeave}
+                  disabled={leaveWallet.isPending}
+                  style={({ pressed }) => [
+                    styles.actionBtn,
+                    {
+                      borderColor: dangerColor,
+                      opacity: pressed || leaveWallet.isPending ? 0.5 : 1,
+                    },
+                  ]}
+                >
+                  {leaveWallet.isPending ? (
+                    <ActivityIndicator size="small" color={dangerColor} />
+                  ) : (
+                    <Text variant="caption" weight="semibold" style={{ color: dangerColor }}>
+                      {t('dangerZone.leave.button')}
+                    </Text>
+                  )}
+                </Pressable>
+              }
+            />
 
             <View style={[styles.divider, { backgroundColor: withAlpha(dangerColor, 0.13) }]} />
           </>
@@ -152,39 +155,40 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
 
         {/* Delete wallet — state-driven */}
         {!pending && (
-          <View style={styles.row}>
-            <View style={styles.rowText}>
-              <Text variant="body" weight="medium">
-                {t('dangerZone.delete.title')}
-              </Text>
-              <Text variant="caption" tone="textMuted">
-                {isLastWallet
-                  ? t('dangerZone.delete.lastWalletDescription')
-                  : memberCount <= 1
-                    ? t('dangerZone.delete.soloDescription')
-                    : t('dangerZone.delete.partnerDescription', { partner: displayPartner })}
-              </Text>
-            </View>
-            <Pressable
-              onPress={handleDeletePress}
-              disabled={requestOrDelete.isPending || isLastWallet}
-              style={({ pressed }) => [
-                styles.actionBtn,
-                {
-                  borderColor: dangerColor,
-                  opacity: isLastWallet ? 0.4 : pressed || requestOrDelete.isPending ? 0.5 : 1,
-                },
-              ]}
-            >
-              {requestOrDelete.isPending ? (
-                <ActivityIndicator size="small" color={dangerColor} />
-              ) : (
-                <Text variant="caption" weight="semibold" style={{ color: dangerColor }}>
-                  {t('dangerZone.delete.button')}
-                </Text>
-              )}
-            </Pressable>
-          </View>
+          <ListCardRow
+            size="sm"
+            density="comfortable"
+            style={styles.rowPadding}
+            title={t('dangerZone.delete.title')}
+            subtitle={
+              isLastWallet
+                ? t('dangerZone.delete.lastWalletDescription')
+                : memberCount <= 1
+                  ? t('dangerZone.delete.soloDescription')
+                  : t('dangerZone.delete.partnerDescription', { partner: displayPartner })
+            }
+            trailing={
+              <Pressable
+                onPress={handleDeletePress}
+                disabled={requestOrDelete.isPending || isLastWallet}
+                style={({ pressed }) => [
+                  styles.actionBtn,
+                  {
+                    borderColor: dangerColor,
+                    opacity: isLastWallet ? 0.4 : pressed || requestOrDelete.isPending ? 0.5 : 1,
+                  },
+                ]}
+              >
+                {requestOrDelete.isPending ? (
+                  <ActivityIndicator size="small" color={dangerColor} />
+                ) : (
+                  <Text variant="caption" weight="semibold" style={{ color: dangerColor }}>
+                    {t('dangerZone.delete.button')}
+                  </Text>
+                )}
+              </Pressable>
+            }
+          />
         )}
 
         {/* State: current user requested deletion — waiting for partner */}
@@ -307,16 +311,8 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     marginHorizontal: 16,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  rowPadding: {
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  rowText: {
-    flex: 1,
-    gap: 2,
   },
   actionBtn: {
     paddingHorizontal: 12,

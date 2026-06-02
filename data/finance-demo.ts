@@ -16,6 +16,13 @@ const CURRENT_MONTH = CURRENT_DATE.getMonth();
 const CURRENT_DAY = CURRENT_DATE.getDate();
 const PREVIOUS_YEAR = CURRENT_YEAR - 1;
 
+const DEMO_USER_SELF = 'demo-user-self';
+const DEMO_USER_PARTNER = 'demo-user-partner';
+
+function pickDemoCreator(seed: number): string {
+  return seededRandom(seed + 7) < 0.5 ? DEMO_USER_SELF : DEMO_USER_PARTNER;
+}
+
 const YEARS = [PREVIOUS_YEAR, CURRENT_YEAR];
 
 function isFutureMonth(year: number, month: number): boolean {
@@ -269,6 +276,8 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
               status: 'completed',
               recurrence: 'none',
               date: salaryDate.toISOString(),
+              createdAt: salaryDate.toISOString(),
+              createdByUserId: pickDemoCreator(seed),
             });
           }
 
@@ -294,6 +303,8 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
                 status: 'completed',
                 recurrence: 'none',
                 date: freelanceDate.toISOString(),
+                createdAt: freelanceDate.toISOString(),
+                createdByUserId: pickDemoCreator(seed + 20),
               });
             }
           }
@@ -330,6 +341,8 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
             status: 'completed',
             recurrence: 'none',
             date: transactionDate.toISOString(),
+            createdAt: transactionDate.toISOString(),
+            createdByUserId: pickDemoCreator(seed + i),
           });
         }
 
@@ -351,6 +364,8 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
             recurrence: 'monthly',
             startDate: scheduledDate.toISOString(),
             nextOccurrence: new Date(year, month + 1, 5).toISOString(),
+            createdAt: scheduledDate.toISOString(),
+            createdByUserId: pickDemoCreator(seed + 999),
           });
         }
       });

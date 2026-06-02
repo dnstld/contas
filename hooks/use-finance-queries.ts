@@ -40,6 +40,8 @@ function adaptTransaction(row: TransactionRow, categoryById: Map<string, Categor
     amount: row.amount_cents / 100,
     description: row.description,
     status: row.status === 'scheduled' ? ('scheduled' as const) : ('completed' as const),
+    createdAt: row.created_at,
+    createdByUserId: row.created_by ?? null,
   };
   if (recurrence !== 'none') {
     return {

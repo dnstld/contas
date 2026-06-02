@@ -48,6 +48,7 @@
     "yesterday": "Yesterday",
     "countInPeriod_one": "{{count}} transaction in {{period}}",
     "countInPeriod_other": "{{count}} transactions in {{period}}",
+    "createdByYou": "You",
     "empty": {
       "title": "Nothing here",
       "body": "Nothing logged in this period."
@@ -152,7 +153,14 @@
     "descriptionCaption": "Appears in transactions",
     "descriptionCounter": "{{count}}/100",
     "save": "Save",
-    "error": "Something didn't save. Give it another try."
+    "error": "Something didn't save. Give it another try.",
+    "duplicateWarning": {
+      "title": "Possible duplicate",
+      "bodyOne": "You already have a transaction with the same date, amount, and category.",
+      "bodyMany": "You already have {{count}} transactions with the same date, amount, and category.",
+      "saveAnyway": "Save anyway",
+      "cancel": "Cancel"
+    }
   },
   "edit": {
     "title": "Edit Transaction",

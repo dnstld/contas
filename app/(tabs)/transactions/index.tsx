@@ -1,31 +1,29 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, SectionList, StyleSheet, View } from 'react-native';
+import { Platform, SectionList as RNSectionList, StyleSheet, View } from 'react-native';
 
 import {
-  Divider,
   EmptyState,
   FinanceTimeFilter,
   PriceText,
+  SectionList,
   Surface,
   Text,
   TransactionListSkeleton,
   TransactionRow,
 } from '@/components/ui';
+import type { SectionListSection } from '@/components/ui/organisms/section-list';
 import { editTransactionHref } from '@/constants/routes';
 import type { Finance, Transaction } from '@/data/finance-types';
-import {
-  buildTransactionsList,
-  makeSectionLabeler,
-  type TransactionsSection,
-} from '@/data/transactions-list';
+import { buildTransactionsList, makeSectionLabeler } from '@/data/transactions-list';
 import { useFinance } from '@/hooks/use-finance';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { MONTHS } from '@/hooks/use-time-filter';
+import { useTransactionCreators } from '@/hooks/use-transaction-creators';
 import { useWallet } from '@/hooks/use-wallet';
 
 const EMPTY_FINANCE: Finance = {
@@ -51,6 +49,8 @@ export default function TransactionsScreen() {
     [data, filterApi.state, now],
   );
 
+  const resolveCreator = useTransactionCreators();
+
   // Labeler is rebuilt on every render so HOJE/ONTEM stay correct as time
   // passes (e.g. when the user creates a transaction after midnight without
   // restarting the app). The grouped `sections` above are still cached.
@@ -58,6 +58,12 @@ export default function TransactionsScreen() {
     today: t('transactions.today'),
     yesterday: t('transactions.yesterday'),
   });
+
+  const listSections: SectionListSection<Transaction>[] = sections.map((s) => ({
+    id: s.dayKey,
+    title: labelFor(s),
+    data: s.data,
+  }));
 
   const hasTransactions = sections.length > 0;
   const showSkeleton = isLoading && !data;
@@ -72,7 +78,7 @@ export default function TransactionsScreen() {
     [router],
   );
 
-  const listRef = useRef<SectionList<Transaction, TransactionsSection>>(null);
+  const listRef = useRef<RNSectionList<Transaction, SectionListSection<Transaction>>>(null);
   const skipFirstScrollReset = useRef(true);
   const filterKey = `${filterApi.state.years.join(',')}|${filterApi.state.months.join(',')}|${filterApi.state.all}`;
 
@@ -124,9 +130,10 @@ export default function TransactionsScreen() {
           />
         </View>
       ) : hasTransactions ? (
-        <SectionList
+        <SectionList<Transaction>
           ref={listRef}
-          sections={sections}
+          variant="flat"
+          sections={listSections}
           keyExtractor={(item) => item.id}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={styles.listContent}
@@ -134,21 +141,14 @@ export default function TransactionsScreen() {
           initialNumToRender={20}
           windowSize={10}
           removeClippedSubviews={Platform.OS === 'android'}
-          renderSectionHeader={({ section }) => (
-            <View style={[styles.sectionHeader, { backgroundColor: background }]}>
-              <Text variant="caption" tone="textMuted" weight="semibold">
-                {labelFor(section).toUpperCase()}
-              </Text>
-            </View>
-          )}
           renderItem={({ item }) => (
             <TransactionRow
               transaction={item}
               currency={currency}
+              creator={resolveCreator(item.createdByUserId)}
               onPress={() => handlePressTransaction(item.id)}
             />
           )}
-          ItemSeparatorComponent={Divider}
         />
       ) : showEmpty ? (
         <>
@@ -178,6 +178,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   listHeader: {
+    paddingHorizontal: 16,
     paddingTop: 32,
     paddingBottom: 32,
   },
@@ -186,11 +187,7 @@ const styles = StyleSheet.create({
     paddingTop: 32,
   },
   listContent: {
-    paddingHorizontal: 16,
     paddingBottom: 64,
-  },
-  sectionHeader: {
-    paddingVertical: 8,
   },
   emptyWrap: {
     flex: 1,

@@ -2,8 +2,16 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { TransactionForm } from '@/components/transactions/transaction-form';
+import { DuplicateWarningModal } from '@/components/transactions/duplicate-warning-modal';
+import { findDuplicateTransactions } from '@/components/transactions/find-duplicate-transactions';
+import {
+  TransactionForm,
+  type TransactionFormValues,
+} from '@/components/transactions/transaction-form';
+import type { Transaction } from '@/data/finance-types';
 import { isDemoModeReadOnlyError, useCreateTransaction } from '@/hooks/use-finance-mutations';
+import { useTransactions } from '@/hooks/use-finance-queries';
+import { useWalletMembers } from '@/hooks/use-wallet-members';
 import { getErrorMessage } from '@/utils/error';
 import { toast } from '@/utils/toast';
 
@@ -11,26 +19,68 @@ export default function CreateScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const createMutation = useCreateTransaction();
+  const { data: transactions = [] } = useTransactions();
+  const { members } = useWalletMembers();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pendingValues, setPendingValues] = useState<TransactionFormValues | null>(null);
+  const [duplicates, setDuplicates] = useState<Transaction[]>([]);
+
+  const persist = async (values: TransactionFormValues) => {
+    setErrorMessage(null);
+    try {
+      await createMutation.mutateAsync(values);
+      toast.success(t('feedback.transactionCreated'));
+      router.back();
+    } catch (e) {
+      if (isDemoModeReadOnlyError(e)) {
+        setErrorMessage(t('edit.demoReadOnly'));
+      } else {
+        setErrorMessage(getErrorMessage(e, t('create.error')));
+      }
+    }
+  };
+
+  const handleSubmit = async (values: TransactionFormValues) => {
+    const matches = findDuplicateTransactions(
+      { date: values.date, amountCents: values.amountCents, categoryId: values.categoryId },
+      transactions,
+    );
+    if (matches.length > 0) {
+      setPendingValues(values);
+      setDuplicates(matches);
+      return;
+    }
+    await persist(values);
+  };
+
+  const handleConfirmDuplicate = async () => {
+    if (!pendingValues) return;
+    const values = pendingValues;
+    await persist(values);
+    setPendingValues(null);
+    setDuplicates([]);
+  };
+
+  const handleCancelDuplicate = () => {
+    setPendingValues(null);
+    setDuplicates([]);
+  };
 
   return (
-    <TransactionForm
-      isSubmitting={createMutation.isPending}
-      errorMessage={errorMessage}
-      onSubmit={async (values) => {
-        setErrorMessage(null);
-        try {
-          await createMutation.mutateAsync(values);
-          toast.success(t('feedback.transactionCreated'));
-          router.back();
-        } catch (e) {
-          if (isDemoModeReadOnlyError(e)) {
-            setErrorMessage(t('edit.demoReadOnly'));
-          } else {
-            setErrorMessage(getErrorMessage(e, t('create.error')));
-          }
-        }
-      }}
-    />
+    <>
+      <TransactionForm
+        isSubmitting={createMutation.isPending}
+        errorMessage={errorMessage}
+        onSubmit={handleSubmit}
+      />
+      <DuplicateWarningModal
+        visible={pendingValues !== null}
+        transactions={duplicates}
+        members={members}
+        onConfirm={handleConfirmDuplicate}
+        onCancel={handleCancelDuplicate}
+        isSaving={createMutation.isPending}
+      />
+    </>
   );
 }

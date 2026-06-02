@@ -22,6 +22,8 @@ type TransactionBase = {
   amount: number;
   description: string;
   status: TransactionStatus;
+  createdAt: string;
+  createdByUserId: string | null;
 };
 
 export type OneOffTransaction = TransactionBase & {

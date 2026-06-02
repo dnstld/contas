@@ -1,19 +1,12 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Image } from 'expo-image';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import {
-  Divider,
-  SettingsRow,
-  SettingsSection,
-  SortMenu,
-  Surface,
-  Text,
-  Toggle,
-} from '@/components/ui';
-import { SectionHeader } from '@/components/ui/molecules/section-header';
+import { SectionList, SortMenu, Text, Toggle } from '@/components/ui';
+import { Avatar } from '@/components/ui/atoms/avatar';
+import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
+import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { ActionMenu, type ActionMenuItem } from '@/components/ui/molecules/action-menu';
 import { AddWalletCard } from '@/components/settings/add-wallet-card';
 import { DangerZone } from '@/components/settings/danger-zone';
@@ -32,13 +25,19 @@ import { MAX_WALLETS_PER_USER } from '@/constants/limits';
 import { ROUTES } from '@/constants/routes';
 import { type SupportedLanguage } from '@/i18n';
 
-function userInitials(name: string | null): string {
-  if (!name) return '?';
-  const words = name.trim().split(/\s+/);
-  const first = words[0]?.[0] ?? '';
-  const last = words.length > 1 ? (words[words.length - 1]?.[0] ?? '') : '';
-  return (first + last).toUpperCase();
-}
+type Row = ListCardRowProps & { id: string };
+
+const ROW_DEFAULTS: Pick<ListCardRowProps, 'size' | 'density'> = {
+  size: 'sm',
+  density: 'comfortable',
+};
+
+const renderRow = ({ item }: { item: Row }) => {
+  const { id: _id, ...props } = item;
+  return <SectionListRow {...ROW_DEFAULTS} {...props} />;
+};
+
+const keyExtractor = (item: Row) => item.id;
 
 export default function SettingsScreen() {
   const background = useThemeColor({}, 'background');
@@ -88,166 +87,182 @@ export default function SettingsScreen() {
     [t],
   );
 
-  return (
-    <>
-      <ScrollView style={{ backgroundColor: background }} contentContainerStyle={styles.content}>
-        <View style={styles.accountSection}>
-          <SectionHeader
-            title={t('settings.sections.account')}
-            trailing={
-              <Text variant="caption" tone="textMuted" weight="medium">
-                {members.length}/{MAX_WALLETS_PER_USER}
-              </Text>
-            }
-          />
-          <Surface padding={0} radius={16} bordered>
-            <View style={styles.profileRow}>
-              {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-              ) : (
-                <Surface
-                  variant="elevated"
-                  padding={0}
-                  radius={22}
-                  style={[styles.avatar, styles.avatarFallback]}
-                >
-                  <Text variant="subtitle" weight="semibold">
-                    {userInitials(displayName)}
-                  </Text>
-                </Surface>
-              )}
-              <View style={styles.profileText}>
-                <Text variant="subtitle" weight="semibold" numberOfLines={1}>
-                  {displayName ?? email}
-                </Text>
-                {displayName && email ? (
-                  <Text variant="caption" tone="textMuted" numberOfLines={1}>
-                    {email}
-                  </Text>
-                ) : null}
-              </View>
-              <ActionMenu
-                items={[
-                  {
-                    label: t('profile.actions.editName'),
-                    action: () => router.push(ROUTES.editDisplayName),
-                    systemImage: 'pencil',
-                  } satisfies ActionMenuItem,
-                  {
-                    label: t('profile.actions.signOut'),
-                    action: signOut,
-                    destructive: true,
-                    systemImage: 'rectangle.portrait.and.arrow.right',
-                  } satisfies ActionMenuItem,
-                ]}
-              />
-            </View>
-
-            {partner ? (
-              <>
-                <Divider inset={16} />
-                <View style={styles.profileRow}>
-                  {partner.avatarUrl ? (
-                    <Image source={{ uri: partner.avatarUrl }} style={styles.avatar} />
-                  ) : (
-                    <Surface
-                      variant="elevated"
-                      padding={0}
-                      radius={22}
-                      style={[styles.avatar, styles.avatarFallback]}
-                    >
-                      <Text variant="subtitle" weight="semibold">
-                        {userInitials(partner.displayName)}
-                      </Text>
-                    </Surface>
-                  )}
-                  <View style={styles.profileText}>
-                    <Text variant="subtitle" weight="semibold" numberOfLines={1}>
-                      {partner.displayName ?? t('wallet.partner.unnamed')}
-                    </Text>
-                  </View>
-                </View>
-              </>
-            ) : null}
-          </Surface>
-        </View>
-
-        <View style={styles.accountSection}>
-          <SectionHeader
-            title={t('settings.sections.wallets')}
-            trailing={
-              <Text variant="caption" tone="textMuted" weight="medium">
-                {wallets.length}/{MAX_WALLETS_PER_USER}
-              </Text>
-            }
-          />
-          <Surface padding={0} bordered>
-            <SettingsRow
-              title={t('settings.walletsRow.title')}
-              description={wallets.length > 0 ? wallets.map((w) => w.name).join(', ') : undefined}
-              trailing={
-                <ActionMenu
-                  items={wallets.map<ActionMenuItem>((w) => ({
-                    label: w.name,
-                    action: () => {
-                      if (w.id !== walletId) {
-                        switchWallet(w.id);
-                        router.navigate(ROUTES.home);
-                      }
-                    },
-                    systemImage: w.id === walletId ? 'checkmark' : undefined,
-                  }))}
-                />
-              }
-            />
-          </Surface>
-          <AddWalletCard />
-          {!partner ? <InvitationSection /> : null}
-        </View>
-
-        <SettingsSection title={t('settings.sections.display')}>
-          <SettingsRow
-            title={t('settings.revenueVisible.title')}
-            description={t('settings.revenueVisible.description')}
-            trailing={<Toggle value={revenueVisible} onValueChange={setRevenueVisible} />}
-          />
-          <SettingsRow
-            title={t('settings.demoMode.title')}
-            description={t('settings.demoMode.description')}
-            trailing={<Toggle value={demoMode} onValueChange={setDemoMode} />}
-          />
-        </SettingsSection>
-
-        <SettingsSection title={t('settings.sections.regional')}>
-          <SettingsRow
-            title={t('settings.languageRow.title')}
-            trailing={
-              <SortMenu<SupportedLanguage>
-                options={languageOptions}
-                value={language}
-                onChange={setLanguage}
-              />
-            }
-          />
-          <SettingsRow
-            title={t('settings.currencyRow.title')}
-            trailing={
-              <SortMenu<SupportedCurrency>
-                options={currencyOptions}
-                value={currency}
-                onChange={setCurrency}
-              />
-            }
-          />
-        </SettingsSection>
-
-        <DangerZone
-          currentUserId={currentUserId ?? ''}
-          partnerName={partner?.displayName ?? null}
-          hasParter={!!partner}
+  const accountRows: Row[] = [
+    {
+      id: 'me',
+      size: 'md',
+      density: 'comfortable',
+      leading: <Avatar url={avatarUrl} name={displayName} size={44} />,
+      title: displayName ?? email,
+      subtitle: displayName && email ? email : null,
+      trailing: (
+        <ActionMenu
+          items={[
+            {
+              label: t('profile.actions.editName'),
+              action: () => router.push(ROUTES.editDisplayName),
+              systemImage: 'pencil',
+            } satisfies ActionMenuItem,
+            {
+              label: t('profile.actions.signOut'),
+              action: signOut,
+              destructive: true,
+              systemImage: 'rectangle.portrait.and.arrow.right',
+            } satisfies ActionMenuItem,
+          ]}
         />
-      </ScrollView>
-    </>
+      ),
+    },
+    ...(partner
+      ? [
+          {
+            id: 'partner',
+            size: 'md',
+            density: 'comfortable',
+            leading: <Avatar url={partner.avatarUrl} name={partner.displayName} size={44} />,
+            title: partner.displayName ?? t('wallet.partner.unnamed'),
+          } satisfies Row,
+        ]
+      : []),
+  ];
+
+  const walletRows: Row[] = [
+    {
+      id: 'wallets',
+      title: t('settings.walletsRow.title'),
+      subtitle: wallets.length > 0 ? wallets.map((w) => w.name).join(', ') : undefined,
+      trailing: (
+        <ActionMenu
+          items={wallets.map<ActionMenuItem>((w) => ({
+            label: w.name,
+            action: () => {
+              if (w.id !== walletId) {
+                switchWallet(w.id);
+                router.navigate(ROUTES.home);
+              }
+            },
+            systemImage: w.id === walletId ? 'checkmark' : undefined,
+          }))}
+        />
+      ),
+    },
+  ];
+
+  const displayRows: Row[] = [
+    {
+      id: 'revenueVisible',
+      title: t('settings.revenueVisible.title'),
+      subtitle: t('settings.revenueVisible.description'),
+      trailing: <Toggle value={revenueVisible} onValueChange={setRevenueVisible} />,
+    },
+    {
+      id: 'demoMode',
+      title: t('settings.demoMode.title'),
+      subtitle: t('settings.demoMode.description'),
+      trailing: <Toggle value={demoMode} onValueChange={setDemoMode} />,
+    },
+  ];
+
+  const regionalRows: Row[] = [
+    {
+      id: 'language',
+      title: t('settings.languageRow.title'),
+      trailing: (
+        <SortMenu<SupportedLanguage>
+          options={languageOptions}
+          value={language}
+          onChange={setLanguage}
+        />
+      ),
+    },
+    {
+      id: 'currency',
+      title: t('settings.currencyRow.title'),
+      trailing: (
+        <SortMenu<SupportedCurrency>
+          options={currencyOptions}
+          value={currency}
+          onChange={setCurrency}
+        />
+      ),
+    },
+  ];
+
+  const countBadge = (current: number, max: number) => (
+    <Text variant="caption" tone="textMuted" weight="medium">
+      {current}/{max}
+    </Text>
+  );
+
+  return (
+    <ScrollView style={{ backgroundColor: background }} contentContainerStyle={styles.content}>
+      <SectionList<Row>
+        variant="card"
+        scrollEnabled={false}
+        keyExtractor={keyExtractor}
+        renderItem={renderRow}
+        sections={[
+          {
+            id: 'account',
+            title: t('settings.sections.account'),
+            trailing: countBadge(members.length, MAX_WALLETS_PER_USER),
+            data: accountRows,
+          },
+        ]}
+      />
+
+      <SectionList<Row>
+        variant="card"
+        scrollEnabled={false}
+        keyExtractor={keyExtractor}
+        renderItem={renderRow}
+        sections={[
+          {
+            id: 'wallets',
+            title: t('settings.sections.wallets'),
+            trailing: countBadge(wallets.length, MAX_WALLETS_PER_USER),
+            data: walletRows,
+          },
+        ]}
+      />
+
+      <AddWalletCard />
+      {!partner ? <InvitationSection /> : null}
+
+      <SectionList<Row>
+        variant="card"
+        scrollEnabled={false}
+        keyExtractor={keyExtractor}
+        renderItem={renderRow}
+        sections={[
+          {
+            id: 'display',
+            title: t('settings.sections.display'),
+            data: displayRows,
+          },
+        ]}
+      />
+
+      <SectionList<Row>
+        variant="card"
+        scrollEnabled={false}
+        keyExtractor={keyExtractor}
+        renderItem={renderRow}
+        sections={[
+          {
+            id: 'regional',
+            title: t('settings.sections.regional'),
+            data: regionalRows,
+          },
+        ]}
+      />
+
+      <DangerZone
+        currentUserId={currentUserId ?? ''}
+        partnerName={partner?.displayName ?? null}
+        hasParter={!!partner}
+      />
+    </ScrollView>
   );
 }
 
@@ -257,28 +272,5 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 64,
     gap: 24,
-  },
-  accountSection: {
-    gap: 16,
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
-  avatarFallback: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileText: {
-    flex: 1,
-    gap: 2,
   },
 });

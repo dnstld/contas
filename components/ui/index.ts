@@ -1,4 +1,5 @@
 // Atoms
+export { Avatar } from './atoms/avatar';
 export { Badge } from './atoms/badge';
 export { Button } from './atoms/button';
 export { Checkbox } from './atoms/checkbox';
@@ -24,11 +25,12 @@ export { BudgetMeter } from './molecules/budget-meter';
 export { CategoryHeader } from './molecules/category-header';
 export { ChipGroup } from './molecules/chip-group';
 export { EmptyState } from './molecules/empty-state';
+export { ListCardRow } from './molecules/list-card-row';
 export { MetricCard } from './molecules/metric-card';
 export { MetricRow } from './molecules/metric-row';
 export { SectionHeader } from './molecules/section-header';
+export { SectionListRow } from './molecules/section-list-row';
 export { SettingsRow } from './molecules/settings-row';
-export { SettingsSection } from './molecules/settings-section';
 export { SortMenu } from './molecules/sort-menu';
 export { TimelineItem } from './molecules/timeline-item';
 export { TransactionRow } from './molecules/transaction-row';
@@ -50,4 +52,5 @@ export { CategoryGridControls } from './organisms/category-grid';
 export { FinanceTimeFilter } from './organisms/finance-time-filter';
 export { MonthlyTimeline } from './organisms/monthly-timeline';
 export { Overview } from './organisms/overview';
+export { SectionList } from './organisms/section-list';
 export { TimeFilterBar } from './organisms/time-filter-bar';

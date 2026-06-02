@@ -4,6 +4,7 @@ import type {
   TransactionFormValues,
   TransactionType,
 } from '@/components/transactions/transaction-form';
+import { useAuth } from '@/hooks/use-auth';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
@@ -30,12 +31,14 @@ function ensureCategoryId(values: TransactionFormValues): string {
 export function useCreateTransaction() {
   const { walletId } = useWallet();
   const { enabled: demoMode } = useDemoMode();
+  const { session } = useAuth();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (values: TransactionFormValues) => {
       if (demoMode) throw new DemoModeReadOnlyError();
       if (!walletId) throw new Error('no wallet');
+      if (!session) throw new Error('no session');
       const { data, error } = await supabase
         .from('transactions')
         .insert({
@@ -46,6 +49,7 @@ export function useCreateTransaction() {
           occurred_at: values.date.toISOString(),
           status: 'completed',
           recurrence: 'none',
+          created_by: session.user.id,
         })
         .select()
         .single();
