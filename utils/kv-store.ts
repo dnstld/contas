@@ -7,6 +7,8 @@
  * never need to interact with the `expo-sqlite/kv-store` types directly.
  */
 
+import { captureError } from '@/utils/monitoring';
+
 export type KVStore = {
   getItem: (key: string) => Promise<string | null>;
   setItem: (key: string, value: string) => Promise<void>;
@@ -30,14 +32,7 @@ export function getKVStore(): Promise<KVStore | null> {
       return store;
     })
     .catch((err: unknown) => {
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          '[kv-store] expo-sqlite native module not available. ' +
-            'Falling back to in-memory state. Rebuild the dev client to enable persistence.',
-          err,
-        );
-      }
+      captureError(err, { tags: { source: 'kv-store-bootstrap' } });
       return null;
     });
   return storagePromise;

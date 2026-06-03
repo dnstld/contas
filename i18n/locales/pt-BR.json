@@ -10,7 +10,16 @@
     "saving": "Salvando…",
     "create": "Criar",
     "errors": {
-      "actionFailed": "Algo não deu certo"
+      "actionFailed": "Algo não deu certo",
+      "duplicate": "Isso já existe.",
+      "relatedDataExists": "Outros dados dependem disso. Remova-os antes.",
+      "missingRequired": "Faltam informações obrigatórias.",
+      "notAllowed": "Você não tem permissão para isso.",
+      "notFound": "Não encontramos o que você procurava.",
+      "network": "Problema de conexão. Verifique sua internet e tente de novo.",
+      "cancelled": "Ação cancelada.",
+      "staleTitle": "Mostrando os últimos dados carregados",
+      "staleRetry": "Toque para tentar novamente"
     }
   },
   "feedback": {

@@ -8,7 +8,8 @@ import {
   type TransactionFormValues,
 } from '@/components/transactions/transaction-form';
 import { Skeleton } from '@/components/ui/atoms/skeleton';
-import { EmptyState } from '@/components/ui/molecules/empty-state';
+import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
+import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import { transactionDate } from '@/data/finance-types';
 import {
   isDemoModeReadOnlyError,
@@ -16,8 +17,9 @@ import {
   useUpdateTransaction,
 } from '@/hooks/use-finance-mutations';
 import { useTransaction } from '@/hooks/use-finance-queries';
+import { toQueryView } from '@/hooks/use-query-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { getErrorMessage } from '@/utils/error';
+import { mapSupabaseErrorKey } from '@/utils/error';
 import { toast } from '@/utils/toast';
 
 function EditSkeleton() {
@@ -45,34 +47,32 @@ export default function EditScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const transactionQuery = useTransaction(id ?? null);
-  const { data: transaction, isLoading, isError } = transactionQuery;
+  const view = toQueryView(transactionQuery, { isEmpty: (d) => d === null });
   const updateMutation = useUpdateTransaction();
   const deleteMutation = useDeleteTransaction();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoading && transaction === null) {
+    if (view.kind === 'empty') {
       router.back();
     }
-  }, [isLoading, transaction, router]);
+  }, [view.kind, router]);
 
-  if (isLoading && !transaction) return <EditSkeleton />;
-  if (isError && !transaction) {
+  if (view.kind === 'loading') return <EditSkeleton />;
+  if (view.kind === 'error') {
     return (
       <View style={styles.errorWrap}>
-        <EmptyState
-          tone="error"
-          title={t('errorFallback.title')}
-          body={t('errorFallback.body')}
-          actionLabel={t('errorFallback.retry')}
-          onAction={() => {
-            void transactionQuery.refetch();
-          }}
-        />
+        <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
       </View>
     );
   }
-  if (!transaction) return null;
+  if (view.kind === 'empty') return null;
+  const transaction = view.data;
+  if (transaction === null) return null;
+  const staleBanner =
+    view.kind === 'stale' ? (
+      <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
+    ) : null;
 
   const initialValues: Partial<TransactionFormValues> = {
     type: transaction.type,
@@ -83,50 +83,55 @@ export default function EditScreen() {
   };
 
   return (
-    <TransactionForm
-      submitLabel={t('edit.save')}
-      initialValues={initialValues}
-      isSubmitting={updateMutation.isPending}
-      isDeleting={deleteMutation.isPending}
-      errorMessage={errorMessage}
-      onSubmit={async (values) => {
-        setErrorMessage(null);
-        try {
-          await updateMutation.mutateAsync({ id: transaction.id, values });
-          toast.success(t('feedback.transactionUpdated'));
-          router.back();
-        } catch (e) {
-          if (isDemoModeReadOnlyError(e)) {
-            setErrorMessage(t('edit.demoReadOnly'));
-          } else {
-            setErrorMessage(getErrorMessage(e, t('edit.updateError')));
+    <>
+      {staleBanner}
+      <TransactionForm
+        submitLabel={t('edit.save')}
+        initialValues={initialValues}
+        isSubmitting={updateMutation.isPending}
+        isDeleting={deleteMutation.isPending}
+        errorMessage={errorMessage}
+        onSubmit={async (values) => {
+          setErrorMessage(null);
+          try {
+            await updateMutation.mutateAsync({ id: transaction.id, values });
+            toast.success(t('feedback.transactionUpdated'));
+            router.back();
+          } catch (e) {
+            if (isDemoModeReadOnlyError(e)) {
+              setErrorMessage(t('edit.demoReadOnly'));
+            } else {
+              // Use the localized Supabase-error key, not raw error.message —
+              // raw messages leak schema details and are always English.
+              setErrorMessage(t(mapSupabaseErrorKey(e)));
+            }
           }
-        }
-      }}
-      onDelete={() => {
-        Alert.alert(t('edit.deleteConfirmTitle'), t('edit.deleteConfirmMessage'), [
-          { text: t('edit.deleteConfirmCancel'), style: 'cancel' },
-          {
-            text: t('edit.deleteConfirmAction'),
-            style: 'destructive',
-            onPress: async () => {
-              setErrorMessage(null);
-              try {
-                await deleteMutation.mutateAsync(transaction.id);
-                toast.success(t('feedback.transactionDeleted'));
-                router.back();
-              } catch (e) {
-                if (isDemoModeReadOnlyError(e)) {
-                  setErrorMessage(t('edit.demoReadOnly'));
-                } else {
-                  setErrorMessage(getErrorMessage(e, t('edit.deleteError')));
+        }}
+        onDelete={() => {
+          Alert.alert(t('edit.deleteConfirmTitle'), t('edit.deleteConfirmMessage'), [
+            { text: t('edit.deleteConfirmCancel'), style: 'cancel' },
+            {
+              text: t('edit.deleteConfirmAction'),
+              style: 'destructive',
+              onPress: async () => {
+                setErrorMessage(null);
+                try {
+                  await deleteMutation.mutateAsync(transaction.id);
+                  toast.success(t('feedback.transactionDeleted'));
+                  router.back();
+                } catch (e) {
+                  if (isDemoModeReadOnlyError(e)) {
+                    setErrorMessage(t('edit.demoReadOnly'));
+                  } else {
+                    setErrorMessage(t(mapSupabaseErrorKey(e)));
+                  }
                 }
-              }
+              },
             },
-          },
-        ]);
-      }}
-    />
+          ]);
+        }}
+      />
+    </>
   );
 }
 

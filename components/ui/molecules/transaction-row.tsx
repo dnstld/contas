@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Avatar } from '@/components/ui/atoms/avatar';
@@ -16,7 +17,8 @@ export interface TransactionRowProps {
   transaction: Transaction;
   currency: string;
   creator: TransactionRowCreator | null;
-  onPress: (transaction: Transaction) => void;
+  /** Receives the transaction id so callers can keep a stable, memoized handler. */
+  onPress: (transactionId: string) => void;
 }
 
 function firstName(name: string): string {
@@ -33,7 +35,7 @@ function resolveCreatorLabel(
   return null;
 }
 
-export function TransactionRow({ transaction, currency, creator, onPress }: TransactionRowProps) {
+function TransactionRowImpl({ transaction, currency, creator, onPress }: TransactionRowProps) {
   const { locale } = useFormatters();
   const { t } = useTranslation();
   const isIncome = transaction.type === 'income';
@@ -50,15 +52,17 @@ export function TransactionRow({ transaction, currency, creator, onPress }: Tran
     .filter(Boolean)
     .join(', ');
 
+  const handlePress = useCallback(() => {
+    onPress(transaction.id);
+  }, [onPress, transaction.id]);
+
   return (
     <SectionListRow
       size="sm"
       density="compact"
-      onPress={() => onPress(transaction)}
+      onPress={handlePress}
       accessibilityLabel={accessibilityLabel}
-      leading={
-        creator ? <Avatar url={creator.avatarUrl} name={avatarName} size={36} /> : null
-      }
+      leading={creator ? <Avatar url={creator.avatarUrl} name={avatarName} size={36} /> : null}
       title={transaction.categoryName}
       text1={creatorLabel}
       subtitle={hasDescription ? description : null}
@@ -75,3 +79,8 @@ export function TransactionRow({ transaction, currency, creator, onPress }: Tran
     />
   );
 }
+
+// Memoized so list re-renders don't reconcile every row when only siblings/
+// parent state changed. Relies on callers passing stable `onPress` and
+// `creator` references.
+export const TransactionRow = memo(TransactionRowImpl);

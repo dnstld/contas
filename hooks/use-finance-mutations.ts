@@ -35,6 +35,9 @@ export function useCreateTransaction() {
   const qc = useQueryClient();
 
   return useMutation({
+    // The create screen renders errors inline via `TransactionForm.errorMessage`;
+    // suppress the global toast to avoid double-surfacing the same failure.
+    meta: { silent: true },
     mutationFn: async (values: TransactionFormValues) => {
       if (demoMode) throw new DemoModeReadOnlyError();
       if (!walletId) throw new Error('no wallet');
@@ -75,6 +78,7 @@ export function useUpdateTransaction() {
   const qc = useQueryClient();
 
   return useMutation({
+    meta: { silent: true },
     mutationFn: async ({ id, values }: UpdateTransactionInput) => {
       if (demoMode) throw new DemoModeReadOnlyError();
       const { data, error } = await supabase
@@ -91,9 +95,10 @@ export function useUpdateTransaction() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id }) => {
       if (walletId) {
         qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
+        qc.invalidateQueries({ queryKey: financeKeys.transaction(walletId, id) });
       }
     },
   });
@@ -212,15 +217,17 @@ export function useDeleteTransaction() {
   const qc = useQueryClient();
 
   return useMutation({
+    meta: { silent: true },
     mutationFn: async (id: string) => {
       if (demoMode) throw new DemoModeReadOnlyError();
       const { error } = await supabase.from('transactions').delete().eq('id', id);
       if (error) throw error;
       return id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       if (walletId) {
         qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
+        qc.removeQueries({ queryKey: financeKeys.transaction(walletId, id) });
       }
     },
   });

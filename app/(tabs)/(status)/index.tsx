@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -15,11 +15,15 @@ import {
   Surface,
   Text,
 } from '@/components/ui';
+import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
+import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import { categoryDetailHref, categoryFormHref } from '@/constants/routes';
 import { useCategoryGrid } from '@/hooks/use-category-grid';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useHeaderHeight } from '@/hooks/use-header-height';
+import { useNow } from '@/hooks/use-now';
+import { toQueryView } from '@/hooks/use-query-view';
 import { useRevenueVisible } from '@/hooks/use-revenue-visible';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
@@ -27,7 +31,7 @@ import { useWallet } from '@/hooks/use-wallet';
 export default function HomeScreen() {
   const background = useThemeColor({}, 'background');
   const headerHeight = useHeaderHeight();
-  const now = useMemo(() => new Date(), []);
+  const now = useNow();
   const { t } = useTranslation();
   const { currency } = useWallet();
 
@@ -124,69 +128,71 @@ export default function HomeScreen() {
     </View>
   );
 
-  if (dashboard.isLoading && !dashboard.data) {
-    return (
-      <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
-        <ScrollView contentContainerStyle={styles.content} scrollEnabled={false}>
-          <View style={styles.skeletonStack}>
-            <OverviewSkeleton />
-            <CategoryGridSkeleton />
-          </View>
-        </ScrollView>
-      </View>
-    );
-  }
+  // Wallet-level empty (fresh wallet, no transactions). The unfiltered
+  // category list is shown via `ListEmptyComponent` further down.
+  const view = toQueryView(dashboard, {
+    isEmpty: (d) => d.transactions.length === 0,
+  });
 
-  if (dashboard.isError && !dashboard.data) {
-    return (
-      <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
-        <View style={styles.errorWrap}>
-          <EmptyState
-            tone="error"
-            title={t('errorFallback.title')}
-            body={t('errorFallback.body')}
-            actionLabel={t('errorFallback.retry')}
-            onAction={() => {
-              void dashboard.refetch();
-            }}
+  switch (view.kind) {
+    case 'loading':
+      return (
+        <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
+          <ScrollView contentContainerStyle={styles.content} scrollEnabled={false}>
+            <View style={styles.skeletonStack}>
+              <OverviewSkeleton />
+              <CategoryGridSkeleton />
+            </View>
+          </ScrollView>
+        </View>
+      );
+    case 'error':
+      return (
+        <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
+          <View style={styles.errorWrap}>
+            <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
+          </View>
+        </View>
+      );
+    case 'empty':
+    case 'stale':
+    case 'ready':
+      return (
+        <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
+          {view.kind === 'stale' ? (
+            <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
+          ) : null}
+          <FlatList
+            ref={listRef}
+            data={grid.sorted}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.content}
+            ListHeaderComponent={header}
+            ListEmptyComponent={
+              dashboard.categories.length === 0 ? null : (
+                <EmptyState
+                  icon="line.3.horizontal.decrease.circle"
+                  title={t('category.empty.title')}
+                  body={t('category.empty.body')}
+                />
+              )
+            }
+            renderItem={({ item }) => (
+              <View style={styles.cell}>
+                <CategoryCard
+                  data={item}
+                  currency={currency}
+                  revenueVisible={revenueVisible}
+                  onPress={handleCategoryPress}
+                  onLongPress={handleCategoryLongPress}
+                />
+              </View>
+            )}
           />
         </View>
-      </View>
-    );
+      );
   }
-
-  return (
-    <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
-      <FlatList
-        ref={listRef}
-        data={grid.sorted}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.content}
-        ListHeaderComponent={header}
-        ListEmptyComponent={
-          dashboard.categories.length === 0 ? null : (
-            <EmptyState
-              icon="line.3.horizontal.decrease.circle"
-              title={t('category.empty.title')}
-              body={t('category.empty.body')}
-            />
-          )
-        }
-        renderItem={({ item }) => (
-          <View style={styles.cell}>
-            <CategoryCard
-              data={item}
-              currency={currency}
-              revenueVisible={revenueVisible}
-              onPress={handleCategoryPress}
-              onLongPress={handleCategoryLongPress}
-            />
-          </View>
-        )}
-      />
-    </View>
-  );
 }
 
 const styles = StyleSheet.create({

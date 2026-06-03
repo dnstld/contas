@@ -19,7 +19,7 @@ export interface CategoryGridControlsProps {
 
 /**
  * Header chrome for the category grid: sort menu, filter chips, summary line.
- * Designed to be slotted into a FlashList's `ListHeaderComponent`; the cards
+ * Designed to be slotted into a list's `ListHeaderComponent`; the cards
  * themselves are rendered by the parent list so virtualization works.
  */
 export function CategoryGridControls({

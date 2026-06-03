@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Platform, StyleSheet, View } from 'react-native';
 
 import { CategoryDetailSkeleton, Divider, EmptyState, Text, TransactionRow } from '@/components/ui';
+import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
+import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import { editTransactionHref } from '@/constants/routes';
 import type { Finance, Transaction } from '@/data/finance-types';
 import {
@@ -14,6 +16,8 @@ import {
 import { useFinance } from '@/hooks/use-finance';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
+import { useNow } from '@/hooks/use-now';
+import { toQueryView } from '@/hooks/use-query-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter';
 import { useTransactionCreators } from '@/hooks/use-transaction-creators';
@@ -64,11 +68,16 @@ export default function CategoryDetailModal() {
     all?: string;
   }>();
 
-  const now = useMemo(() => new Date(), []);
+  const now = useNow();
   const filter = useMemo(() => parseFilter(params, now), [params, now]);
 
-  const { data, isLoading, isError, refetch } = useFinance();
-  const finance = data ?? EMPTY_FINANCE;
+  const financeQuery = useFinance();
+  // Wallet-level empty. Category-level empty (this category has no
+  // transactions in the chosen period) is handled by `hasTransactions` below.
+  const view = toQueryView(financeQuery, {
+    isEmpty: (d) => d.transactions.length === 0,
+  });
+  const finance = financeQuery.data ?? EMPTY_FINANCE;
 
   const filteredFinance = useMemo<Finance>(
     () => ({
@@ -104,8 +113,8 @@ export default function CategoryDetailModal() {
   }, [sections]);
 
   const handlePressTransaction = useCallback(
-    (transaction: Transaction) => {
-      router.push(editTransactionHref(transaction.id));
+    (transactionId: string) => {
+      router.push(editTransactionHref(transactionId));
     },
     [router],
   );
@@ -113,9 +122,6 @@ export default function CategoryDetailModal() {
   const resolveCreator = useTransactionCreators();
 
   const hasTransactions = sections.length > 0;
-  const showSkeleton = isLoading && !data;
-  const showError = isError && !data;
-  const showEmpty = !isLoading && !showError && !hasTransactions;
 
   const renderItem = useCallback(
     ({ item }: { item: unknown }) => {
@@ -136,7 +142,7 @@ export default function CategoryDetailModal() {
             transaction={row.transaction}
             currency={currency}
             creator={resolveCreator(row.transaction.createdByUserId)}
-            onPress={() => handlePressTransaction(row.transaction)}
+            onPress={handlePressTransaction}
           />
         </>
       );
@@ -146,39 +152,47 @@ export default function CategoryDetailModal() {
 
   return (
     <View style={[styles.root, { backgroundColor: background, paddingBottom: bottomPadding }]}>
-      {showSkeleton ? (
-        <CategoryDetailSkeleton />
-      ) : showError ? (
-        <View style={styles.emptyWrap}>
-          <EmptyState
-            tone="error"
-            title={t('errorFallback.title')}
-            body={t('errorFallback.body')}
-            actionLabel={t('errorFallback.retry')}
-            onAction={() => {
-              void refetch();
-            }}
-          />
-        </View>
-      ) : hasTransactions ? (
-        <FlatList
-          data={rows}
-          keyExtractor={(item: unknown) => (item as Row).id}
-          contentContainerStyle={styles.listContent}
-          initialNumToRender={20}
-          windowSize={10}
-          removeClippedSubviews={Platform.OS === 'android'}
-          renderItem={renderItem}
-        />
-      ) : showEmpty ? (
-        <View style={styles.emptyWrap}>
-          <EmptyState
-            icon="chart.bar.fill"
-            title={t('category.detail.empty.title')}
-            body={t('category.detail.empty.body')}
-          />
-        </View>
-      ) : null}
+      {(() => {
+        switch (view.kind) {
+          case 'loading':
+            return <CategoryDetailSkeleton />;
+          case 'error':
+            return (
+              <View style={styles.emptyWrap}>
+                <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
+              </View>
+            );
+          case 'empty':
+          case 'stale':
+          case 'ready':
+            return (
+              <>
+                {view.kind === 'stale' ? (
+                  <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
+                ) : null}
+                {hasTransactions ? (
+                  <FlatList
+                    data={rows}
+                    keyExtractor={(item: unknown) => (item as Row).id}
+                    contentContainerStyle={styles.listContent}
+                    initialNumToRender={20}
+                    windowSize={10}
+                    removeClippedSubviews={Platform.OS === 'android'}
+                    renderItem={renderItem}
+                  />
+                ) : (
+                  <View style={styles.emptyWrap}>
+                    <EmptyState
+                      icon="chart.bar.fill"
+                      title={t('category.detail.empty.title')}
+                      body={t('category.detail.empty.body')}
+                    />
+                  </View>
+                )}
+              </>
+            );
+        }
+      })()}
     </View>
   );
 }

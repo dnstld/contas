@@ -18,9 +18,7 @@ export interface AvatarProps {
 
 function deriveInitials(name: string | null | undefined): string {
   if (!name) return '?';
-  const cleaned = name
-    .replace(/[^\p{L}\p{N}\s]/gu, '')
-    .trim();
+  const cleaned = name.replace(/[^\p{L}\p{N}\s]/gu, '').trim();
   if (!cleaned) return '?';
   const words = cleaned.split(/\s+/);
   if (words.length === 1) {
@@ -28,7 +26,7 @@ function deriveInitials(name: string | null | undefined): string {
   }
   const first = words[0]?.[0] ?? '';
   const last = words[words.length - 1]?.[0] ?? '';
-  return ((first + last).toUpperCase() || '?');
+  return (first + last).toUpperCase() || '?';
 }
 
 function pickTextVariant(size: number): TextVariant {

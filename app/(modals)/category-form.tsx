@@ -192,11 +192,7 @@ export default function CategoryFormScreen() {
 
           {showTypePicker ? (
             <View style={styles.field}>
-              <SegmentedControl
-                options={typeOptions}
-                value={pickedType}
-                onChange={setPickedType}
-              />
+              <SegmentedControl options={typeOptions} value={pickedType} onChange={setPickedType} />
             </View>
           ) : null}
 

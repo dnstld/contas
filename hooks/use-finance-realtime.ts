@@ -8,6 +8,14 @@ import { walletKeys } from '@/hooks/use-wallet-list';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
 
+function extractRowId(value: unknown): string | undefined {
+  if (value && typeof value === 'object' && 'id' in value) {
+    const id = (value as { id: unknown }).id;
+    if (typeof id === 'string') return id;
+  }
+  return undefined;
+}
+
 export function useFinanceRealtime() {
   const { walletId } = useWallet();
   const { enabled: demoMode } = useDemoMode();
@@ -26,8 +34,14 @@ export function useFinanceRealtime() {
           table: 'transactions',
           filter: `wallet_id=eq.${walletId}`,
         },
-        () => {
+        (payload) => {
           qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
+          const rowId = extractRowId(payload.new) ?? extractRowId(payload.old);
+          if (rowId) {
+            qc.invalidateQueries({
+              queryKey: financeKeys.transaction(walletId, rowId),
+            });
+          }
         },
       )
       .on(

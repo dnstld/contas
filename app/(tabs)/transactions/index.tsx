@@ -13,6 +13,8 @@ import {
   TransactionListSkeleton,
   TransactionRow,
 } from '@/components/ui';
+import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
+import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import type { SectionListSection } from '@/components/ui/organisms/section-list';
 import { editTransactionHref } from '@/constants/routes';
 import type { Finance, Transaction } from '@/data/finance-types';
@@ -21,6 +23,8 @@ import { useFinance } from '@/hooks/use-finance';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useHeaderHeight } from '@/hooks/use-header-height';
+import { useNow } from '@/hooks/use-now';
+import { toQueryView } from '@/hooks/use-query-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { MONTHS } from '@/hooks/use-time-filter';
 import { useTransactionCreators } from '@/hooks/use-transaction-creators';
@@ -40,9 +44,15 @@ export default function TransactionsScreen() {
   const { currency } = useWallet();
   const { locale, monthName } = useFormatters();
 
-  const now = useMemo(() => new Date(), []);
+  const now = useNow();
   const filterApi = useFinanceTimeFilter(now);
-  const { data, isLoading, isError, refetch } = useFinance();
+  const financeQuery = useFinance();
+  const { data } = financeQuery;
+  // Wallet-level empty (no transactions at all). Filter-level emptiness is
+  // handled below via `hasTransactions` because it depends on `filterApi.state`.
+  const view = toQueryView(financeQuery, {
+    isEmpty: (d) => d.transactions.length === 0,
+  });
 
   const { sections, totals, count } = useMemo(
     () => buildTransactionsList(data ?? EMPTY_FINANCE, filterApi.state, now),
@@ -66,9 +76,6 @@ export default function TransactionsScreen() {
   }));
 
   const hasTransactions = sections.length > 0;
-  const showSkeleton = isLoading && !data;
-  const showError = isError && !data;
-  const showEmpty = !isLoading && !showError && !hasTransactions;
   const router = useRouter();
 
   const handlePressTransaction = useCallback(
@@ -115,53 +122,61 @@ export default function TransactionsScreen() {
         <FinanceTimeFilter api={filterApi} now={now} availableYears={data?.years} />
       </View>
 
-      {showSkeleton ? (
-        <TransactionListSkeleton />
-      ) : showError ? (
-        <View style={styles.emptyWrap}>
-          <EmptyState
-            tone="error"
-            title={t('errorFallback.title')}
-            body={t('errorFallback.body')}
-            actionLabel={t('errorFallback.retry')}
-            onAction={() => {
-              void refetch();
-            }}
-          />
-        </View>
-      ) : hasTransactions ? (
-        <SectionList<Transaction>
-          ref={listRef}
-          variant="flat"
-          sections={listSections}
-          keyExtractor={(item) => item.id}
-          stickySectionHeadersEnabled={false}
-          contentContainerStyle={styles.listContent}
-          ListHeaderComponent={<View style={styles.listHeader}>{totalCard}</View>}
-          initialNumToRender={20}
-          windowSize={10}
-          removeClippedSubviews={Platform.OS === 'android'}
-          renderItem={({ item }) => (
-            <TransactionRow
-              transaction={item}
-              currency={currency}
-              creator={resolveCreator(item.createdByUserId)}
-              onPress={() => handlePressTransaction(item.id)}
-            />
-          )}
-        />
-      ) : showEmpty ? (
-        <>
-          <View style={styles.emptyHeader}>{totalCard}</View>
-          <View style={styles.emptyWrap}>
-            <EmptyState
-              icon="chart.bar.fill"
-              title={t('transactions.empty.title')}
-              body={t('transactions.empty.body')}
-            />
-          </View>
-        </>
-      ) : null}
+      {(() => {
+        switch (view.kind) {
+          case 'loading':
+            return <TransactionListSkeleton />;
+          case 'error':
+            return (
+              <View style={styles.emptyWrap}>
+                <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
+              </View>
+            );
+          case 'empty':
+          case 'stale':
+          case 'ready':
+            return (
+              <>
+                {view.kind === 'stale' ? (
+                  <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
+                ) : null}
+                {hasTransactions ? (
+                  <SectionList<Transaction>
+                    ref={listRef}
+                    variant="flat"
+                    sections={listSections}
+                    keyExtractor={(item) => item.id}
+                    stickySectionHeadersEnabled={false}
+                    contentContainerStyle={styles.listContent}
+                    ListHeaderComponent={<View style={styles.listHeader}>{totalCard}</View>}
+                    initialNumToRender={20}
+                    windowSize={10}
+                    removeClippedSubviews={Platform.OS === 'android'}
+                    renderItem={({ item }) => (
+                      <TransactionRow
+                        transaction={item}
+                        currency={currency}
+                        creator={resolveCreator(item.createdByUserId)}
+                        onPress={handlePressTransaction}
+                      />
+                    )}
+                  />
+                ) : (
+                  <>
+                    <View style={styles.emptyHeader}>{totalCard}</View>
+                    <View style={styles.emptyWrap}>
+                      <EmptyState
+                        icon="chart.bar.fill"
+                        title={t('transactions.empty.title')}
+                        body={t('transactions.empty.body')}
+                      />
+                    </View>
+                  </>
+                )}
+              </>
+            );
+        }
+      })()}
     </View>
   );
 }

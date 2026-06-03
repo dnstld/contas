@@ -22,25 +22,35 @@ export function useTransactionCreators() {
     return map;
   }, [members]);
 
+  // Cache resolved creators per userId so callers receive stable references.
+  // Without this, every render produces fresh `{ displayName, avatarUrl, isMe }`
+  // objects and downstream `React.memo`'d rows (e.g. TransactionRow) cannot bail
+  // out of re-rendering.
   return useMemo(() => {
+    const cache = new Map<string, TransactionRowCreator>();
+    const meCreator: TransactionRowCreator = {
+      displayName: myDisplayName,
+      avatarUrl: myAvatarUrl,
+      isMe: true,
+    };
     return (userId: string | null): TransactionRowCreator | null => {
       if (!userId) return null;
 
-      const isMe = userId === myUserId || userId === DEMO_USER_SELF;
-      if (isMe) {
-        return { displayName: myDisplayName, avatarUrl: myAvatarUrl, isMe: true };
+      if (userId === myUserId || userId === DEMO_USER_SELF) {
+        return meCreator;
       }
+
+      const cached = cache.get(userId);
+      if (cached) return cached;
 
       const member = memberByUserId.get(userId);
-      if (member) {
-        return { displayName: member.displayName, avatarUrl: member.avatarUrl, isMe: false };
-      }
-
-      if (userId === DEMO_USER_PARTNER) {
-        return { displayName: 'Parceiro', avatarUrl: null, isMe: false };
-      }
-
-      return { displayName: null, avatarUrl: null, isMe: false };
+      const creator: TransactionRowCreator = member
+        ? { displayName: member.displayName, avatarUrl: member.avatarUrl, isMe: false }
+        : userId === DEMO_USER_PARTNER
+          ? { displayName: 'Parceiro', avatarUrl: null, isMe: false }
+          : { displayName: null, avatarUrl: null, isMe: false };
+      cache.set(userId, creator);
+      return creator;
     };
   }, [myUserId, myDisplayName, myAvatarUrl, memberByUserId]);
 }

@@ -26,16 +26,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      if (data.session) {
-        setMonitoringUser({
-          id: data.session.user.id,
-          email: data.session.user.email ?? undefined,
-        });
-      }
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session);
+        if (data.session) {
+          setMonitoringUser({
+            id: data.session.user.id,
+            email: data.session.user.email ?? undefined,
+          });
+        }
+      })
+      .catch((err) => {
+        // Offline at cold start would otherwise pin the splash spinner forever.
+        // The auth listener below will recover the session if it returns later.
+        captureError(err, { tags: { context: 'auth' } });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
       if (next) {

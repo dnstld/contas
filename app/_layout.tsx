@@ -10,7 +10,11 @@ import { ROUTES } from '@/constants/routes';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFinanceRealtime, useWalletRealtime } from '@/hooks/use-finance-realtime';
-import { FinanceQueryProvider, useAppStateInvalidate } from '@/hooks/use-query-client';
+import {
+  FinanceQueryProvider,
+  useAppStateInvalidate,
+  useClearCacheOnSignOut,
+} from '@/hooks/use-query-client';
 import { WalletProvider, useWallet } from '@/hooks/use-wallet';
 import { initI18n } from '@/i18n';
 import { ErrorBoundary, initMonitoring, wrap } from '@/utils/monitoring';
@@ -28,6 +32,7 @@ function RootStack() {
   useFinanceRealtime();
   useWalletRealtime();
   useAppStateInvalidate();
+  useClearCacheOnSignOut();
 
   const booting = authLoading || (!!session && walletLoading);
 

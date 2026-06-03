@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -37,7 +38,7 @@ export interface CategoryCardProps {
   onLongPress?: (id: string) => void;
 }
 
-export function CategoryCard({
+function CategoryCardImpl({
   data,
   currency = 'USD',
   revenueVisible = false,
@@ -109,12 +110,20 @@ export function CategoryCard({
     </Surface>
   );
 
+  const handlePress = useCallback(() => {
+    if (onPress) onPress(data.id);
+  }, [onPress, data.id]);
+
+  const handleLongPress = useCallback(() => {
+    if (onLongPress) onLongPress(data.id);
+  }, [onLongPress, data.id]);
+
   if (!onPress && !onLongPress) return Body;
 
   return (
     <Pressable
-      onPress={onPress ? () => onPress(data.id) : undefined}
-      onLongPress={onLongPress ? () => onLongPress(data.id) : undefined}
+      onPress={onPress ? handlePress : undefined}
+      onLongPress={onLongPress ? handleLongPress : undefined}
       delayLongPress={400}
       android_ripple={{ color: iconBg }}
       style={({ pressed }) => [pressed ? styles.pressed : null]}
@@ -123,6 +132,10 @@ export function CategoryCard({
     </Pressable>
   );
 }
+
+// Memoized so the grid doesn't re-render every card on unrelated parent
+// updates (filter chip taps, header re-flows, etc).
+export const CategoryCard = memo(CategoryCardImpl);
 
 const styles = StyleSheet.create({
   card: {

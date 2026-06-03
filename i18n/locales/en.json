@@ -10,7 +10,16 @@
     "saving": "Saving…",
     "create": "Create",
     "errors": {
-      "actionFailed": "Something didn't go through"
+      "actionFailed": "Something didn't go through",
+      "duplicate": "That already exists.",
+      "relatedDataExists": "Other data depends on this. Remove it first.",
+      "missingRequired": "Some required information is missing.",
+      "notAllowed": "You don't have permission to do that.",
+      "notFound": "We couldn't find what you were looking for.",
+      "network": "Connection problem. Check your internet and try again.",
+      "cancelled": "Action cancelled.",
+      "staleTitle": "Showing last loaded data",
+      "staleRetry": "Tap to retry"
     }
   },
   "feedback": {

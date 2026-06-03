@@ -51,6 +51,7 @@ const MAPPING = {
   eye: 'visibility',
   'eye.slash': 'visibility-off',
   'exclamationmark.triangle.fill': 'warning',
+  'arrow.clockwise': 'refresh',
 } as IconMapping;
 
 /**

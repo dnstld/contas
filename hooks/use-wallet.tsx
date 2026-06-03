@@ -175,6 +175,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       },
       switchWallet(id) {
         if (!userId) return;
+        // Bump the request id so any in-flight `resolve` for the previous
+        // wallet bails out before applying its result — otherwise a slow RPC
+        // could overwrite the just-switched-to wallet's name/currency.
+        const reqId = ++requestRef.current;
         setWalletId(id);
         const cached = qc
           .getQueryData<{ id: string; name: string; currency: string }[]>(walletKeys.list(userId))
@@ -184,7 +188,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         getKVStore()
           .then((storage) => storage?.setItem(KEY_PREFIX + userId, JSON.stringify(id)))
           .catch((err) => captureError(err, { tags: { context: 'wallet' } }));
-        fetchWalletData(id, requestRef.current);
+        fetchWalletData(id, reqId);
       },
       setCurrency,
     }),

@@ -12,7 +12,7 @@ import type { Transaction } from '@/data/finance-types';
 import { isDemoModeReadOnlyError, useCreateTransaction } from '@/hooks/use-finance-mutations';
 import { useTransactions } from '@/hooks/use-finance-queries';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
-import { getErrorMessage } from '@/utils/error';
+import { mapSupabaseErrorKey } from '@/utils/error';
 import { toast } from '@/utils/toast';
 
 export default function CreateScreen() {
@@ -35,7 +35,9 @@ export default function CreateScreen() {
       if (isDemoModeReadOnlyError(e)) {
         setErrorMessage(t('edit.demoReadOnly'));
       } else {
-        setErrorMessage(getErrorMessage(e, t('create.error')));
+        // Use the localized Supabase-error key; raw error.message leaks
+        // schema details and is always English.
+        setErrorMessage(t(mapSupabaseErrorKey(e)));
       }
     }
   };
