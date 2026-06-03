@@ -13,6 +13,7 @@ import {
 
 import { categoryFormHref } from '@/constants/routes';
 import { transactionDate } from '@/data/finance-types';
+import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
@@ -68,6 +69,7 @@ export function TransactionForm({
   // access during render) and gives us a one-time value identical to a ref.
   const [bridgeId] = useState(() => makeBridgeId());
   const bottomPadding = useModalBottomPadding();
+  const headerHeight = useHeaderHeight();
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
@@ -145,14 +147,36 @@ export function TransactionForm({
   const formattedAmount = formatDecimal(amountCents / 100);
 
   const handleAmountChange = (text: string) => {
-    const digits = text.replace(/\D/g, '');
-    if (digits.length === 0) {
-      setAmountCents(0);
-      return;
-    }
-    const parsed = Number.parseInt(digits, 10);
-    if (Number.isFinite(parsed)) {
-      setAmountCents(parsed);
+    // Treat the field like a calculator: each new digit shifts cents left,
+    // regardless of cursor position. Without this, typing at the start of
+    // "0,00" would turn the mask's trailing zeros into entered digits
+    // (e.g. typing "5" at index 0 yields "50,00" → 5000 cents instead of 5).
+    const newDigits = text.replace(/\D/g, '');
+    const prevDigits = formattedAmount.replace(/\D/g, '');
+    if (newDigits === prevDigits) return;
+
+    if (newDigits.length > prevDigits.length) {
+      let diffIdx = 0;
+      while (diffIdx < prevDigits.length && prevDigits[diffIdx] === newDigits[diffIdx]) {
+        diffIdx += 1;
+      }
+      const addedCount = newDigits.length - prevDigits.length;
+      const addedChars = newDigits.slice(diffIdx, diffIdx + addedCount);
+      let next = amountCents;
+      for (const ch of addedChars) {
+        next = next * 10 + Number(ch);
+      }
+      setAmountCents(next);
+    } else if (newDigits.length < prevDigits.length) {
+      const removedCount = prevDigits.length - newDigits.length;
+      let next = amountCents;
+      for (let i = 0; i < removedCount; i += 1) {
+        next = Math.floor(next / 10);
+      }
+      setAmountCents(next);
+    } else {
+      const parsed = Number.parseInt(newDigits, 10);
+      setAmountCents(Number.isFinite(parsed) ? parsed : 0);
     }
   };
 
@@ -187,6 +211,7 @@ export function TransactionForm({
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         <ScrollView
           style={styles.flex}
