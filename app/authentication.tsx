@@ -34,7 +34,7 @@ export default function AuthenticationScreen() {
     <View style={[styles.root, { backgroundColor: background }]}>
       <View style={styles.copy}>
         <Text variant="caption" weight="semibold" tone="tint">
-          Finance42
+          kontadois
         </Text>
         <Text variant="display" weight="bold">
           {t('auth.welcome.title')}
