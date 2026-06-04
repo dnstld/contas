@@ -56,7 +56,35 @@ const config: ExpoConfig = {
         },
       },
     ],
-    'expo-font',
+    [
+      'expo-font',
+      {
+        // iOS reads the family name ("Lato") and weight from each file's
+        // metadata, so fontWeight maps automatically across these faces.
+        ios: {
+          fonts: [
+            './assets/fonts/Lato-Light.ttf',
+            './assets/fonts/Lato-Regular.ttf',
+            './assets/fonts/Lato-Bold.ttf',
+            './assets/fonts/Lato-Black.ttf',
+          ],
+        },
+        // Android needs the weight mapping declared explicitly.
+        android: {
+          fonts: [
+            {
+              fontFamily: 'Lato',
+              fontDefinitions: [
+                { path: './assets/fonts/Lato-Light.ttf', weight: 300 },
+                { path: './assets/fonts/Lato-Regular.ttf', weight: 400 },
+                { path: './assets/fonts/Lato-Bold.ttf', weight: 700 },
+                { path: './assets/fonts/Lato-Black.ttf', weight: 900 },
+              ],
+            },
+          ],
+        },
+      },
+    ],
     'expo-image',
     'expo-web-browser',
     'expo-localization',
