@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import * as Compose from '@expo/ui/jetpack-compose';
 import * as SwiftUI from '@expo/ui/swift-ui';
+import { disabled as disabledModifier } from '@expo/ui/swift-ui/modifiers';
 
 export interface ToggleProps {
   value: boolean;
@@ -14,7 +15,12 @@ export function Toggle({ value, onValueChange, label, disabled }: ToggleProps) {
   if (Platform.OS === 'ios') {
     return (
       <SwiftUI.Host matchContents>
-        <SwiftUI.Toggle isOn={value} label={label ?? ''} onIsOnChange={onValueChange} />
+        <SwiftUI.Toggle
+          isOn={value}
+          label={label ?? ''}
+          onIsOnChange={onValueChange}
+          modifiers={disabled ? [disabledModifier(true)] : undefined}
+        />
       </SwiftUI.Host>
     );
   }

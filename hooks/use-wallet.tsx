@@ -21,10 +21,12 @@ type WalletContextValue = {
   walletId: string | null;
   name: string | null;
   currency: SupportedCurrency;
+  showRevenue: boolean | null;
   loading: boolean;
   switchWallet: (id: string) => void;
   refresh: () => Promise<void>;
   setCurrency: (next: SupportedCurrency) => Promise<void>;
+  setShowRevenue: (next: boolean) => Promise<void>;
 };
 
 const WalletContext = createContext<WalletContextValue | null>(null);
@@ -38,6 +40,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [walletId, setWalletId] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [currency, setCurrencyState] = useState<SupportedCurrency>(DEFAULT_CURRENCY);
+  const [showRevenue, setShowRevenueState] = useState<boolean | null>(null);
   const requestRef = useRef(0);
 
   const loading = userId != null && walletId == null;
@@ -45,7 +48,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const fetchWalletData = useCallback(async (wid: string, reqId: number) => {
     const { data, error } = await supabase
       .from('wallets')
-      .select('currency, name')
+      .select('currency, name, show_revenue')
       .eq('id', wid)
       .single();
     if (reqId !== requestRef.current) return;
@@ -55,6 +58,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
     if (data?.currency) setCurrencyState(normalizeCurrency(data.currency));
     if (data?.name) setName(data.name);
+    setShowRevenueState(data?.show_revenue ?? null);
   }, []);
 
   const resolve = useCallback(
@@ -140,6 +144,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setWalletId(null);
       setName(null);
       setCurrencyState(DEFAULT_CURRENCY);
+      setShowRevenueState(null);
       return;
     }
     resolve(userId);
@@ -164,11 +169,31 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     [walletId, currency, userId, qc],
   );
 
+  const setShowRevenue = useCallback(
+    async (next: boolean) => {
+      if (!walletId) return;
+      const previous = showRevenue;
+      setShowRevenueState(next);
+      const { error } = await supabase
+        .from('wallets')
+        .update({ show_revenue: next })
+        .eq('id', walletId);
+      if (error) {
+        captureError(error, { tags: { context: 'wallet' } });
+        setShowRevenueState(previous);
+        throw error;
+      }
+      if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
+    },
+    [walletId, showRevenue, userId, qc],
+  );
+
   const value = useMemo<WalletContextValue>(
     () => ({
       walletId,
       name,
       currency,
+      showRevenue,
       loading,
       async refresh() {
         if (userId) await resolve(userId);
@@ -185,14 +210,29 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           ?.find((w) => w.id === id);
         setName(cached?.name ?? null);
         setCurrencyState(cached ? normalizeCurrency(cached.currency) : DEFAULT_CURRENCY);
+        // show_revenue is not in the wallet-list cache; wait for fetchWalletData.
+        setShowRevenueState(null);
         getKVStore()
           .then((storage) => storage?.setItem(KEY_PREFIX + userId, JSON.stringify(id)))
           .catch((err) => captureError(err, { tags: { context: 'wallet' } }));
         fetchWalletData(id, reqId);
       },
       setCurrency,
+      setShowRevenue,
     }),
-    [walletId, name, currency, loading, userId, resolve, setCurrency, fetchWalletData, qc],
+    [
+      walletId,
+      name,
+      currency,
+      showRevenue,
+      loading,
+      userId,
+      resolve,
+      setCurrency,
+      setShowRevenue,
+      fetchWalletData,
+      qc,
+    ],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

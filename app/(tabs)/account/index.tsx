@@ -16,7 +16,7 @@ import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useLanguage } from '@/hooks/use-language';
 import { useMyProfile } from '@/hooks/use-my-profile';
-import { useRevenueVisible } from '@/hooks/use-revenue-visible';
+import { useTransactions } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -51,12 +51,14 @@ export default function SettingsScreen() {
   const email = session?.user?.email ?? null;
   const currentUserId = session?.user?.id ?? null;
 
-  const { walletId, switchWallet } = useWallet();
+  const { walletId, switchWallet, showRevenue, setShowRevenue } = useWallet();
   const { data: wallets = [] } = useWalletList();
+  const { data: transactions = [] } = useTransactions();
+  const hasRevenue = transactions.some((t) => t.type === 'income');
+  const revenueToggleDisabled = !hasRevenue;
 
   const { language, setLanguage, supported } = useLanguage();
   const { currency, setCurrency } = useWallet();
-  const [revenueVisible, setRevenueVisible] = useRevenueVisible();
   const { enabled: demoMode, set: setDemoMode } = useDemoMode();
 
   const { members, refetch: refetchMembers } = useWalletMembers();
@@ -152,8 +154,20 @@ export default function SettingsScreen() {
     {
       id: 'revenueVisible',
       title: t('settings.revenueVisible.title'),
-      subtitle: t('settings.revenueVisible.description'),
-      trailing: <Toggle value={revenueVisible} onValueChange={setRevenueVisible} />,
+      subtitle: t(
+        revenueToggleDisabled
+          ? 'settings.revenueVisible.descriptionDisabled'
+          : 'settings.revenueVisible.description',
+      ),
+      trailing: (
+        <Toggle
+          value={showRevenue ?? false}
+          onValueChange={(next) => {
+            void setShowRevenue(next);
+          }}
+          disabled={revenueToggleDisabled}
+        />
+      ),
     },
     {
       id: 'demoMode',

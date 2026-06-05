@@ -252,6 +252,7 @@ export type Database = {
           currency: string;
           id: string;
           name: string;
+          show_revenue: boolean | null;
           updated_at: string;
         };
         Insert: {
@@ -260,6 +261,7 @@ export type Database = {
           currency?: string;
           id?: string;
           name: string;
+          show_revenue?: boolean | null;
           updated_at?: string;
         };
         Update: {
@@ -268,6 +270,7 @@ export type Database = {
           currency?: string;
           id?: string;
           name?: string;
+          show_revenue?: boolean | null;
           updated_at?: string;
         };
         Relationships: [

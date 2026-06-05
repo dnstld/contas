@@ -108,7 +108,8 @@
     },
     "revenueVisible": {
       "title": "Mostrar receitas",
-      "description": "Exibe os valores de receita no resumo financeiro."
+      "description": "Exibe receitas, despesas e saldo líquido no resumo.",
+      "descriptionDisabled": "Disponível após o registro da primeira receita."
     },
     "demoMode": {
       "title": "Modo demo",

@@ -24,7 +24,6 @@ import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useNow } from '@/hooks/use-now';
 import { toQueryView } from '@/hooks/use-query-view';
-import { useRevenueVisible } from '@/hooks/use-revenue-visible';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
 
@@ -33,12 +32,12 @@ export default function HomeScreen() {
   const headerHeight = useHeaderHeight();
   const now = useNow();
   const { t } = useTranslation();
-  const { currency } = useWallet();
+  const { currency, showRevenue } = useWallet();
+  const revenueVisible = showRevenue ?? false;
 
   const router = useRouter();
   const bridgeId = useId();
   const filterApi = useFinanceTimeFilter(now);
-  const [revenueVisible] = useRevenueVisible();
   const dashboard = useFinanceDashboard(filterApi.state, now);
   const hasTransactions = (dashboard.data?.transactions.length ?? 0) > 0;
   const demoMode = dashboard.isDemo;

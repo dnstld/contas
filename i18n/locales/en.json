@@ -108,7 +108,8 @@
     },
     "revenueVisible": {
       "title": "Show revenue",
-      "description": "Show revenue values in the financial summary."
+      "description": "Displays revenue, expenses, and net balance in the summary.",
+      "descriptionDisabled": "Available after your first revenue entry."
     },
     "demoMode": {
       "title": "Demo mode",
