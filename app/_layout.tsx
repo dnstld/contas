@@ -90,7 +90,7 @@ function RootLayout() {
               </WalletProvider>
             </FinanceQueryProvider>
           </AuthProvider>
-          <StatusBar style="auto" />
+          <StatusBar style="light" />
         </ThemeProvider>
       </ErrorBoundary>
     </GestureHandlerRootView>

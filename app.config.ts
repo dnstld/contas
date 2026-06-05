@@ -14,7 +14,7 @@ const config: ExpoConfig = {
     ? './assets/images/app-icon-dev/ios/AppIcon~ios-marketing.png'
     : './assets/images/app-icon/ios/AppIcon~ios-marketing.png',
   scheme: 'contas',
-  userInterfaceStyle: 'automatic',
+  userInterfaceStyle: 'dark',
   ios: {
     supportsTablet: true,
     bundleIdentifier: IS_DEV ? 'com.dnstld.contas.dev' : 'com.dnstld.contas',
