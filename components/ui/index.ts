@@ -47,8 +47,8 @@ export {
 
 // Organisms
 export { CategoryCard } from './organisms/category-card';
-export { CategoryFilter } from './organisms/category-filter';
 export { CategoryGridControls } from './organisms/category-grid';
+export { CategoryPicker } from './organisms/category-picker';
 export { FinanceTimeFilter } from './organisms/finance-time-filter';
 export { MonthlyTimeline } from './organisms/monthly-timeline';
 export { Overview } from './organisms/overview';

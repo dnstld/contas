@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { CategoryCardData } from '@/components/ui/organisms/category-card';
-import type { CategoryFilterItem } from '@/components/ui/organisms/category-filter';
+import type { CategoryPickerItem } from '@/components/ui/organisms/category-picker';
 import type { SortOption } from '@/components/ui/molecules/sort-menu';
 import { useFormatters } from '@/hooks/use-formatters';
 
@@ -10,7 +10,7 @@ export type CategorySortMode = 'highestExpense' | 'mostUsed';
 
 export interface UseCategoryGridOptions {
   categories: readonly CategoryCardData[];
-  filterItems?: readonly CategoryFilterItem[];
+  filterItems?: readonly CategoryPickerItem[];
   currency?: string;
   period?: 'month' | 'year';
 }

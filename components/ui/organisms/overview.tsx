@@ -33,6 +33,8 @@ export interface OverviewProps {
   revenue?: number;
   expenses?: number;
   net?: number;
+  /** ISO timestamp of the most recent transaction update; undefined when no transactions exist. */
+  lastUpdatedAt?: string;
   // All mode:
   yearTotals?: { year: number; value: number }[];
   timeline?: readonly MonthlyTimelinePoint[];
@@ -57,6 +59,7 @@ export function Overview({
   revenue,
   expenses,
   net,
+  lastUpdatedAt,
   yearTotals,
   timeline,
   currentMonth,
@@ -76,6 +79,23 @@ export function Overview({
 
   const lensValue =
     lens === 'revenue' ? (revenue ?? 0) : lens === 'net' ? (net ?? 0) : primaryValue;
+
+  const lastUpdateLabel = useMemo(() => {
+    if (!lastUpdatedAt) return t('overview.addFirstTransaction');
+    const updated = new Date(lastUpdatedAt);
+    const sameDay = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+    const timePart = new Intl.DateTimeFormat(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(updated);
+    const when = sameDay(updated, new Date())
+      ? timePart
+      : `${new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(updated)} ${timePart}`;
+    return t('overview.lastUpdate', { time: when });
+  }, [lastUpdatedAt, locale, t]);
 
   const lensTone = lens === 'net' ? (lensValue >= 0 ? 'positive' : 'negative') : 'neutral';
 
@@ -119,11 +139,17 @@ export function Overview({
   return (
     <Surface variant="plain" bordered padding={16} style={styles.card}>
       <View style={styles.headerRow}>
-        <Text variant="caption" tone="textMuted" weight="semibold">
+        <Text
+          variant="caption"
+          tone="textMuted"
+          weight="semibold"
+          numberOfLines={1}
+          style={styles.headerLeft}
+        >
           {`${t('overview.primaryPrefix')} ${primaryLabel}`.trim().toUpperCase()}
         </Text>
-        <Text variant="caption" tone="textMuted">
-          {t(`overview.modes.${mode}`)}
+        <Text variant="caption" tone="textMuted" numberOfLines={1} style={styles.headerRight}>
+          {lastUpdateLabel}
         </Text>
       </View>
       <PriceText
@@ -217,7 +243,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
+  headerLeft: { flexShrink: 0 },
+  headerRight: { flexShrink: 1, textAlign: 'right' },
   compRow: {
     flexDirection: 'row',
     alignItems: 'center',

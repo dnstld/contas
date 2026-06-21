@@ -7,6 +7,11 @@ import { CategoryDetailSkeleton, Divider, EmptyState, Text, TransactionRow } fro
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import { editTransactionHref } from '@/constants/routes';
+import {
+  generateExampleFinance,
+  isExampleCategoryId,
+  type ExampleNames,
+} from '@/data/finance-example';
 import type { Finance, Transaction } from '@/data/finance-types';
 import {
   buildTransactionsList,
@@ -71,13 +76,29 @@ export default function CategoryDetailModal() {
   const now = useNow();
   const filter = useMemo(() => parseFilter(params, now), [params, now]);
 
+  // Onboarding example categories are read-only and backed by generated sample
+  // data rather than the wallet's real (empty) finance.
+  const isExample = isExampleCategoryId(params.id);
+  const exampleNames = useMemo<ExampleNames>(
+    () => ({
+      groceries: t('category.create.suggestions.expense.groceries'),
+      pharmacy: t('category.create.suggestions.expense.pharmacy'),
+      transport: t('category.create.suggestions.expense.transport'),
+    }),
+    [t],
+  );
+  const exampleFinance = useMemo(
+    () => (isExample ? generateExampleFinance(currency, now, exampleNames) : null),
+    [isExample, currency, now, exampleNames],
+  );
+
   const financeQuery = useFinance();
   // Wallet-level empty. Category-level empty (this category has no
   // transactions in the chosen period) is handled by `hasTransactions` below.
   const view = toQueryView(financeQuery, {
     isEmpty: (d) => d.transactions.length === 0,
   });
-  const finance = financeQuery.data ?? EMPTY_FINANCE;
+  const finance = exampleFinance ?? financeQuery.data ?? EMPTY_FINANCE;
 
   const filteredFinance = useMemo<Finance>(
     () => ({
@@ -142,17 +163,39 @@ export default function CategoryDetailModal() {
             transaction={row.transaction}
             currency={currency}
             creator={resolveCreator(row.transaction.createdByUserId)}
-            onPress={handlePressTransaction}
+            onPress={isExample ? undefined : handlePressTransaction}
           />
         </>
       );
     },
-    [background, currency, handlePressTransaction, labelFor, resolveCreator],
+    [background, currency, handlePressTransaction, isExample, labelFor, resolveCreator],
+  );
+
+  const listOrEmpty = hasTransactions ? (
+    <FlatList
+      data={rows}
+      keyExtractor={(item: unknown) => (item as Row).id}
+      contentContainerStyle={styles.listContent}
+      initialNumToRender={20}
+      windowSize={10}
+      removeClippedSubviews={Platform.OS === 'android'}
+      renderItem={renderItem}
+    />
+  ) : (
+    <View style={styles.emptyWrap}>
+      <EmptyState
+        icon="chart.bar.fill"
+        title={t('category.detail.empty.title')}
+        body={t('category.detail.empty.body')}
+      />
+    </View>
   );
 
   return (
     <View style={[styles.root, { backgroundColor: background, paddingBottom: bottomPadding }]}>
-      {(() => {
+      {isExample
+        ? listOrEmpty
+        : (() => {
         switch (view.kind) {
           case 'loading':
             return <CategoryDetailSkeleton />;
@@ -170,25 +213,7 @@ export default function CategoryDetailModal() {
                 {view.kind === 'stale' ? (
                   <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
                 ) : null}
-                {hasTransactions ? (
-                  <FlatList
-                    data={rows}
-                    keyExtractor={(item: unknown) => (item as Row).id}
-                    contentContainerStyle={styles.listContent}
-                    initialNumToRender={20}
-                    windowSize={10}
-                    removeClippedSubviews={Platform.OS === 'android'}
-                    renderItem={renderItem}
-                  />
-                ) : (
-                  <View style={styles.emptyWrap}>
-                    <EmptyState
-                      icon="chart.bar.fill"
-                      title={t('category.detail.empty.title')}
-                      body={t('category.detail.empty.body')}
-                    />
-                  </View>
-                )}
+                {listOrEmpty}
               </>
             );
         }

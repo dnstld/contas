@@ -1,7 +1,8 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -40,11 +41,13 @@ export default function CategoryFormScreen() {
     type?: TransactionType;
     bridgeId: string;
     editId?: string;
+    prefillName?: string;
   }>();
 
   const bridgeId = params.bridgeId;
   const editId = params.editId ?? null;
   const isEdit = !!editId;
+  const prefillName = params.prefillName ?? null;
 
   const { data: allCategories = [] } = useCategories();
   const editCategory = isEdit ? (allCategories.find((c) => c.id === editId) ?? null) : null;
@@ -61,8 +64,6 @@ export default function CategoryFormScreen() {
     ],
     [t],
   );
-
-  const isLastOfType = allCategories.filter((c) => c.type === type).length <= 1;
 
   const { currency } = useWallet();
   const { formatDecimal, currencySymbol } = useFormatters();
@@ -84,7 +85,7 @@ export default function CategoryFormScreen() {
   const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
   const isPending = isCreating || isUpdating || isDeleting;
 
-  const [name, setName] = useState(editCategory?.name ?? '');
+  const [name, setName] = useState(editCategory?.name ?? prefillName ?? '');
   const [budgetCents, setBudgetCents] = useState(
     editCategory?.monthlyBudget != null ? Math.round(editCategory.monthlyBudget * 100) : 0,
   );
@@ -154,7 +155,7 @@ export default function CategoryFormScreen() {
     }
   };
 
-  const handleDelete = () => {
+  const performDelete = () => {
     if (!editCategory || isPending) return;
     setDeleteWarning(null);
     deleteCategory(editCategory.id, {
@@ -171,11 +172,38 @@ export default function CategoryFormScreen() {
     });
   };
 
-  const canSave = name.trim().length > 0 && !isPending && !demoMode;
+  const handleDelete = () => {
+    if (!editCategory || isPending) return;
+    Alert.alert(
+      t('category.edit.deleteConfirmTitle'),
+      t('category.edit.deleteConfirmMessage'),
+      [
+        { text: t('category.edit.deleteConfirmCancel'), style: 'cancel' },
+        {
+          text: t('category.edit.deleteConfirmAction'),
+          style: 'destructive',
+          onPress: performDelete,
+        },
+      ],
+    );
+  };
+
+  // In edit mode, only allow saving when something actually changed.
+  const originalBudgetCents =
+    editCategory?.monthlyBudget != null ? Math.round(editCategory.monthlyBudget * 100) : 0;
+  const isDirty =
+    !isEdit ||
+    name.trim() !== (editCategory?.name ?? '').trim() ||
+    budgetCents !== originalBudgetCents;
+
+  const canSave = name.trim().length > 0 && isDirty && !isPending && !demoMode;
   const formattedBudget = formatDecimal(budgetCents / 100);
 
   return (
     <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
+      <Stack.Screen
+        options={{ headerTitle: isEdit ? t('category.edit.title') : t('category.create.title') }}
+      />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -186,10 +214,6 @@ export default function CategoryFormScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text variant="subtitle" weight="semibold" style={[styles.title, { color: textColor }]}>
-            {isEdit ? t('category.edit.title') : t('category.create.title')}
-          </Text>
-
           {showTypePicker ? (
             <View style={styles.field}>
               <SegmentedControl options={typeOptions} value={pickedType} onChange={setPickedType} />
@@ -246,32 +270,36 @@ export default function CategoryFormScreen() {
         </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
-          <PressableButton
-            label={isEdit ? t('category.edit.saveButton') : t('category.create.createButton')}
-            variant="primary"
-            size="large"
-            loading={isCreating || isUpdating}
-            disabled={!canSave}
-            onPress={handleSave}
-          />
+          {isEdit && deleteWarning ? (
+            <Text variant="caption" style={[styles.deleteWarning, { color: dangerColor }]}>
+              {deleteWarning}
+            </Text>
+          ) : null}
 
-          {isEdit && !isLastOfType ? (
-            <View style={styles.deleteWrap}>
-              {deleteWarning ? (
-                <Text variant="caption" style={[styles.deleteWarning, { color: dangerColor }]}>
-                  {deleteWarning}
-                </Text>
-              ) : null}
+          <View style={styles.actionRow}>
+            {isEdit ? (
+              <View style={styles.actionItem}>
+                <PressableButton
+                  label={t('category.edit.delete')}
+                  variant="destructive"
+                  size="large"
+                  loading={isDeleting}
+                  disabled={(isPending && !isDeleting) || demoMode}
+                  onPress={handleDelete}
+                />
+              </View>
+            ) : null}
+            <View style={styles.actionItem}>
               <PressableButton
-                label={t('category.edit.delete')}
-                variant="destructive"
+                label={isEdit ? t('category.edit.saveButton') : t('category.create.createButton')}
+                variant="primary"
                 size="large"
-                loading={isDeleting}
-                disabled={(isPending && !isDeleting) || demoMode}
-                onPress={handleDelete}
+                loading={isCreating || isUpdating}
+                disabled={!canSave}
+                onPress={handleSave}
               />
             </View>
-          ) : null}
+          </View>
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -290,10 +318,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 24,
     gap: 20,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 4,
   },
   field: {
     gap: 6,
@@ -318,14 +342,13 @@ const styles = StyleSheet.create({
   },
   budgetSymbol: {
     fontSize: 15,
-    lineHeight: 21,
     includeFontPadding: false,
   },
   budgetInput: {
     flex: 1,
     fontSize: 15,
-    lineHeight: 21,
     padding: 0,
+    includeFontPadding: false,
     textAlignVertical: 'center',
   },
   footer: {
@@ -334,11 +357,15 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  deleteWrap: {
-    marginTop: 12,
-    gap: 8,
+  actionRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionItem: {
+    flex: 1,
   },
   deleteWarning: {
     textAlign: 'center',
+    marginBottom: 12,
   },
 });

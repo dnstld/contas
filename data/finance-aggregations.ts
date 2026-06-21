@@ -17,6 +17,8 @@ export interface DashboardOverviewData {
   revenue?: number;
   expenses?: number;
   net?: number;
+  /** Max `updatedAt` across the wallet's transactions; undefined when the wallet is empty. */
+  lastUpdatedAt?: string;
   // Year mode only:
   timeline?: MonthlyTimelinePoint[];
   currentMonth?: Month;
@@ -314,6 +316,14 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
   };
 }
 
+function lastUpdatedAt(mock: Finance): string | undefined {
+  let max: string | undefined;
+  for (const t of mock.transactions) {
+    if (max === undefined || t.updatedAt > max) max = t.updatedAt;
+  }
+  return max;
+}
+
 export function buildDashboard(
   mock: Finance,
   filter: TimeFilterState,
@@ -321,10 +331,15 @@ export function buildDashboard(
   locale: string = 'en',
 ): DashboardData {
   const year = filter.years[0] ?? now.getFullYear();
-
-  if (filter.all) return buildYearMode(mock, year, now);
-
-  const monthKey: Month = filter.months[0] ?? MONTHS[now.getMonth()]!;
-  const month = MONTHS.indexOf(monthKey);
-  return buildMonthMode(mock, year, month, locale);
+  const base = filter.all
+    ? buildYearMode(mock, year, now)
+    : (() => {
+        const monthKey: Month = filter.months[0] ?? MONTHS[now.getMonth()]!;
+        const month = MONTHS.indexOf(monthKey);
+        return buildMonthMode(mock, year, month, locale);
+      })();
+  return {
+    ...base,
+    overview: { ...base.overview, lastUpdatedAt: lastUpdatedAt(mock) },
+  };
 }

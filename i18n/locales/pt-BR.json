@@ -41,13 +41,13 @@
     "retry": "Tentar novamente"
   },
   "balance": {
-    "empty": {
-      "title": "Nada por aqui ainda",
-      "body": "Ative o Modo demo em Sua conta para ver o Balanço com dados fictícios"
-    },
     "demoBadge": {
       "title": "Modo demo ativado",
       "body": "Os valores exibidos são dados de exemplo. Desative em Sua conta."
+    },
+    "tip": {
+      "title": "Crie o hábito",
+      "body": "Adicione suas transações diariamente para acompanhar seus gastos com mais precisão."
     }
   },
   "transactions": {
@@ -136,12 +136,9 @@
     "revenue": "Receitas",
     "balance": "Saldo",
     "allMonths": "TODOS OS MESES",
-    "modes": {
-      "month": "MÊS",
-      "year": "ANO",
-      "all": "TUDO"
-    },
     "primaryPrefix": "Contas",
+    "lastUpdate": "Última atualização às {{time}}",
+    "addFirstTransaction": "Adicione sua primeira transação",
     "vsPrevious": "vs {{label}}: {{value}}"
   },
   "timeFilter": {
@@ -156,8 +153,7 @@
     },
     "amountPlaceholder": "Valor",
     "dateLabel": "Data",
-    "categoryLabel": "Categoria",
-    "categoryEmpty": "Sem categorias ainda",
+    "categoryEmptyHint": "Toque em Criar para adicionar sua primeira categoria deste tipo.",
     "descriptionLabel": "Descrição",
     "descriptionPlaceholder": "ex: Passagem aérea",
     "descriptionCaption": "Aparece nas transações",
@@ -273,22 +269,40 @@
   "category": {
     "create": {
       "chipLabel": "+ Criar",
+      "chipLabelCategory": "+ Categoria",
       "title": "Nova Categoria",
       "nameLabel": "Nome",
       "namePlaceholder": "ex: Mercado",
       "nameCaption": "Exibido nas transações e relatórios",
       "budgetLabel": "Meta mensal",
-      "budgetCaption": "Opcional — define uma meta mensal de gastos",
+      "budgetCaption": "Defina uma meta mensal para sempre saber quanto ainda dá pra gastar.",
       "createButton": "Criar",
       "creating": "Criando…",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "suggestions": {
+        "expense": {
+          "groceries": "Mercado",
+          "rent": "Aluguel",
+          "pharmacy": "Farmácia",
+          "transport": "Transporte"
+        },
+        "income": {
+          "salary": "Salário",
+          "freelance": "Freelance",
+          "investments": "Investimentos"
+        }
+      }
     },
     "edit": {
       "title": "Editar Categoria",
       "saveButton": "Salvar",
       "saving": "Salvando…",
-      "delete": "Excluir Categoria",
+      "delete": "Excluir",
       "deleting": "Excluindo…",
+      "deleteConfirmTitle": "Excluir esta categoria?",
+      "deleteConfirmMessage": "Não dá pra desfazer.",
+      "deleteConfirmAction": "Excluir",
+      "deleteConfirmCancel": "Cancelar",
       "hasTransactions_one": "Esta categoria tem {{count}} transação. Exclua ou reatribua antes de remover.",
       "hasTransactions_other": "Esta categoria tem {{count}} transações. Exclua ou reatribua antes de remover."
     },
@@ -298,7 +312,9 @@
     "selectedCount_one": "{{count}} selecionada",
     "selectedCount_other": "{{count}} selecionadas",
     "noActivity": "Sem atividade neste período",
+    "exampleBadge": "Exemplo",
     "vsPrevious": "vs {{label}}: {{value}}",
+    "goalOf": "de {{value}}",
     "perYear": "por ano",
     "perMonth": "por mês",
     "empty": {
@@ -314,8 +330,13 @@
     "filter": {
       "all": "Todas"
     },
+    "section": {
+      "expenses": "Para onde vai",
+      "expensesEmpty": "Para onde vai o seu dinheiro",
+      "income": "De onde vem"
+    },
     "sort": {
-      "label": "Ordenar categorias por",
+      "label": "Ordenar por",
       "highestExpense": "Maior despesa",
       "mostUsed": "Mais usadas"
     }

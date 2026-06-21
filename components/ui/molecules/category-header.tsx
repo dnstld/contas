@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { PriceText, type PriceTone } from '@/components/ui/atoms/price-text';
@@ -10,6 +11,10 @@ export interface CategoryHeaderProps {
   currency?: string;
   locale?: string;
   tone?: PriceTone;
+  /** Rendered in the top-right slot in place of the percentage when provided. */
+  badge?: ReactNode;
+  /** Shown next to the amount, e.g. "of 500,00", when the category has a goal. */
+  goalText?: string;
 }
 
 export function CategoryHeader({
@@ -19,6 +24,8 @@ export function CategoryHeader({
   currency = 'USD',
   locale = 'pt-BR',
   tone = 'neutral',
+  badge,
+  goalText,
 }: CategoryHeaderProps) {
   const pctFormatter = new Intl.NumberFormat(locale, {
     style: 'percent',
@@ -31,13 +38,22 @@ export function CategoryHeader({
         <Text variant="body" weight="semibold" numberOfLines={1} style={styles.name}>
           {name}
         </Text>
-        {percentage !== undefined ? (
+        {badge ?? (
+          percentage !== undefined ? (
+            <Text variant="caption" tone="textMuted" weight="medium">
+              {pctFormatter.format(percentage)}
+            </Text>
+          ) : null
+        )}
+      </View>
+      <View style={styles.amountRow}>
+        <PriceText value={total} currency={currency} tone={tone} size="lg" />
+        {goalText ? (
           <Text variant="caption" tone="textMuted" weight="medium">
-            {pctFormatter.format(percentage)}
+            {goalText}
           </Text>
         ) : null}
       </View>
-      <PriceText value={total} currency={currency} tone={tone} size="lg" />
     </View>
   );
 }
@@ -51,6 +67,11 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 8,
+  },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
   },
   name: {
     flex: 1,

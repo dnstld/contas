@@ -1,6 +1,6 @@
 import { Text, type TextProps } from '@/components/ui/atoms/text';
 
-export type PriceTone = 'neutral' | 'positive' | 'negative' | 'auto';
+export type PriceTone = 'neutral' | 'positive' | 'negative' | 'warning' | 'auto';
 export type PriceSize = 'sm' | 'md' | 'lg' | 'xl';
 
 const SIZE_TO_VARIANT: Record<PriceSize, TextProps['variant']> = {
@@ -63,6 +63,8 @@ function toneToColor(tone: Exclude<PriceTone, 'auto'>) {
       return 'positive' as const;
     case 'negative':
       return 'negative' as const;
+    case 'warning':
+      return 'warning' as const;
     case 'neutral':
       return 'text' as const;
     default: {

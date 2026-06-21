@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
@@ -84,6 +84,7 @@ export default function EditScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ headerTitle: t('edit.title') }} />
       {staleBanner}
       <TransactionForm
         submitLabel={t('edit.save')}

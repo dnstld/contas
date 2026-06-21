@@ -52,6 +52,7 @@ const MAPPING = {
   'eye.slash': 'visibility-off',
   'exclamationmark.triangle.fill': 'warning',
   'arrow.clockwise': 'refresh',
+  'hand.tap': 'touch-app',
 } as IconMapping;
 
 /**

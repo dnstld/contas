@@ -27,6 +27,7 @@ export default function ModalsLayout() {
     <Stack
       screenOptions={{
         headerTitle: '',
+        headerTitleAlign: 'center',
         headerBackTitle: '',
         headerShadowVisible: false,
         headerStyle: { backgroundColor: headerBackground },

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -20,7 +19,10 @@ import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
 import { Text } from '@/components/ui/atoms/text';
-import { ChipGroup, type ChipGroupItem } from '@/components/ui/molecules/chip-group';
+import {
+  CategoryPicker,
+  type CategoryPickerItem,
+} from '@/components/ui/organisms/category-picker';
 import { Fonts } from '@/constants/theme';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
@@ -108,7 +110,7 @@ export function TransactionForm({
     [t],
   );
 
-  const categoryItems: ChipGroupItem<string>[] = useMemo(() => {
+  const categoryItems: CategoryPickerItem[] = useMemo(() => {
     // Build per-category stats from transaction history.
     const statsById = new Map<string, { mostRecentYear: number; count: number }>();
     for (const t of transactions) {
@@ -256,33 +258,23 @@ export function TransactionForm({
           </View>
 
           <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('create.categoryLabel').toUpperCase()}
-            </Text>
-            <ChipGroup<string>
-              items={categoryItems}
-              selectedIds={categoryId ? [categoryId] : []}
-              onToggle={(id) => setCategoryId((current) => (current === id ? null : id))}
-              onLongPress={handleCategoryLongPress}
-              multiSelect={false}
-              showCheckWhenSelected
-              leading={
-                <Pressable
-                  onPress={() => router.push(categoryFormHref({ type, bridgeId }))}
-                  style={({ pressed }) => [
-                    styles.newCategoryChip,
-                    { borderColor, opacity: pressed ? 0.6 : 1 },
-                  ]}
-                >
-                  <Text variant="caption" weight="medium" tone="textMuted">
-                    {t('category.create.chipLabel')}
-                  </Text>
-                </Pressable>
+            <CategoryPicker
+              mode="single"
+              title={
+                type === 'income'
+                  ? t('category.section.income')
+                  : t('category.section.expenses')
               }
+              categories={categoryItems}
+              selectedIds={categoryId ? [categoryId] : []}
+              onChange={(next) => setCategoryId(next[0] ?? null)}
+              onCreate={() => router.push(categoryFormHref({ type, bridgeId }))}
+              createLabel={t('category.create.chipLabelCategory')}
+              onEdit={handleCategoryLongPress}
             />
-            {categoryItems.length > 0 ? (
+            {categoryItems.length === 0 ? (
               <Text variant="caption" tone="textMuted">
-                {t('category.pressAndHoldHint')}
+                {t('create.categoryEmptyHint')}
               </Text>
             ) : null}
           </View>
@@ -331,28 +323,30 @@ export function TransactionForm({
             </View>
           ) : null}
 
-          <PressableButton
-            label={submitLabel ?? t('create.save')}
-            iconName="checkmark"
-            variant="primary"
-            size="large"
-            loading={isSubmitting}
-            disabled={!canSubmit}
-            onPress={handleSubmit}
-          />
-
-          {onDelete ? (
-            <View style={styles.deleteWrap}>
+          <View style={styles.actionRow}>
+            {onDelete ? (
+              <View style={styles.actionItem}>
+                <PressableButton
+                  label={deleteLabel ?? t('edit.delete')}
+                  variant="destructive"
+                  size="large"
+                  loading={isDeleting}
+                  disabled={busy && !isDeleting}
+                  onPress={onDelete}
+                />
+              </View>
+            ) : null}
+            <View style={styles.actionItem}>
               <PressableButton
-                label={deleteLabel ?? t('edit.delete')}
-                variant="destructive"
+                label={submitLabel ?? t('create.save')}
+                variant="primary"
                 size="large"
-                loading={isDeleting}
-                disabled={busy && !isDeleting}
-                onPress={onDelete}
+                loading={isSubmitting}
+                disabled={!canSubmit}
+                onPress={handleSubmit}
               />
             </View>
-          ) : null}
+          </View>
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -370,13 +364,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 24,
-    gap: 32,
+    gap: 20,
   },
   footer: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 20,
     borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionItem: {
+    flex: 1,
   },
   typeSelector: {
     alignSelf: 'stretch',
@@ -416,23 +417,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  deleteWrap: {
-    marginTop: 12,
-  },
   errorBanner: {
     marginBottom: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-  },
-  newCategoryChip: {
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

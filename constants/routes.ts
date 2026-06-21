@@ -43,6 +43,7 @@ export function categoryFormHref(args: {
   type?: TransactionType;
   bridgeId: string;
   editId?: string;
+  prefillName?: string;
 }): Href {
   return {
     pathname: '/category-form',
@@ -50,6 +51,7 @@ export function categoryFormHref(args: {
       bridgeId: args.bridgeId,
       ...(args.type ? { type: args.type } : {}),
       ...(args.editId ? { editId: args.editId } : {}),
+      ...(args.prefillName ? { prefillName: args.prefillName } : {}),
     },
   };
 }

@@ -205,7 +205,7 @@ function generateFreelanceAmount(seed: number) {
     return null;
   }
 
-  return formatAmount(randomBetween(75, 600, seed + 99));
+  return formatAmount(randomBetween(75, 600, seed + 99) * DEMO_AMOUNT_SCALE);
 }
 
 // Months in which expenses outpace revenue. The remaining 8 months are surplus.
@@ -229,8 +229,10 @@ const YEAR_INTENSITY: Record<number, number> = {
   [CURRENT_YEAR]: 1.0,
 };
 
+const DEMO_AMOUNT_SCALE = 0.5;
+
 function expenseScale(year: number, month: number): number {
-  return (MONTH_INTENSITY[month] ?? 1) * (YEAR_INTENSITY[year] ?? 1);
+  return (MONTH_INTENSITY[month] ?? 1) * (YEAR_INTENSITY[year] ?? 1) * DEMO_AMOUNT_SCALE;
 }
 
 function sumMonthExpenses(transactions: Transaction[], year: number, month: number): number {
@@ -277,6 +279,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
               recurrence: 'none',
               date: salaryDate.toISOString(),
               createdAt: salaryDate.toISOString(),
+              updatedAt: salaryDate.toISOString(),
               createdByUserId: pickDemoCreator(seed),
             });
           }
@@ -304,6 +307,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
                 recurrence: 'none',
                 date: freelanceDate.toISOString(),
                 createdAt: freelanceDate.toISOString(),
+                updatedAt: freelanceDate.toISOString(),
                 createdByUserId: pickDemoCreator(seed + 20),
               });
             }
@@ -342,6 +346,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
             recurrence: 'none',
             date: transactionDate.toISOString(),
             createdAt: transactionDate.toISOString(),
+            updatedAt: transactionDate.toISOString(),
             createdByUserId: pickDemoCreator(seed + i),
           });
         }
@@ -365,6 +370,7 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
             startDate: scheduledDate.toISOString(),
             nextOccurrence: new Date(year, month + 1, 5).toISOString(),
             createdAt: scheduledDate.toISOString(),
+            updatedAt: scheduledDate.toISOString(),
             createdByUserId: pickDemoCreator(seed + 999),
           });
         }

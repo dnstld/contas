@@ -2,7 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/atoms/text';
-import { CategoryFilter, type CategoryFilterItem } from '@/components/ui/organisms/category-filter';
+import {
+  CategoryPicker,
+  type CategoryPickerItem,
+} from '@/components/ui/organisms/category-picker';
 import { SortMenu, type SortOption } from '@/components/ui/molecules/sort-menu';
 import type { CategorySortMode } from '@/hooks/use-category-grid';
 
@@ -10,10 +13,17 @@ export interface CategoryGridControlsProps {
   sortOptions: readonly SortOption<CategorySortMode>[];
   sort: CategorySortMode;
   onSortChange: (next: CategorySortMode) => void;
-  filterItems?: readonly CategoryFilterItem[];
+  filterItems?: readonly CategoryPickerItem[];
   selectedIds: readonly string[];
   onSelectedChange: (next: readonly string[]) => void;
   onCreateCategory?: () => void;
+  onEditCategory?: (id: string) => void;
+  /** Overrides the picker section title (defaults to "Where it goes"). */
+  title?: string;
+  /** Overrides the create-chip label (defaults to "+ Add"). */
+  createLabel?: string;
+  /** Forces the sort menu's visibility (defaults to: shown when categories exist). */
+  showSort?: boolean;
   summary: string | null;
 }
 
@@ -30,27 +40,39 @@ export function CategoryGridControls({
   selectedIds,
   onSelectedChange,
   onCreateCategory,
+  onEditCategory,
+  title,
+  createLabel,
+  showSort,
   summary,
 }: CategoryGridControlsProps) {
   const { t } = useTranslation();
+  const hasCategories = !!filterItems && filterItems.length > 0;
+  const sortVisible = showSort ?? hasCategories;
   return (
     <View style={styles.container}>
-      {(filterItems && filterItems.length > 0) || onCreateCategory ? (
-        <CategoryFilter
+      {hasCategories || onCreateCategory ? (
+        <CategoryPicker
+          mode="multi"
+          title={title ?? t('category.section.expenses')}
           categories={filterItems ?? []}
           selectedIds={selectedIds}
           onChange={onSelectedChange}
           onCreate={onCreateCategory}
+          createLabel={createLabel}
+          onEdit={onEditCategory}
         />
       ) : null}
-      <View style={styles.controls}>
-        <SortMenu
-          label={t('category.sort.label')}
-          options={sortOptions}
-          value={sort}
-          onChange={onSortChange}
-        />
-      </View>
+      {sortVisible ? (
+        <View style={styles.controls}>
+          <SortMenu
+            label={t('category.sort.label')}
+            options={sortOptions}
+            value={sort}
+            onChange={onSortChange}
+          />
+        </View>
+      ) : null}
       {summary ? (
         <Text variant="caption" tone="textMuted" weight="medium">
           {summary}

@@ -17,8 +17,11 @@ export interface TransactionRowProps {
   transaction: Transaction;
   currency: string;
   creator: TransactionRowCreator | null;
-  /** Receives the transaction id so callers can keep a stable, memoized handler. */
-  onPress: (transactionId: string) => void;
+  /**
+   * Receives the transaction id so callers can keep a stable, memoized handler.
+   * Omit to render the row as non-interactive (e.g. read-only example data).
+   */
+  onPress?: (transactionId: string) => void;
 }
 
 function firstName(name: string): string {
@@ -53,14 +56,14 @@ function TransactionRowImpl({ transaction, currency, creator, onPress }: Transac
     .join(', ');
 
   const handlePress = useCallback(() => {
-    onPress(transaction.id);
+    onPress?.(transaction.id);
   }, [onPress, transaction.id]);
 
   return (
     <SectionListRow
       size="sm"
       density="compact"
-      onPress={handlePress}
+      onPress={onPress ? handlePress : undefined}
       accessibilityLabel={accessibilityLabel}
       leading={creator ? <Avatar url={creator.avatarUrl} name={avatarName} size={36} /> : null}
       title={transaction.categoryName}

@@ -4,6 +4,7 @@ import type {
   TransactionFormValues,
   TransactionType,
 } from '@/components/transactions/transaction-form';
+import type { Category } from '@/data/finance-types';
 import { useAuth } from '@/hooks/use-auth';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { financeKeys } from '@/hooks/use-finance-queries';
@@ -132,10 +133,23 @@ export function useCreateCategory() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      if (walletId) {
-        qc.invalidateQueries({ queryKey: financeKeys.categories(walletId) });
-      }
+    onSuccess: (data, variables) => {
+      if (!walletId) return;
+      // Append to the categories cache immediately so the new card shows without
+      // waiting on a refetch (queries use `staleTime: Infinity`).
+      const created: Category = {
+        id: data.id,
+        name: variables.name,
+        type: variables.type,
+        monthlyBudget:
+          variables.monthlyBudgetCents != null ? variables.monthlyBudgetCents / 100 : undefined,
+        createdAt: new Date().toISOString(),
+      };
+      qc.setQueryData<Category[]>(financeKeys.categories(walletId), (old) =>
+        old ? [...old, created] : [created],
+      );
+      // Reconcile with the server (canonical id, createdAt, ordering).
+      qc.invalidateQueries({ queryKey: financeKeys.all(walletId) });
     },
   });
 }
@@ -175,10 +189,27 @@ export function useUpdateCategory() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      if (walletId) {
-        qc.invalidateQueries({ queryKey: financeKeys.categories(walletId) });
-      }
+    onSuccess: (_data, variables) => {
+      if (!walletId) return;
+      // Update the categories cache directly so the renamed value is reflected
+      // immediately (queries use `staleTime: Infinity`).
+      qc.setQueryData<Category[]>(financeKeys.categories(walletId), (old) =>
+        old?.map((c) =>
+          c.id === variables.id
+            ? {
+                ...c,
+                name: variables.name,
+                monthlyBudget:
+                  variables.monthlyBudgetCents != null
+                    ? variables.monthlyBudgetCents / 100
+                    : undefined,
+              }
+            : c,
+        ),
+      );
+      // Reconcile with the server and refresh transactions (which denormalize
+      // `categoryName`).
+      qc.invalidateQueries({ queryKey: financeKeys.all(walletId) });
     },
   });
 }
@@ -203,10 +234,14 @@ export function useDeleteCategory() {
       if (error) throw error;
       return id;
     },
-    onSuccess: () => {
-      if (walletId) {
-        qc.invalidateQueries({ queryKey: financeKeys.categories(walletId) });
-      }
+    onSuccess: (id) => {
+      if (!walletId) return;
+      // Drop from the categories cache immediately so the card disappears
+      // without waiting on a refetch (queries use `staleTime: Infinity`).
+      qc.setQueryData<Category[]>(financeKeys.categories(walletId), (old) =>
+        old?.filter((c) => c.id !== id),
+      );
+      qc.invalidateQueries({ queryKey: financeKeys.all(walletId) });
     },
   });
 }

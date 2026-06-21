@@ -41,6 +41,7 @@ function adaptTransaction(row: TransactionRow, categoryById: Map<string, Categor
     description: row.description,
     status: row.status === 'scheduled' ? ('scheduled' as const) : ('completed' as const),
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
     createdByUserId: row.created_by ?? null,
   };
   if (recurrence !== 'none') {

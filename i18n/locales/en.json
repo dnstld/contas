@@ -41,13 +41,13 @@
     "retry": "Try again"
   },
   "balance": {
-    "empty": {
-      "title": "Nothing here yet",
-      "body": "Enable Demo mode in Your account to see Overview with sample data"
-    },
     "demoBadge": {
       "title": "Demo mode on",
       "body": "Displayed values are sample data. Disable in Your account."
+    },
+    "tip": {
+      "title": "Build the habit",
+      "body": "Add your transactions daily to track your spending with more accuracy."
     }
   },
   "transactions": {
@@ -136,12 +136,9 @@
     "revenue": "Revenue",
     "balance": "Balance",
     "allMonths": "ALL MONTHS",
-    "modes": {
-      "month": "MONTH",
-      "year": "YEAR",
-      "all": "ALL"
-    },
-    "primaryPrefix": "",
+    "primaryPrefix": "For",
+    "lastUpdate": "Last update at {{time}}",
+    "addFirstTransaction": "Add your first transaction",
     "vsPrevious": "vs {{label}}: {{value}}"
   },
   "timeFilter": {
@@ -156,8 +153,7 @@
     },
     "amountPlaceholder": "Amount",
     "dateLabel": "Date",
-    "categoryLabel": "Category",
-    "categoryEmpty": "No categories yet",
+    "categoryEmptyHint": "Tap Add to create your first category for this type.",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "ex: Airfare",
     "descriptionCaption": "Appears in transactions",
@@ -273,22 +269,40 @@
   "category": {
     "create": {
       "chipLabel": "+ Add",
+      "chipLabelCategory": "+ Category",
       "title": "New Category",
       "nameLabel": "Name",
       "namePlaceholder": "e.g. Groceries",
       "nameCaption": "Shown in transactions and reports",
       "budgetLabel": "Monthly goal",
-      "budgetCaption": "Optional — set a monthly spending goal",
+      "budgetCaption": "Set a monthly goal so you always know how much room you have left to spend.",
       "createButton": "Create",
       "creating": "Creating…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "suggestions": {
+        "expense": {
+          "groceries": "Groceries",
+          "rent": "Rent",
+          "pharmacy": "Pharmacy",
+          "transport": "Transport"
+        },
+        "income": {
+          "salary": "Salary",
+          "freelance": "Freelance",
+          "investments": "Investments"
+        }
+      }
     },
     "edit": {
       "title": "Edit Category",
       "saveButton": "Save",
       "saving": "Saving…",
-      "delete": "Delete category",
+      "delete": "Delete",
       "deleting": "Deleting…",
+      "deleteConfirmTitle": "Delete this category?",
+      "deleteConfirmMessage": "This can't be undone.",
+      "deleteConfirmAction": "Delete",
+      "deleteConfirmCancel": "Cancel",
       "hasTransactions_one": "This category has {{count}} transaction. Remove or reassign it first.",
       "hasTransactions_other": "This category has {{count}} transactions. Remove or reassign them first."
     },
@@ -298,7 +312,9 @@
     "selectedCount_one": "{{count}} selected",
     "selectedCount_other": "{{count}} selected",
     "noActivity": "No activity in this period",
+    "exampleBadge": "Example",
     "vsPrevious": "vs {{label}}: {{value}}",
+    "goalOf": "of {{value}}",
     "perYear": "per year",
     "perMonth": "per month",
     "empty": {
@@ -314,8 +330,13 @@
     "filter": {
       "all": "All"
     },
+    "section": {
+      "expenses": "Where it goes",
+      "expensesEmpty": "Where your money goes",
+      "income": "Where it comes from"
+    },
     "sort": {
-      "label": "Sort categories by",
+      "label": "Sort by",
       "highestExpense": "Highest expense",
       "mostUsed": "Most used"
     }

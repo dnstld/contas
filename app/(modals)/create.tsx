@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -70,6 +70,7 @@ export default function CreateScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ headerTitle: t('create.title') }} />
       <TransactionForm
         isSubmitting={createMutation.isPending}
         errorMessage={errorMessage}

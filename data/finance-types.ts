@@ -23,6 +23,7 @@ type TransactionBase = {
   description: string;
   status: TransactionStatus;
   createdAt: string;
+  updatedAt: string;
   createdByUserId: string | null;
 };
 

@@ -2,6 +2,7 @@ import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Badge } from '@/components/ui/atoms/badge';
 import { Icon, type IconName } from '@/components/ui/atoms/icon';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
@@ -34,6 +35,8 @@ export interface CategoryCardProps {
   data: CategoryCardData;
   currency?: string;
   revenueVisible?: boolean;
+  /** Shows a badge in the header (in place of the percentage), e.g. "Example". */
+  badgeLabel?: string;
   onPress?: (id: string) => void;
   onLongPress?: (id: string) => void;
 }
@@ -42,6 +45,7 @@ function CategoryCardImpl({
   data,
   currency = 'USD',
   revenueVisible = false,
+  badgeLabel,
   onPress,
   onLongPress,
 }: CategoryCardProps) {
@@ -50,9 +54,18 @@ function CategoryCardImpl({
   const { t } = useTranslation();
   const { formatNumber, locale } = useFormatters();
 
-  const overBudget = data.budget != null && data.total > data.budget;
-  const tone = data.budget != null ? (overBudget ? 'negative' : 'positive') : 'neutral';
+  // With a goal: under → green, exactly at the goal → warning, over → red.
+  const tone =
+    data.budget == null
+      ? 'neutral'
+      : data.total > data.budget
+        ? 'negative'
+        : data.total === data.budget
+          ? 'warning'
+          : 'positive';
   const isEmpty = data.total === 0;
+  const goalText =
+    data.budget != null ? t('category.goalOf', { value: formatNumber(data.budget) }) : undefined;
 
   const Body = (
     <Surface variant="plain" bordered padding={14} style={styles.card}>
@@ -70,6 +83,8 @@ function CategoryCardImpl({
             currency={currency}
             locale={locale}
             tone={tone}
+            badge={badgeLabel ? <Badge label={badgeLabel} tone="tint" /> : undefined}
+            goalText={goalText}
           />
         </View>
       </View>
