@@ -2,7 +2,7 @@
  * Domain limits that should not be inlined as magic numbers.
  */
 
-export const MAX_WALLETS_PER_USER = 2;
+export const MAX_WALLETS_PER_USER = 3;
 
 export const TRANSACTION_DESCRIPTION_MAX_LENGTH = 100;
 

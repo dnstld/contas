@@ -23,6 +23,13 @@ export function editTransactionHref(id: string): Href {
   return { pathname: '/edit', params: { id } };
 }
 
+export function redeemCodeHref(code?: string): Href {
+  return {
+    pathname: '/redeem-code',
+    ...(code ? { params: { code } } : {}),
+  };
+}
+
 export function categoryDetailHref(id: string, filter: TimeFilterState): Href {
   return {
     pathname: '/category/[id]',
@@ -52,6 +59,21 @@ export function categoryFormHref(args: {
       ...(args.type ? { type: args.type } : {}),
       ...(args.editId ? { editId: args.editId } : {}),
       ...(args.prefillName ? { prefillName: args.prefillName } : {}),
+    },
+  };
+}
+
+export function categorySelectHref(args: {
+  type: TransactionType;
+  bridgeId: string;
+  selectedId?: string;
+}): Href {
+  return {
+    pathname: '/category-select',
+    params: {
+      type: args.type,
+      bridgeId: args.bridgeId,
+      ...(args.selectedId ? { selectedId: args.selectedId } : {}),
     },
   };
 }

@@ -106,13 +106,40 @@ export default function TransactionsScreen() {
 
   const totalCard = (
     <Surface variant="plain" bordered padding={16} style={styles.totalCard}>
-      <Text variant="caption" tone="textMuted" weight="semibold">
-        {t('transactions.net').toUpperCase()}
-      </Text>
-      <PriceText value={totals.net} currency={currency} locale={locale} tone="neutral" size="xl" />
-      <Text variant="caption" tone="textMuted">
-        {t('transactions.countInPeriod', { count, period: periodLabel })}
-      </Text>
+      <View style={styles.headerRow}>
+        <Text variant="caption" tone="textMuted" weight="semibold" numberOfLines={1}>
+          {periodLabel.toUpperCase()}
+        </Text>
+        <Text variant="caption" tone="textMuted" numberOfLines={1}>
+          {t('transactions.countShort', { count })}
+        </Text>
+      </View>
+      <View style={styles.tilesRow}>
+        <Surface variant="muted" padding={12} style={styles.tile}>
+          <Text variant="caption" tone="textMuted">
+            {t(filterApi.state.all ? 'transactions.spentYear' : 'transactions.spentMonth')}
+          </Text>
+          <PriceText
+            value={totals.expenses}
+            currency={currency}
+            locale={locale}
+            tone="neutral"
+            size="lg"
+          />
+        </Surface>
+        <Surface variant="muted" padding={12} style={styles.tile}>
+          <Text variant="caption" tone="textMuted">
+            {t('transactions.incoming')}
+          </Text>
+          <PriceText
+            value={totals.income}
+            currency={currency}
+            locale={locale}
+            tone="positive"
+            size="lg"
+          />
+        </Surface>
+      </View>
     </Surface>
   );
 
@@ -190,7 +217,21 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   totalCard: {
-    gap: 8,
+    gap: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  tilesRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  tile: {
+    flex: 1,
+    gap: 4,
   },
   listHeader: {
     paddingHorizontal: 16,

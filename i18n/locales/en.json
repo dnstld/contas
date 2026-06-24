@@ -1,6 +1,7 @@
 {
   "common": {
-    "appName": "kontadois",
+    "appName": "Pocko",
+    "appTagline": "Track your everyday spending",
     "add": "Add",
     "cancel": "Cancel",
     "manage": "Manage",
@@ -45,18 +46,20 @@
       "title": "Demo mode on",
       "body": "Displayed values are sample data. Disable in Your account."
     },
-    "tip": {
-      "title": "Build the habit",
-      "body": "Add your transactions daily to track your spending with more accuracy."
+    "welcome": {
+      "title": "Welcome! 👋",
+      "body": "Track your money in one place and get a complete overview of your finances."
     }
   },
   "transactions": {
     "title": "Transactions",
-    "net": "Balance",
     "today": "Today",
     "yesterday": "Yesterday",
-    "countInPeriod_one": "{{count}} transaction in {{period}}",
-    "countInPeriod_other": "{{count}} transactions in {{period}}",
+    "spentMonth": "Spent this month",
+    "spentYear": "Spent this year",
+    "incoming": "Incoming",
+    "countShort_one": "{{count}} transaction",
+    "countShort_other": "{{count}} transactions",
     "createdByYou": "You",
     "empty": {
       "title": "Nothing here",
@@ -65,8 +68,7 @@
   },
   "auth": {
     "welcome": {
-      "title": "Finance for two",
-      "body": "Money flows better together."
+      "body": "See where your money goes, one expense at a time."
     },
     "signInWithGoogle": "Sign in with Google",
     "signOut": "Sign out",
@@ -101,6 +103,14 @@
     },
     "walletsRow": {
       "title": "My wallets"
+    },
+    "accountCards": {
+      "add": "Add account",
+      "transactionsOne": "1 transaction",
+      "transactionsMany": "{{count}} transactions"
+    },
+    "walletCards": {
+      "add": "Add wallet"
     },
     "signOutRow": {
       "title": "Sign out",
@@ -191,7 +201,13 @@
       "codeLabel": "Your invite code",
       "shareCode": "Send invite",
       "codeExpiry": "Expires in 7 days · single use",
+      "shareMessage": "{{inviter}} invited you to share \"{{wallet}}\" on {{app}}.\n\nTap to join: {{link}}\n\nDon't have {{app}} yet? Install it, then enter this code: {{code}}",
+      "shareInviterFallback": "Someone",
+      "shareWalletFallback": "their wallet",
       "redeemTitle": "Join with Invite",
+      "invitedTitle": "You're invited",
+      "previewJoining": "You're joining",
+      "previewSharedBy": "Shared by {{name}}",
       "codeInputPlaceholder": "Paste or type your code",
       "redeemButton": "Join",
       "redeeming": "Joining…",
@@ -317,18 +333,11 @@
     "goalOf": "of {{value}}",
     "perYear": "per year",
     "perMonth": "per month",
-    "empty": {
-      "title": "No categories",
-      "body": "Adjust the filters to see your categories."
-    },
     "detail": {
       "empty": {
         "title": "No transactions",
         "body": "No transactions in this category for the selected period."
       }
-    },
-    "filter": {
-      "all": "All"
     },
     "section": {
       "expenses": "Where it goes",
@@ -340,5 +349,17 @@
       "highestExpense": "Highest expense",
       "mostUsed": "Most used"
     }
+  },
+  "categorySelect": {
+    "title": "Select category",
+    "placeholder": "Select a category",
+    "searchPlaceholder": "Search categories",
+    "groups": {
+      "all": "All categories"
+    },
+    "addButton": "New category",
+    "createNamed": "Create “{{name}}”",
+    "createAndSelect": "Create & select",
+    "empty": "No categories found"
   }
 }

@@ -7,17 +7,15 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text as RNText,
   TextInput,
   View,
 } from 'react-native';
 
+import { CategoryFields } from '@/components/categories/category-fields';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
 import { Text } from '@/components/ui/atoms/text';
 import type { TransactionType } from '@/data/finance-types';
-import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
-import { Fonts } from '@/constants/theme';
 import {
   isCategoryHasTransactionsError,
   useCreateCategory,
@@ -26,11 +24,9 @@ import {
 } from '@/hooks/use-finance-mutations';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCategories } from '@/hooks/use-finance-queries';
-import { useFormatters } from '@/hooks/use-formatters';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useWallet } from '@/hooks/use-wallet';
 import { categoryFormBridge } from '@/utils/modal-bridge';
 import { toast } from '@/utils/toast';
 
@@ -65,19 +61,9 @@ export default function CategoryFormScreen() {
     [t],
   );
 
-  const { currency } = useWallet();
-  const { formatDecimal, currencySymbol } = useFormatters();
-  const symbol = currencySymbol(currency);
-
   const bottomPadding = useModalBottomPadding();
   const backgroundColor = useThemeColor({}, 'modalBackground');
-  const {
-    text: textColor,
-    textMuted: mutedColor,
-    border: borderColor,
-    danger: dangerColor,
-    inputBackground,
-  } = useModalChrome();
+  const { border: borderColor, danger: dangerColor } = useModalChrome();
 
   const { enabled: demoMode } = useDemoMode();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
@@ -109,16 +95,6 @@ export default function CategoryFormScreen() {
       return () => clearTimeout(handle);
     }
   }, [isEdit]);
-
-  const handleBudgetChange = (text: string) => {
-    const digits = text.replace(/\D/g, '');
-    if (digits.length === 0) {
-      setBudgetCents(0);
-      return;
-    }
-    const parsed = Number.parseInt(digits, 10);
-    if (Number.isFinite(parsed)) setBudgetCents(parsed);
-  };
 
   const handleSave = () => {
     const trimmed = name.trim();
@@ -197,7 +173,6 @@ export default function CategoryFormScreen() {
     budgetCents !== originalBudgetCents;
 
   const canSave = name.trim().length > 0 && isDirty && !isPending && !demoMode;
-  const formattedBudget = formatDecimal(budgetCents / 100);
 
   return (
     <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
@@ -220,53 +195,14 @@ export default function CategoryFormScreen() {
             </View>
           ) : null}
 
-          <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('category.create.nameLabel').toUpperCase()}
-            </Text>
-            <TextInput
-              ref={nameInputRef}
-              value={name}
-              onChangeText={setName}
-              placeholder={t('category.create.namePlaceholder')}
-              placeholderTextColor={mutedColor}
-              maxLength={CATEGORY_NAME_MAX_LENGTH}
-              returnKeyType="next"
-              style={[
-                styles.fieldInput,
-                { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
-              ]}
-            />
-            <Text variant="caption" tone="textMuted">
-              {t('category.create.nameCaption')}
-            </Text>
-          </View>
-
-          <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('category.create.budgetLabel').toUpperCase()}
-            </Text>
-            <View style={[styles.budgetRow, { backgroundColor: inputBackground }]}>
-              <RNText style={[styles.budgetSymbol, { color: mutedColor, fontFamily: Fonts.sans }]}>
-                {symbol}
-              </RNText>
-              <TextInput
-                value={formattedBudget}
-                onChangeText={handleBudgetChange}
-                keyboardType="number-pad"
-                inputMode="numeric"
-                returnKeyType="done"
-                onSubmitEditing={handleSave}
-                style={[
-                  styles.budgetInput,
-                  { color: budgetCents > 0 ? textColor : mutedColor, fontFamily: Fonts.sans },
-                ]}
-              />
-            </View>
-            <Text variant="caption" tone="textMuted">
-              {t('category.create.budgetCaption')}
-            </Text>
-          </View>
+          <CategoryFields
+            name={name}
+            onNameChange={setName}
+            budgetCents={budgetCents}
+            onBudgetChange={setBudgetCents}
+            nameInputRef={nameInputRef}
+            onSubmitBudget={handleSave}
+          />
         </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: borderColor }]}>
@@ -321,35 +257,6 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: 6,
-  },
-  label: {
-    letterSpacing: 0.8,
-  },
-  fieldInput: {
-    fontSize: 15,
-    lineHeight: 21,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-  },
-  budgetRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 4,
-  },
-  budgetSymbol: {
-    fontSize: 15,
-    includeFontPadding: false,
-  },
-  budgetInput: {
-    flex: 1,
-    fontSize: 15,
-    padding: 0,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
   },
   footer: {
     paddingHorizontal: 20,

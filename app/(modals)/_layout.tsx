@@ -38,6 +38,7 @@ export default function ModalsLayout() {
       <Stack.Screen name="edit" />
       <Stack.Screen name="category/[id]" />
       <Stack.Screen name="category-form" />
+      <Stack.Screen name="category-select" />
       <Stack.Screen name="edit-display-name" />
       <Stack.Screen name="redeem-code" />
       <Stack.Screen name="wallets" />

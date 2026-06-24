@@ -10,8 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { categoryFormHref } from '@/constants/routes';
-import { transactionDate } from '@/data/finance-types';
+import { categorySelectHref } from '@/constants/routes';
 import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
@@ -19,12 +18,9 @@ import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
 import { Text } from '@/components/ui/atoms/text';
-import {
-  CategoryPicker,
-  type CategoryPickerItem,
-} from '@/components/ui/organisms/category-picker';
+import { CategorySelect } from '@/components/ui/organisms/category-select';
 import { Fonts } from '@/constants/theme';
-import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
+import { useCategories } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
@@ -64,7 +60,6 @@ export function TransactionForm({
   const { t } = useTranslation();
   const router = useRouter();
   const { data: categories = [] } = useCategories();
-  const { data: transactions = [] } = useTransactions();
   const { currency } = useWallet();
   const { formatDecimal } = useFormatters();
   // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
@@ -85,20 +80,12 @@ export function TransactionForm({
   const [date, setDate] = useState<Date>(initialValues?.date ?? new Date());
   const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
   const [description, setDescription] = useState<string>(initialValues?.description ?? '');
-  const [newCategoryId, setNewCategoryId] = useState<string | null>(
-    initialValues?.categoryId ?? null,
-  );
 
   useEffect(() => {
     return categoryFormBridge.subscribe(bridgeId, {
-      created: (id) => {
-        setCategoryId(id);
-        setNewCategoryId(id);
-      },
-      deleted: (id) => {
-        setCategoryId((current) => (current === id ? null : current));
-        setNewCategoryId((current) => (current === id ? null : current));
-      },
+      created: (id) => setCategoryId(id),
+      deleted: (id) => setCategoryId((current) => (current === id ? null : current)),
+      selected: (id) => setCategoryId(id),
     });
   }, [bridgeId]);
 
@@ -110,41 +97,10 @@ export function TransactionForm({
     [t],
   );
 
-  const categoryItems: CategoryPickerItem[] = useMemo(() => {
-    // Build per-category stats from transaction history.
-    const statsById = new Map<string, { mostRecentYear: number; count: number }>();
-    for (const t of transactions) {
-      const year = new Date(transactionDate(t)).getFullYear();
-      const s = statsById.get(t.categoryId);
-      if (!s) {
-        statsById.set(t.categoryId, { mostRecentYear: year, count: 1 });
-      } else {
-        s.count += 1;
-        if (year > s.mostRecentYear) s.mostRecentYear = year;
-      }
-    }
-
-    const items = categories
-      .filter((c) => c.type === type)
-      .map((c) => ({ id: c.id, label: c.name }))
-      .sort((a, b) => {
-        const sa = statsById.get(a.id) ?? { mostRecentYear: 0, count: 0 };
-        const sb = statsById.get(b.id) ?? { mostRecentYear: 0, count: 0 };
-        if (sb.mostRecentYear !== sa.mostRecentYear) return sb.mostRecentYear - sa.mostRecentYear;
-        return sb.count - sa.count;
-      });
-
-    // Pin the selected/newly-created category to slot 0.
-    if (newCategoryId) {
-      const idx = items.findIndex((i) => i.id === newCategoryId);
-      if (idx > 0) {
-        const [picked] = items.splice(idx, 1);
-        if (picked) items.unshift(picked);
-      }
-    }
-
-    return items;
-  }, [categories, transactions, type, newCategoryId]);
+  const selectedCategoryName = categoryId
+    ? (categories.find((c) => c.id === categoryId)?.name ?? null)
+    : null;
+  const hasCategoriesForType = categories.some((c) => c.type === type);
 
   const formattedAmount = formatDecimal(amountCents / 100);
 
@@ -182,16 +138,9 @@ export function TransactionForm({
     }
   };
 
-  const handleCategoryLongPress = (id: string) => {
-    const cat = categories.find((c) => c.id === id);
-    if (!cat) return;
-    router.push(categoryFormHref({ type, bridgeId, editId: cat.id }));
-  };
-
   const handleTypeChange = (next: TransactionType) => {
     setType(next);
     setCategoryId(null);
-    setNewCategoryId(null);
   };
 
   const busy = isSubmitting || isDeleting;
@@ -258,21 +207,21 @@ export function TransactionForm({
           </View>
 
           <View style={styles.field}>
-            <CategoryPicker
-              mode="single"
+            <CategorySelect
               title={
                 type === 'income'
                   ? t('category.section.income')
                   : t('category.section.expenses')
               }
-              categories={categoryItems}
-              selectedIds={categoryId ? [categoryId] : []}
-              onChange={(next) => setCategoryId(next[0] ?? null)}
-              onCreate={() => router.push(categoryFormHref({ type, bridgeId }))}
-              createLabel={t('category.create.chipLabelCategory')}
-              onEdit={handleCategoryLongPress}
+              selectedLabel={selectedCategoryName}
+              placeholder={t('categorySelect.placeholder')}
+              onPress={() =>
+                router.push(
+                  categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }),
+                )
+              }
             />
-            {categoryItems.length === 0 ? (
+            {!hasCategoriesForType ? (
               <Text variant="caption" tone="textMuted">
                 {t('create.categoryEmptyHint')}
               </Text>

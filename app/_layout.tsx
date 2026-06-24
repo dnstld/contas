@@ -1,12 +1,14 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
+import * as Linking from 'expo-linking';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ErrorFallback } from '@/components/error-fallback';
-import { ROUTES } from '@/constants/routes';
+import { ROUTES, redeemCodeHref } from '@/constants/routes';
+import { setPendingInvitation, takePendingInvitation } from '@/utils/pending-invitation';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFinanceRealtime, useWalletRealtime } from '@/hooks/use-finance-realtime';
@@ -28,6 +30,8 @@ function RootStack() {
   const { loading: walletLoading } = useWallet();
   const segments = useSegments();
   const router = useRouter();
+  const url = Linking.useURL();
+  const pendingHandledRef = useRef(false);
 
   useFinanceRealtime();
   useWalletRealtime();
@@ -35,6 +39,16 @@ function RootStack() {
   useClearCacheOnSignOut();
 
   const booting = authLoading || (!!session && walletLoading);
+
+  // A `redeem-code` deep link that lands while signed out would lose its
+  // `?code=` param when the auth gate redirects to sign-in. Stash it so we
+  // can replay it once a session exists.
+  useEffect(() => {
+    if (!url || session) return;
+    const { queryParams } = Linking.parse(url);
+    const code = typeof queryParams?.code === 'string' ? queryParams.code : null;
+    if (code && url.includes('redeem-code')) setPendingInvitation(code);
+  }, [url, session]);
 
   useEffect(() => {
     if (booting) return;
@@ -45,6 +59,15 @@ function RootStack() {
       router.replace(ROUTES.home);
     }
   }, [session, booting, segments, router]);
+
+  // Once signed in, replay any invite code captured while signed out.
+  useEffect(() => {
+    if (booting || !session || pendingHandledRef.current) return;
+    pendingHandledRef.current = true;
+    takePendingInvitation().then((code) => {
+      if (code) router.push(redeemCodeHref(code));
+    });
+  }, [booting, session, router]);
 
   const onRootLayout = useCallback(() => {
     SplashScreen.hideAsync().catch(() => {});

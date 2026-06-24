@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Surface, Text } from '@/components/ui';
+import { inviteLinkUrl } from '@/constants/invite';
+import { useMyProfile } from '@/hooks/use-my-profile';
+import { useWallet } from '@/hooks/use-wallet';
 import { useCreateInvitation } from '@/hooks/use-wallet-invitation';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { captureError } from '@/utils/monitoring';
@@ -11,6 +14,9 @@ export function InvitationSection() {
   const { t } = useTranslation();
   const [code, setCode] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState(false);
+
+  const { name: walletName } = useWallet();
+  const { displayName } = useMyProfile();
 
   const accentColor = useThemeColor({}, 'tint');
   const dangerColor = useThemeColor({}, 'negative');
@@ -32,7 +38,17 @@ export function InvitationSection() {
 
   const handleShare = async () => {
     if (!code) return;
-    await Share.share({ message: code });
+    // Prefer the hosted https redirect (tappable in chat apps); falls back to
+    // the raw `contas://` deep link until the redirect page is configured.
+    const link = inviteLinkUrl(code);
+    const message = t('wallet.invitation.shareMessage', {
+      inviter: displayName ?? t('wallet.invitation.shareInviterFallback'),
+      wallet: walletName ?? t('wallet.invitation.shareWalletFallback'),
+      app: t('common.appName'),
+      link,
+      code,
+    });
+    await Share.share({ message });
   };
 
   return (

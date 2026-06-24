@@ -305,6 +305,14 @@ export type Database = {
         Returns: string;
       };
       is_wallet_member: { Args: { wid: string }; Returns: boolean };
+      peek_wallet_invitation: {
+        Args: { p_code: string };
+        Returns: {
+          wallet_name: string;
+          inviter_name: string | null;
+          expired: boolean;
+        }[];
+      };
       redeem_wallet_invitation: { Args: { p_code: string }; Returns: string };
       request_or_delete_wallet: {
         Args: { p_wallet_id: string };

@@ -20,7 +20,11 @@ export const NotificationBanner = React.memo<NotificationBannerProps>(({
       accessibilityRole="alert"
       accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
     >
-      {showIllustration && <Logo size="small" />}
+      {showIllustration && (
+        <View style={styles.illustration}>
+          <Logo size="small" />
+        </View>
+      )}
 
       <View style={styles.content}>
         <Text variant="subtitle" weight="bold" numberOfLines={2}>
@@ -45,6 +49,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+  },
+  illustration: {
+    // The logo SVG carries ~10-12px of transparent whitespace on its left and
+    // right; crop it so the illustration sits flush with the banner padding/text.
+    marginLeft: -10,
+    marginRight: -8,
   },
   content: {
     flex: 1,

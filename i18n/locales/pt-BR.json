@@ -1,6 +1,7 @@
 {
   "common": {
-    "appName": "kontadois",
+    "appName": "Pocko",
+    "appTagline": "Acompanhe seus gastos do dia a dia",
     "add": "Lançar",
     "cancel": "Cancelar",
     "manage": "Gerenciar",
@@ -45,18 +46,20 @@
       "title": "Modo demo ativado",
       "body": "Os valores exibidos são dados de exemplo. Desative em Sua conta."
     },
-    "tip": {
-      "title": "Crie o hábito",
-      "body": "Adicione suas transações diariamente para acompanhar seus gastos com mais precisão."
+    "welcome": {
+      "title": "Boas-vindas! 👋",
+      "body": "Acompanhe seu dinheiro em um só lugar e tenha uma visão completa das suas finanças."
     }
   },
   "transactions": {
     "title": "Transações",
-    "net": "Saldo",
     "today": "Hoje",
     "yesterday": "Ontem",
-    "countInPeriod_one": "{{count}} transação em {{period}}",
-    "countInPeriod_other": "{{count}} transações em {{period}}",
+    "spentMonth": "Gasto este mês",
+    "spentYear": "Gasto este ano",
+    "incoming": "Entradas",
+    "countShort_one": "{{count}} transação",
+    "countShort_other": "{{count}} transações",
     "createdByYou": "Você",
     "empty": {
       "title": "Nada aqui",
@@ -65,8 +68,7 @@
   },
   "auth": {
     "welcome": {
-      "title": "Finanças a dois",
-      "body": "Juntos, o dinheiro flui melhor."
+      "body": "Veja para onde seu dinheiro vai, um gasto de cada vez."
     },
     "signInWithGoogle": "Entrar com o Google",
     "signOut": "Sair",
@@ -101,6 +103,14 @@
     },
     "walletsRow": {
       "title": "Minhas Carteiras"
+    },
+    "accountCards": {
+      "add": "Adicionar conta",
+      "transactionsOne": "1 transação",
+      "transactionsMany": "{{count}} transações"
+    },
+    "walletCards": {
+      "add": "Adicionar carteira"
     },
     "signOutRow": {
       "title": "Sair",
@@ -191,7 +201,13 @@
       "codeLabel": "Seu código de convite",
       "shareCode": "Enviar convite",
       "codeExpiry": "Expira em 7 dias · uso único",
+      "shareMessage": "{{inviter}} convidou você para dividir \"{{wallet}}\" no {{app}}.\n\nToque para entrar: {{link}}\n\nAinda não tem o {{app}}? Instale e depois use este código: {{code}}",
+      "shareInviterFallback": "Alguém",
+      "shareWalletFallback": "uma carteira",
       "redeemTitle": "Entrar com convite",
+      "invitedTitle": "Você foi convidado",
+      "previewJoining": "Você vai entrar em",
+      "previewSharedBy": "Compartilhado por {{name}}",
       "codeInputPlaceholder": "Cole ou digite seu código",
       "redeemButton": "Entrar",
       "redeeming": "Entrando…",
@@ -317,18 +333,11 @@
     "goalOf": "de {{value}}",
     "perYear": "por ano",
     "perMonth": "por mês",
-    "empty": {
-      "title": "Nenhuma categoria",
-      "body": "Ajuste os filtros para ver suas categorias."
-    },
     "detail": {
       "empty": {
         "title": "Nenhuma transação",
         "body": "Sem transações nesta categoria no período selecionado."
       }
-    },
-    "filter": {
-      "all": "Todas"
     },
     "section": {
       "expenses": "Para onde vai",
@@ -340,5 +349,17 @@
       "highestExpense": "Maior despesa",
       "mostUsed": "Mais usadas"
     }
+  },
+  "categorySelect": {
+    "title": "Selecionar categoria",
+    "placeholder": "Selecione uma categoria",
+    "searchPlaceholder": "Buscar categorias",
+    "groups": {
+      "all": "Todas as categorias"
+    },
+    "addButton": "Nova categoria",
+    "createNamed": "Criar “{{name}}”",
+    "createAndSelect": "Criar e selecionar",
+    "empty": "Nenhuma categoria encontrada"
   }
 }

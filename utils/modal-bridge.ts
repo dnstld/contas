@@ -24,6 +24,7 @@ function createChannel<Events extends Record<string, unknown>>() {
 export const categoryFormBridge = createChannel<{
   created: string;
   deleted: string;
+  selected: string;
 }>();
 
 export function makeBridgeId(): string {

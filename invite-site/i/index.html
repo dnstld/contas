@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Join on Pocko</title>
+    <meta name="robots" content="noindex" />
+    <!-- Open Graph so the link shows a nice card in chat apps -->
+    <meta property="og:title" content="You're invited to share a wallet on Pocko" />
+    <meta property="og:description" content="Tap to join and track everyday spending together." />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f0d;
+        --card: #15201a;
+        --text: #f5f7f6;
+        --muted: #9aa6a0;
+        --accent: #22c55e;
+        --accent-text: #06140b;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      main {
+        width: 100%;
+        max-width: 380px;
+        text-align: center;
+      }
+      h1 { font-size: 22px; margin: 0 0 8px; }
+      p { color: var(--muted); line-height: 1.5; margin: 8px 0; }
+      .btn {
+        display: block;
+        margin: 20px 0 8px;
+        padding: 14px 20px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--accent-text);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .stores { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+      .store {
+        flex: 1;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #2a3a32;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      code {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: var(--card);
+        letter-spacing: 1.5px;
+        font-size: 14px;
+      }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>You're invited to Pocko</h1>
+      <p>Opening the app to join…</p>
+      <a id="open" class="btn" href="#">Open Pocko</a>
+      <p id="fallback" class="hidden">Don't have Pocko yet?</p>
+      <div id="stores" class="stores hidden">
+        <a id="ios" class="store" href="#">App Store</a>
+        <a id="android" class="store" href="#">Google Play</a>
+      </div>
+      <p id="manual" class="hidden">Or open Pocko and enter this code:<br /><code id="code"></code></p>
+    </main>
+
+    <script>
+      // TODO: replace with the real store listings once Pocko is published.
+      var STORE_IOS = 'https://apps.apple.com/app/idXXXXXXXXX';
+      var STORE_ANDROID = 'https://play.google.com/store/apps/details?id=com.dnstld.contas';
+
+      var params = new URLSearchParams(location.search);
+      var code = (params.get('code') || '').trim();
+      var deepLink = 'contas://redeem-code?code=' + encodeURIComponent(code);
+
+      var openEl = document.getElementById('open');
+      openEl.setAttribute('href', deepLink);
+      document.getElementById('ios').setAttribute('href', STORE_IOS);
+      document.getElementById('android').setAttribute('href', STORE_ANDROID);
+      document.getElementById('code').textContent = code;
+
+      // Try to bounce straight into the app.
+      if (code) {
+        setTimeout(function () { window.location.href = deepLink; }, 300);
+      }
+
+      // If we're still here after a moment, the app probably isn't installed —
+      // reveal the store + manual-code fallbacks.
+      setTimeout(function () {
+        document.getElementById('fallback').classList.remove('hidden');
+        document.getElementById('stores').classList.remove('hidden');
+        if (code) document.getElementById('manual').classList.remove('hidden');
+      }, 1500);
+    </script>
+  </body>
+</html>

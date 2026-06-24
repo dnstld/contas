@@ -12,7 +12,6 @@ import { Divider } from '@/components/ui/atoms/divider';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
 import { SectionHeader } from '@/components/ui/molecules/section-header';
-import { useThemeColor } from '@/hooks/use-theme-color';
 
 export type SectionListVariant = 'card' | 'flat';
 
@@ -49,10 +48,9 @@ export interface SectionListProps<T> {
 }
 
 function FlatSectionHeader({ title }: { title?: string }) {
-  const background = useThemeColor({}, 'background');
   if (!title) return null;
   return (
-    <View style={[flatStyles.header, { backgroundColor: background }]}>
+    <View style={flatStyles.header}>
       <Text variant="caption" tone="textMuted" weight="semibold">
         {title.toUpperCase()}
       </Text>

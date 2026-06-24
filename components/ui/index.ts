@@ -49,8 +49,10 @@ export {
 export { CategoryCard } from './organisms/category-card';
 export { CategoryGridControls } from './organisms/category-grid';
 export { CategoryPicker } from './organisms/category-picker';
+export { CategorySelect } from './organisms/category-select';
 export { FinanceTimeFilter } from './organisms/finance-time-filter';
 export { MonthlyTimeline } from './organisms/monthly-timeline';
 export { Overview } from './organisms/overview';
 export { SectionList } from './organisms/section-list';
+export { AddSquareCard, SquareCard } from './organisms/square-card';
 export { TimeFilterBar } from './organisms/time-filter-bar';

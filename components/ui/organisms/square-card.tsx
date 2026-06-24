@@ -1,0 +1,143 @@
+import { memo, useCallback } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+
+import { Avatar } from '@/components/ui/atoms/avatar';
+import { Icon } from '@/components/ui/atoms/icon';
+import { Surface } from '@/components/ui/atoms/surface';
+import { Text } from '@/components/ui/atoms/text';
+import { useThemeColor } from '@/hooks/use-theme-color';
+
+/** Fixed edge length shared by entity and add cards so rows stay aligned. */
+export const SQUARE_CARD_SIZE = 116;
+
+export interface SquareCardProps {
+  /** Primary line (display name / wallet name). */
+  name: string;
+  /** Secondary line (email-replacement count, currency · members, …). */
+  subtitle?: string | null;
+  /** Remote avatar image. Falls back to initials from `avatarName ?? name`. */
+  avatarUrl?: string | null;
+  avatarName?: string | null;
+  /** Highlights the card with a tint border (e.g. the active wallet). */
+  active?: boolean;
+  onPress?: () => void;
+}
+
+function SquareCardImpl({
+  name,
+  subtitle,
+  avatarUrl,
+  avatarName,
+  active = false,
+  onPress,
+}: SquareCardProps) {
+  const tint = useThemeColor({}, 'tint');
+  const border = useThemeColor({}, 'border');
+
+  const body = (
+    <Surface
+      variant="plain"
+      padding={12}
+      radius={14}
+      style={[styles.card, { borderColor: active ? tint : border }]}
+    >
+      <Avatar url={avatarUrl} name={avatarName ?? name} size={40} />
+      <View style={styles.text}>
+        <Text variant="body" weight="semibold" numberOfLines={1} ellipsizeMode="tail">
+          {name}
+        </Text>
+        {subtitle ? (
+          <Text variant="caption" tone="textMuted" numberOfLines={1} ellipsizeMode="tail">
+            {subtitle}
+          </Text>
+        ) : null}
+      </View>
+    </Surface>
+  );
+
+  const handlePress = useCallback(() => {
+    onPress?.();
+  }, [onPress]);
+
+  if (!onPress) return body;
+
+  return (
+    <Pressable onPress={handlePress} style={({ pressed }) => (pressed ? styles.pressed : null)}>
+      {body}
+    </Pressable>
+  );
+}
+
+export const SquareCard = memo(SquareCardImpl);
+
+export interface AddSquareCardProps {
+  label: string;
+  onPress?: () => void;
+  /** Renders a locked state (lock icon + muted label) and ignores `onPress`. */
+  locked?: boolean;
+  lockedLabel?: string;
+}
+
+function AddSquareCardImpl({ label, onPress, locked = false, lockedLabel }: AddSquareCardProps) {
+  const border = useThemeColor({}, 'border');
+  const muted = useThemeColor({}, 'textMuted');
+
+  const body = (
+    <View style={[styles.addCard, { borderColor: border }]}>
+      {locked ? (
+        <>
+          <Icon name="lock.fill" size={20} color={muted} />
+          <Text variant="caption" tone="textMuted" weight="medium" style={styles.addLabel}>
+            {lockedLabel ?? label}
+          </Text>
+        </>
+      ) : (
+        <>
+          <Icon name="plus" size={22} color={muted} />
+          <Text variant="caption" tone="textMuted" weight="medium" style={styles.addLabel}>
+            {label}
+          </Text>
+        </>
+      )}
+    </View>
+  );
+
+  if (locked || !onPress) return body;
+
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => (pressed ? styles.pressed : null)}>
+      {body}
+    </Pressable>
+  );
+}
+
+export const AddSquareCard = memo(AddSquareCardImpl);
+
+const styles = StyleSheet.create({
+  card: {
+    width: SQUARE_CARD_SIZE,
+    height: SQUARE_CARD_SIZE,
+    borderWidth: 2,
+    justifyContent: 'space-between',
+  },
+  text: {
+    gap: 2,
+  },
+  addCard: {
+    width: SQUARE_CARD_SIZE,
+    height: SQUARE_CARD_SIZE,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 8,
+  },
+  addLabel: {
+    textAlign: 'center',
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+});

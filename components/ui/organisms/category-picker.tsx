@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
@@ -10,8 +9,6 @@ import { ChipGroup, type ChipGroupItem } from '@/components/ui/molecules/chip-gr
 export type CategoryPickerItem = ChipGroupItem<string>;
 
 export type CategoryPickerMode = 'single' | 'multi';
-
-const ALL_ID = '__all__';
 
 export interface CategoryPickerProps {
   mode: CategoryPickerMode;
@@ -39,23 +36,8 @@ export function CategoryPicker({
 }: CategoryPickerProps) {
   const { t } = useTranslation();
 
-  const items = useMemo<readonly CategoryPickerItem[]>(
-    () =>
-      mode === 'multi'
-        ? [{ id: ALL_ID, label: t('category.filter.all') }, ...categories]
-        : categories,
-    [categories, mode, t],
-  );
-
-  const effectiveSelected =
-    mode === 'multi' && selectedIds.length === 0 ? [ALL_ID] : selectedIds;
-
   const handleToggle = (id: string) => {
     if (mode === 'multi') {
-      if (id === ALL_ID) {
-        onChange([]);
-        return;
-      }
       const exists = selectedIds.includes(id);
       onChange(exists ? selectedIds.filter((s) => s !== id) : [...selectedIds, id]);
       return;
@@ -63,13 +45,6 @@ export function CategoryPicker({
     // single
     onChange(selectedIds[0] === id ? [] : [id]);
   };
-
-  const handleLongPress = onEdit
-    ? (id: string) => {
-        if (id === ALL_ID) return;
-        onEdit(id);
-      }
-    : undefined;
 
   const showHint = !!onEdit && categories.length > 0;
 
@@ -102,14 +77,14 @@ export function CategoryPicker({
         </Text>
       ) : null}
       <ChipGroup
-        items={items}
-        selectedIds={effectiveSelected}
+        items={categories}
+        selectedIds={selectedIds}
         multiSelect={mode === 'multi'}
         selectedVariant="primary"
         unselectedVariant="default"
         showCheckWhenSelected={mode === 'single'}
         onToggle={handleToggle}
-        onLongPress={handleLongPress}
+        onLongPress={onEdit}
         trailing={trailing}
         contentStyle={styles.chipRow}
       />
