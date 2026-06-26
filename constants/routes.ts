@@ -16,18 +16,11 @@ export const ROUTES = {
   home: '/(tabs)/(status)' satisfies Href,
   createTransaction: '/create' satisfies Href,
   editDisplayName: '/edit-display-name' satisfies Href,
-  redeemCode: '/redeem-code' satisfies Href,
+  inviteMember: '/invite-member' satisfies Href,
 } as const;
 
 export function editTransactionHref(id: string): Href {
   return { pathname: '/edit', params: { id } };
-}
-
-export function redeemCodeHref(code?: string): Href {
-  return {
-    pathname: '/redeem-code',
-    ...(code ? { params: { code } } : {}),
-  };
 }
 
 export function categoryDetailHref(id: string, filter: TimeFilterState): Href {
@@ -44,6 +37,10 @@ export function categoryDetailHref(id: string, filter: TimeFilterState): Href {
 
 export function walletsHref(): Href {
   return { pathname: '/wallets' };
+}
+
+export function editWalletNameHref(id: string): Href {
+  return { pathname: '/edit-wallet-name', params: { id } };
 }
 
 export function categoryFormHref(args: {

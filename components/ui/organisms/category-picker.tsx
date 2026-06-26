@@ -54,7 +54,8 @@ export function CategoryPicker({
         {onCreate ? (
           <Chip
             label={createLabel ?? t('category.create.chipLabel')}
-            variant="default"
+            variant="primary"
+            accent
             onPress={onCreate}
           />
         ) : null}

@@ -1,6 +1,6 @@
-# Pocko
+# Spendspacey
 
-> Track your everyday spending
+> Everyday spending, your space
 
 A personal-and-shared finance app built with Expo Router (file-based routing), Supabase (Postgres + Auth + RLS), and a SwiftUI/Jetpack-Compose-aware design system. The architecture supports shared wallets — one wallet can have multiple members (couple / family finance) — gated behind Google sign-in with per-row row-level security.
 

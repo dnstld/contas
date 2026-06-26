@@ -5,6 +5,7 @@ import { Text } from '@/components/ui/atoms/text';
 import { ListCardRow } from '@/components/ui/molecules/list-card-row';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { withAlpha } from '@/utils/color';
+import { useAuth } from '@/hooks/use-auth';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 import { useLeaveWallet } from '@/hooks/use-leave-wallet';
@@ -22,6 +23,7 @@ interface DangerZoneProps {
 
 export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZoneProps) {
   const { t } = useTranslation();
+  const { signOut } = useAuth();
   const { walletId } = useWallet();
 
   const { data: wallets = [] } = useWalletList();
@@ -43,6 +45,17 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
   const onPrimary = useThemeColor({}, 'onPrimary');
 
   const displayPartner = partnerName ?? t('wallet.partner.unnamed');
+
+  function handleSignOut() {
+    Alert.alert(t('settings.signOutRow.title'), t('settings.signOutRow.description'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('profile.actions.signOut'),
+        style: 'destructive',
+        onPress: () => void signOut(),
+      },
+    ]);
+  }
 
   function handleLeave() {
     Alert.alert(t('wallet.leave.confirmTitle'), t('wallet.leave.confirmBody'), [
@@ -117,6 +130,30 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
       </Text>
 
       <View style={[styles.card, { borderColor: withAlpha(dangerColor, 0.27) }]}>
+        {/* Sign out — always available */}
+        <ListCardRow
+          size="sm"
+          density="comfortable"
+          style={styles.rowPadding}
+          title={t('settings.signOutRow.title')}
+          subtitle={t('settings.signOutRow.description')}
+          trailing={
+            <Pressable
+              onPress={handleSignOut}
+              style={({ pressed }) => [
+                styles.actionBtn,
+                { borderColor: dangerColor, opacity: pressed ? 0.5 : 1 },
+              ]}
+            >
+              <Text variant="caption" weight="semibold" style={{ color: dangerColor }}>
+                {t('profile.actions.signOut')}
+              </Text>
+            </Pressable>
+          }
+        />
+
+        <View style={[styles.divider, { backgroundColor: withAlpha(dangerColor, 0.13) }]} />
+
         {/* Leave wallet — only shown when there is a partner AND the user has another wallet to fall back to */}
         {hasParter && wallets.length > 1 && (
           <>

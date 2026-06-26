@@ -42,7 +42,6 @@ function TransactionRowImpl({ transaction, currency, creator, onPress }: Transac
   const { locale } = useFormatters();
   const { t } = useTranslation();
   const isIncome = transaction.type === 'income';
-  const signedAmount = isIncome ? transaction.amount : -transaction.amount;
 
   const description = transaction.description?.trim() ?? '';
   const hasDescription = description.length > 0;
@@ -65,18 +64,17 @@ function TransactionRowImpl({ transaction, currency, creator, onPress }: Transac
       density="compact"
       onPress={onPress ? handlePress : undefined}
       accessibilityLabel={accessibilityLabel}
-      leading={creator ? <Avatar url={creator.avatarUrl} name={avatarName} size={36} /> : null}
+      leading={creator ? <Avatar url={creator.avatarUrl} name={avatarName} size="sm" /> : null}
       title={transaction.categoryName}
       text1={creatorLabel}
       subtitle={hasDescription ? description : null}
       text2={
         <PriceText
-          value={signedAmount}
+          value={transaction.amount}
           currency={currency}
           locale={locale}
           tone={isIncome ? 'positive' : 'neutral'}
           size="md"
-          showSign
         />
       }
     />

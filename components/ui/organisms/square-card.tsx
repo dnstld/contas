@@ -2,7 +2,9 @@ import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar } from '@/components/ui/atoms/avatar';
+import { type AvatarBadgeVariant } from '@/components/ui/atoms/avatar-badge';
 import { Icon } from '@/components/ui/atoms/icon';
+import { Skeleton } from '@/components/ui/atoms/skeleton';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -20,6 +22,12 @@ export interface SquareCardProps {
   avatarName?: string | null;
   /** Highlights the card with a tint border (e.g. the active wallet). */
   active?: boolean;
+  /**
+   * Corner badge overlaid on the avatar.
+   * - `edit` → pencil, signalling the card is editable.
+   * - `pending` → warning hourglass, a sent invitation awaiting acceptance.
+   */
+  badge?: AvatarBadgeVariant;
   onPress?: () => void;
 }
 
@@ -29,6 +37,7 @@ function SquareCardImpl({
   avatarUrl,
   avatarName,
   active = false,
+  badge,
   onPress,
 }: SquareCardProps) {
   const tint = useThemeColor({}, 'tint');
@@ -41,7 +50,9 @@ function SquareCardImpl({
       radius={14}
       style={[styles.card, { borderColor: active ? tint : border }]}
     >
-      <Avatar url={avatarUrl} name={avatarName ?? name} size={40} />
+      <View style={styles.topRow}>
+        <Avatar url={avatarUrl} name={avatarName ?? name} badge={badge} />
+      </View>
       <View style={styles.text}>
         <Text variant="body" weight="semibold" numberOfLines={1} ellipsizeMode="tail">
           {name}
@@ -113,12 +124,21 @@ function AddSquareCardImpl({ label, onPress, locked = false, lockedLabel }: AddS
 
 export const AddSquareCard = memo(AddSquareCardImpl);
 
+/** Card-shaped placeholder matching `SquareCard`'s footprint, for loading rows. */
+export function SquareCardSkeleton() {
+  return <Skeleton width={SQUARE_CARD_SIZE} height={SQUARE_CARD_SIZE} borderRadius={14} />;
+}
+
 const styles = StyleSheet.create({
   card: {
     width: SQUARE_CARD_SIZE,
     height: SQUARE_CARD_SIZE,
     borderWidth: 2,
     justifyContent: 'space-between',
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   text: {
     gap: 2,

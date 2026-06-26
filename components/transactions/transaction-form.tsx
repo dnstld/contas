@@ -1,23 +1,15 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { categorySelectHref } from '@/constants/routes';
-import { useHeaderHeight } from '@/hooks/use-header-height';
-import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
 import { Text } from '@/components/ui/atoms/text';
+import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { CategorySelect } from '@/components/ui/organisms/category-select';
 import { Fonts } from '@/constants/theme';
 import { useCategories } from '@/hooks/use-finance-queries';
@@ -65,13 +57,9 @@ export function TransactionForm({
   // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
   // access during render) and gives us a one-time value identical to a ref.
   const [bridgeId] = useState(() => makeBridgeId());
-  const bottomPadding = useModalBottomPadding();
-  const headerHeight = useHeaderHeight();
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
-  const backgroundColor = useThemeColor({}, 'modalBackground');
-  const borderColor = useThemeColor({}, 'border');
   const dangerColor = useThemeColor({}, 'negative');
   const surfaceMutedColor = useThemeColor({}, 'surfaceMuted');
 
@@ -158,107 +146,9 @@ export function TransactionForm({
   };
 
   return (
-    <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
-      >
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.typeSelector}>
-            <SegmentedControl<TransactionType>
-              options={typeOptions}
-              value={type}
-              onChange={handleTypeChange}
-            />
-          </View>
-
-          <View style={styles.amountSection}>
-            <Text style={[styles.amountSymbol, { color: mutedColor, fontFamily: Fonts.rounded }]}>
-              {currency}
-            </Text>
-            <TextInput
-              value={formattedAmount}
-              onChangeText={handleAmountChange}
-              keyboardType="number-pad"
-              inputMode="numeric"
-              accessibilityLabel={t('create.amountPlaceholder')}
-              selectionColor={textColor}
-              style={[
-                styles.amountInput,
-                {
-                  color: amountCents > 0 ? textColor : mutedColor,
-                  fontFamily: Fonts.rounded,
-                },
-              ]}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('create.dateLabel').toUpperCase()}
-            </Text>
-            <DatePicker value={date} onValueChange={setDate} />
-          </View>
-
-          <View style={styles.field}>
-            <CategorySelect
-              title={
-                type === 'income'
-                  ? t('category.section.income')
-                  : t('category.section.expenses')
-              }
-              selectedLabel={selectedCategoryName}
-              placeholder={t('categorySelect.placeholder')}
-              onPress={() =>
-                router.push(
-                  categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }),
-                )
-              }
-            />
-            {!hasCategoriesForType ? (
-              <Text variant="caption" tone="textMuted">
-                {t('create.categoryEmptyHint')}
-              </Text>
-            ) : null}
-          </View>
-
-          <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('create.descriptionLabel').toUpperCase()}
-            </Text>
-            <TextInput
-              value={description}
-              onChangeText={setDescription}
-              maxLength={TRANSACTION_DESCRIPTION_MAX_LENGTH}
-              placeholder={t('create.descriptionPlaceholder')}
-              placeholderTextColor={mutedColor}
-              style={[
-                styles.descriptionInput,
-                {
-                  color: textColor,
-                  fontFamily: Fonts.sans,
-                  backgroundColor: surfaceMutedColor,
-                },
-              ]}
-            />
-            <View style={styles.descriptionMeta}>
-              <Text variant="caption" tone="textMuted">
-                {t('create.descriptionCaption')}
-              </Text>
-              <Text variant="caption" tone="textMuted">
-                {t('create.descriptionCounter', { count: description.length })}
-              </Text>
-            </View>
-          </View>
-        </ScrollView>
-
-        <View style={[styles.footer, { borderTopColor: borderColor }]}>
+    <ModalFormScaffold
+      footer={
+        <>
           {errorMessage ? (
             <View
               style={[
@@ -296,31 +186,94 @@ export function TransactionForm({
               />
             </View>
           </View>
+        </>
+      }
+    >
+      <View style={styles.typeSelector}>
+        <SegmentedControl<TransactionType>
+          options={typeOptions}
+          value={type}
+          onChange={handleTypeChange}
+        />
+      </View>
+
+      <View style={styles.amountSection}>
+        <Text style={[styles.amountSymbol, { color: mutedColor, fontFamily: Fonts.rounded }]}>
+          {currency}
+        </Text>
+        <TextInput
+          value={formattedAmount}
+          onChangeText={handleAmountChange}
+          keyboardType="number-pad"
+          inputMode="numeric"
+          accessibilityLabel={t('create.amountPlaceholder')}
+          selectionColor={textColor}
+          style={[
+            styles.amountInput,
+            {
+              color: amountCents > 0 ? textColor : mutedColor,
+              fontFamily: Fonts.rounded,
+            },
+          ]}
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+          {t('create.dateLabel').toUpperCase()}
+        </Text>
+        <DatePicker value={date} onValueChange={setDate} />
+      </View>
+
+      <View style={styles.field}>
+        <CategorySelect
+          title={type === 'income' ? t('category.section.income') : t('category.section.expenses')}
+          selectedLabel={selectedCategoryName}
+          placeholder={t('categorySelect.placeholder')}
+          onPress={() =>
+            router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }))
+          }
+        />
+        {!hasCategoriesForType ? (
+          <Text variant="caption" tone="textMuted">
+            {t('create.categoryEmptyHint')}
+          </Text>
+        ) : null}
+      </View>
+
+      <View style={styles.field}>
+        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+          {t('create.descriptionLabel').toUpperCase()}
+        </Text>
+        <TextInput
+          value={description}
+          onChangeText={setDescription}
+          maxLength={TRANSACTION_DESCRIPTION_MAX_LENGTH}
+          placeholder={t('create.descriptionPlaceholder')}
+          placeholderTextColor={mutedColor}
+          style={[
+            styles.descriptionInput,
+            {
+              color: textColor,
+              fontFamily: Fonts.sans,
+              backgroundColor: surfaceMutedColor,
+            },
+          ]}
+        />
+        <View style={styles.descriptionMeta}>
+          <Text variant="caption" tone="textMuted">
+            {t('create.descriptionCaption')}
+          </Text>
+          <Text variant="caption" tone="textMuted">
+            {t('create.descriptionCounter', { count: description.length })}
+          </Text>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+      </View>
+    </ModalFormScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-    gap: 20,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
   actionRow: {
     flexDirection: 'row',
     gap: 12,

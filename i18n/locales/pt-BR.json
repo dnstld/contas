@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "Pocko",
-    "appTagline": "Acompanhe seus gastos do dia a dia",
+    "appName": "Spendspacey",
+    "appTagline": "Gastos do dia a dia, seu espaço",
     "add": "Lançar",
     "cancel": "Cancelar",
     "manage": "Gerenciar",
@@ -106,8 +106,15 @@
     },
     "accountCards": {
       "add": "Adicionar conta",
-      "transactionsOne": "1 transação",
-      "transactionsMany": "{{count}} transações"
+      "invitePending": "Aguardando",
+      "inviteDeclined": "Recusado",
+      "pendingPrompt": "Este convite está aguardando ser aceito.",
+      "declinedPrompt": "A pessoa recusou este convite.",
+      "checkStatus": "Verificar status",
+      "cancelInvite": "Cancelar convite",
+      "reInvite": "Convidar de novo",
+      "dismiss": "Dispensar",
+      "stillPending": "Ainda aguardando a pessoa entrar."
     },
     "walletCards": {
       "add": "Adicionar carteira"
@@ -196,24 +203,28 @@
     },
     "invitation": {
       "sectionTitle": "Dividir com alguém",
-      "description": "Divida esta carteira com alguém. Ao aceitar o convite, vocês passam a ver e organizar as contas da casa juntos.",
-      "inviteButton": "Convidar",
-      "codeLabel": "Seu código de convite",
-      "shareCode": "Enviar convite",
-      "codeExpiry": "Expira em 7 dias · uso único",
-      "shareMessage": "{{inviter}} convidou você para dividir \"{{wallet}}\" no {{app}}.\n\nToque para entrar: {{link}}\n\nAinda não tem o {{app}}? Instale e depois use este código: {{code}}",
-      "shareInviterFallback": "Alguém",
-      "shareWalletFallback": "uma carteira",
-      "redeemTitle": "Entrar com convite",
-      "invitedTitle": "Você foi convidado",
-      "previewJoining": "Você vai entrar em",
-      "previewSharedBy": "Compartilhado por {{name}}",
-      "codeInputPlaceholder": "Cole ou digite seu código",
-      "redeemButton": "Entrar",
-      "redeeming": "Entrando…",
-      "redeemError": "Esse código não funcionou — pode ter expirado. Tente novamente.",
-      "redeemCancel": "Cancelar",
-      "inviteError": "Não foi possível criar o convite. Tente de novo."
+      "description": "Convide alguém pelo e-mail. Na próxima vez que a pessoa abrir o {{app}}, verá o convite e poderá entrar nesta carteira.",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "E-mail da pessoa",
+      "sendButton": "Enviar convite",
+      "sending": "Enviando…",
+      "sentToast": "Convite enviado para {{email}}",
+      "errorInvalidEmail": "Isso não parece um e-mail. Tente de novo.",
+      "errorSelf": "Esse é o seu próprio e-mail — convide outra pessoa.",
+      "errorAlreadyMember": "Essa pessoa já está nesta carteira.",
+      "errorLimit": "Você chegou ao limite de {{count}} convites desta carteira.",
+      "error": "Não foi possível enviar o convite. Tente de novo.",
+      "freeTierLimit": "Você chegou ao limite de {{count}} convites"
+    },
+    "inviteBanner": {
+      "title": "Você foi convidado",
+      "body": "{{inviter}} convidou você para dividir \"{{wallet}}\".",
+      "bodyNoInviter": "Você foi convidado para dividir \"{{wallet}}\".",
+      "accept": "Entrar",
+      "decline": "Recusar",
+      "acceptedToast": "Você entrou em {{wallet}}",
+      "declinedToast": "Convite recusado",
+      "error": "Algo deu errado. Tente de novo."
     },
     "leave": {
       "button": "Sair da carteira",
@@ -258,6 +269,13 @@
   "wallets": {
     "modalTitle": "Minhas Carteiras",
     "createTitle": "Criar Carteira",
+    "editTitle": "Editar carteira",
+    "saveButton": "Salvar",
+    "actions": {
+      "edit": "Editar nome",
+      "leave": "Sair da carteira",
+      "delete": "Excluir carteira"
+    },
     "addCard": {
       "sectionTitle": "Adicionar carteira",
       "description": "Crie uma carteira só sua ou entre em uma compartilhada com um convite.",

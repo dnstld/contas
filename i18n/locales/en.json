@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "Pocko",
-    "appTagline": "Track your everyday spending",
+    "appName": "Spendspacey",
+    "appTagline": "Everyday spending, your space",
     "add": "Add",
     "cancel": "Cancel",
     "manage": "Manage",
@@ -106,8 +106,15 @@
     },
     "accountCards": {
       "add": "Add account",
-      "transactionsOne": "1 transaction",
-      "transactionsMany": "{{count}} transactions"
+      "invitePending": "Pending",
+      "inviteDeclined": "Declined",
+      "pendingPrompt": "This invite is waiting to be accepted.",
+      "declinedPrompt": "They declined this invite.",
+      "checkStatus": "Check status",
+      "cancelInvite": "Cancel invite",
+      "reInvite": "Invite again",
+      "dismiss": "Dismiss",
+      "stillPending": "Still waiting for them to join."
     },
     "walletCards": {
       "add": "Add wallet"
@@ -196,24 +203,28 @@
     },
     "invitation": {
       "sectionTitle": "Share with someone",
-      "description": "Share this wallet with someone. Once they accept, you'll both be able to see and manage your household finances together.",
-      "inviteButton": "Invite",
-      "codeLabel": "Your invite code",
-      "shareCode": "Send invite",
-      "codeExpiry": "Expires in 7 days · single use",
-      "shareMessage": "{{inviter}} invited you to share \"{{wallet}}\" on {{app}}.\n\nTap to join: {{link}}\n\nDon't have {{app}} yet? Install it, then enter this code: {{code}}",
-      "shareInviterFallback": "Someone",
-      "shareWalletFallback": "their wallet",
-      "redeemTitle": "Join with Invite",
-      "invitedTitle": "You're invited",
-      "previewJoining": "You're joining",
-      "previewSharedBy": "Shared by {{name}}",
-      "codeInputPlaceholder": "Paste or type your code",
-      "redeemButton": "Join",
-      "redeeming": "Joining…",
-      "redeemError": "That code didn't work — it may have expired. Try again.",
-      "redeemCancel": "Cancel",
-      "inviteError": "Couldn't create an invite. Give it another try."
+      "description": "Invite someone by email. The next time they open {{app}}, they'll see your invitation and can join this wallet.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Their email address",
+      "sendButton": "Send invite",
+      "sending": "Sending…",
+      "sentToast": "Invitation sent to {{email}}",
+      "errorInvalidEmail": "That doesn't look like an email. Give it another try.",
+      "errorSelf": "That's your own email — invite someone else.",
+      "errorAlreadyMember": "They're already in this wallet.",
+      "errorLimit": "You've reached the {{count}}-invite limit for this wallet.",
+      "error": "Couldn't send the invite. Give it another try.",
+      "freeTierLimit": "You've reached the {{count}}-invite limit"
+    },
+    "inviteBanner": {
+      "title": "You're invited",
+      "body": "{{inviter}} invited you to share \"{{wallet}}\".",
+      "bodyNoInviter": "You've been invited to share \"{{wallet}}\".",
+      "accept": "Join",
+      "decline": "Decline",
+      "acceptedToast": "You joined {{wallet}}",
+      "declinedToast": "Invitation declined",
+      "error": "Something went wrong. Give it another try."
     },
     "leave": {
       "button": "Leave wallet",
@@ -258,6 +269,13 @@
   "wallets": {
     "modalTitle": "My Wallets",
     "createTitle": "Create Wallet",
+    "editTitle": "Edit wallet",
+    "saveButton": "Save",
+    "actions": {
+      "edit": "Edit name",
+      "leave": "Leave wallet",
+      "delete": "Delete wallet"
+    },
     "addCard": {
       "sectionTitle": "Add wallet",
       "description": "Create a wallet just for you, or join a shared one with an invite.",

@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ActionSheetIOS, Alert, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { AddSquareCard, SquareCard, Text } from '@/components/ui';
-import { MAX_WALLETS_PER_USER } from '@/constants/limits';
-import { ROUTES, walletsHref } from '@/constants/routes';
+import { AddSquareCard, Skeleton, SquareCard, SquareCardSkeleton, Text } from '@/components/ui';
+import { ROUTES, editWalletNameHref, walletsHref } from '@/constants/routes';
+import { useFreeTierLimits } from '@/hooks/use-free-tier-limits';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 
@@ -13,8 +13,10 @@ export function WalletCards() {
   const router = useRouter();
   const { walletId, switchWallet } = useWallet();
   const { data: wallets = [] } = useWalletList();
+  const limits = useFreeTierLimits();
+  const maxWallets = limits?.maxWalletsPerUser;
 
-  const atLimit = wallets.length >= MAX_WALLETS_PER_USER;
+  const atLimit = maxWallets != null && wallets.length >= maxWallets;
 
   const memberLabel = (count: number) =>
     count === 1 ? t('wallets.membersOne') : t('wallets.membersMany', { count });
@@ -23,42 +25,19 @@ export function WalletCards() {
     router.push(walletsHref());
   }
 
-  function goRedeem() {
-    router.push(ROUTES.redeemCode);
-  }
-
-  function openAddChooser() {
-    const create = t('wallets.addCard.createButton');
-    const redeem = t('wallets.addCard.redeemButton');
-
-    if (Platform.OS === 'ios') {
-      const cancel = t('common.cancel');
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: [create, redeem, cancel], cancelButtonIndex: 2 },
-        (index) => {
-          if (index === 0) goCreate();
-          else if (index === 1) goRedeem();
-        },
-      );
-      return;
-    }
-
-    Alert.alert(t('settings.walletCards.add'), undefined, [
-      { text: create, onPress: goCreate },
-      { text: redeem, onPress: goRedeem },
-      { text: t('common.cancel'), style: 'cancel' },
-    ]);
-  }
-
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
         <Text variant="caption" weight="semibold" tone="textMuted" style={styles.label}>
           {t('settings.sections.wallets').toUpperCase()}
         </Text>
-        <Text variant="caption" weight="medium" tone="textMuted">
-          {wallets.length}/{MAX_WALLETS_PER_USER}
-        </Text>
+        {maxWallets != null ? (
+          <Text variant="caption" weight="medium" tone="textMuted">
+            {wallets.length}/{maxWallets}
+          </Text>
+        ) : (
+          <Skeleton width={28} height={14} />
+        )}
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
@@ -71,9 +50,10 @@ export function WalletCards() {
               avatarName={w.name}
               subtitle={`${w.currency} · ${memberLabel(w.memberCount)}`}
               active={active}
+              badge={active ? 'edit' : undefined}
               onPress={
                 active
-                  ? undefined
+                  ? () => router.push(editWalletNameHref(w.id))
                   : () => {
                       switchWallet(w.id);
                       router.navigate(ROUTES.home);
@@ -83,12 +63,16 @@ export function WalletCards() {
           );
         })}
 
-        <AddSquareCard
-          label={t('settings.walletCards.add')}
-          onPress={atLimit ? undefined : openAddChooser}
-          locked={atLimit}
-          lockedLabel={t('wallets.freeTierLimit', { count: MAX_WALLETS_PER_USER })}
-        />
+        {maxWallets == null ? (
+          <SquareCardSkeleton />
+        ) : (
+          <AddSquareCard
+            label={t('settings.walletCards.add')}
+            onPress={atLimit ? undefined : goCreate}
+            locked={atLimit}
+            lockedLabel={t('wallets.freeTierLimit', { count: maxWallets })}
+          />
+        )}
       </ScrollView>
     </View>
   );

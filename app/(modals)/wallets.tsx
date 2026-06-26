@@ -1,24 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
 import { SortMenu } from '@/components/ui/molecules/sort-menu';
+import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { ROUTES } from '@/constants/routes';
 import { Fonts } from '@/constants/theme';
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
-import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
 import { useCreateWallet } from '@/hooks/use-wallet-mutations';
 
@@ -37,14 +29,7 @@ export default function WalletsScreen() {
     return () => clearTimeout(handle);
   }, []);
 
-  const bottomPadding = useModalBottomPadding();
-  const backgroundColor = useThemeColor({}, 'modalBackground');
-  const {
-    border: borderColor,
-    text: textColor,
-    textMuted: mutedColor,
-    inputBackground,
-  } = useModalChrome();
+  const { text: textColor, textMuted: mutedColor, inputBackground } = useModalChrome();
 
   const currencyOptions = useMemo(
     () =>
@@ -67,81 +52,57 @@ export default function WalletsScreen() {
   const canCreate = newName.trim().length > 0 && !createWallet.isPending;
 
   return (
-    <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          style={styles.flex}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text variant="subtitle" weight="semibold" style={styles.title}>
-            {t('wallets.createTitle')}
-          </Text>
+    <ModalFormScaffold
+      footer={
+        <PressableButton
+          label={t('common.create')}
+          variant="primary"
+          size="large"
+          loading={createWallet.isPending}
+          disabled={!canCreate}
+          onPress={handleCreate}
+        />
+      }
+    >
+      <Text variant="subtitle" weight="semibold" style={styles.title}>
+        {t('wallets.createTitle')}
+      </Text>
 
-          <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('wallets.nameLabel').toUpperCase()}
-            </Text>
-            <TextInput
-              ref={nameInputRef}
-              value={newName}
-              onChangeText={setNewName}
-              placeholder={t('wallets.namePlaceholder')}
-              placeholderTextColor={mutedColor}
-              maxLength={60}
-              returnKeyType="done"
-              onSubmitEditing={handleCreate}
-              style={[
-                styles.input,
-                { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
-              ]}
-            />
-          </View>
+      <View style={styles.field}>
+        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+          {t('wallets.nameLabel').toUpperCase()}
+        </Text>
+        <TextInput
+          ref={nameInputRef}
+          value={newName}
+          onChangeText={setNewName}
+          placeholder={t('wallets.namePlaceholder')}
+          placeholderTextColor={mutedColor}
+          maxLength={60}
+          returnKeyType="done"
+          onSubmitEditing={handleCreate}
+          style={[
+            styles.input,
+            { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
+          ]}
+        />
+      </View>
 
-          <View style={styles.field}>
-            <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-              {t('settings.currencyRow.title').toUpperCase()}
-            </Text>
-            <SortMenu<SupportedCurrency>
-              options={currencyOptions}
-              value={newCurrency}
-              onChange={setNewCurrency}
-            />
-          </View>
-        </ScrollView>
-
-        <View style={[styles.footer, { borderTopColor: borderColor }]}>
-          <PressableButton
-            label={t('common.create')}
-            variant="primary"
-            size="large"
-            loading={createWallet.isPending}
-            disabled={!canCreate}
-            onPress={handleCreate}
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+      <View style={styles.field}>
+        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+          {t('settings.currencyRow.title').toUpperCase()}
+        </Text>
+        <SortMenu<SupportedCurrency>
+          options={currencyOptions}
+          value={newCurrency}
+          onChange={setNewCurrency}
+        />
+      </View>
+    </ModalFormScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-    gap: 20,
-  },
   title: {
     textAlign: 'center',
     marginBottom: 4,
@@ -158,11 +119,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 10,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

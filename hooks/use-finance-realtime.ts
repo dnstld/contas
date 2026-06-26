@@ -5,6 +5,8 @@ import { useDemoMode } from '@/hooks/use-demo-mode';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useAuth } from '@/hooks/use-auth';
 import { walletKeys } from '@/hooks/use-wallet-list';
+import { walletMemberKeys } from '@/hooks/use-wallet-members';
+import { outgoingInvitationKeys } from '@/hooks/use-wallet-invitation';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
 
@@ -66,6 +68,7 @@ export function useFinanceRealtime() {
 
 export function useWalletRealtime() {
   const { session } = useAuth();
+  const { walletId } = useWallet();
   const userId = session?.user.id ?? null;
   const qc = useQueryClient();
 
@@ -81,13 +84,24 @@ export function useWalletRealtime() {
           qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
         },
       )
+      // A member joining (e.g. an invitee accepting) updates the wallet list and
+      // the active wallet's member cards.
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_members' }, () => {
         qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
+        if (walletId) qc.invalidateQueries({ queryKey: walletMemberKeys.list(walletId) });
       })
+      // An invite being accepted/declined/cancelled refreshes the inviter's cards.
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'wallet_invitations' },
+        () => {
+          if (walletId) qc.invalidateQueries({ queryKey: outgoingInvitationKeys.list(walletId) });
+        },
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, qc]);
+  }, [userId, walletId, qc]);
 }

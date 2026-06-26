@@ -17,6 +17,12 @@ import {
 } from '@/hooks/use-finance-mutations';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
+import { walletKeys } from '@/hooks/use-wallet-list';
+import { walletMemberKeys } from '@/hooks/use-wallet-members';
+import {
+  outgoingInvitationKeys,
+  pendingInvitationKeys,
+} from '@/hooks/use-wallet-invitation';
 import i18n from '@/i18n';
 import { mapSupabaseErrorKey } from '@/utils/error';
 import { captureError } from '@/utils/monitoring';
@@ -108,9 +114,21 @@ onlineManager.subscribe((isOnline) => {
 export function useAppStateInvalidate() {
   const qc = useQueryClient();
   const { walletId } = useWallet();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const email = session?.user.email ?? null;
   const wasBackgroundedRef = useRef(false);
   const walletIdRef = useRef(walletId);
-  walletIdRef.current = walletId;
+  const userIdRef = useRef(userId);
+  const emailRef = useRef(email);
+
+  // Keep the latest identifiers in refs so the long-lived AppState listener
+  // reads current values without re-subscribing.
+  useEffect(() => {
+    walletIdRef.current = walletId;
+    userIdRef.current = userId;
+    emailRef.current = email;
+  }, [walletId, userId, email]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {
@@ -120,8 +138,19 @@ export function useAppStateInvalidate() {
       }
       if (next === 'active' && wasBackgroundedRef.current) {
         wasBackgroundedRef.current = false;
-        if (walletIdRef.current) {
-          qc.invalidateQueries({ queryKey: financeKeys.all(walletIdRef.current) });
+        const wid = walletIdRef.current;
+        if (wid) {
+          qc.invalidateQueries({ queryKey: financeKeys.all(wid) });
+          // Refresh shared-wallet state on app open: the invitee's banner and
+          // the inviter's member/invite cards.
+          qc.invalidateQueries({ queryKey: walletMemberKeys.list(wid) });
+          qc.invalidateQueries({ queryKey: outgoingInvitationKeys.list(wid) });
+        }
+        if (userIdRef.current) {
+          qc.invalidateQueries({ queryKey: walletKeys.list(userIdRef.current) });
+        }
+        if (emailRef.current) {
+          qc.invalidateQueries({ queryKey: pendingInvitationKeys.list(emailRef.current) });
         }
       }
     });

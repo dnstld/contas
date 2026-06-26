@@ -1,15 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { CategoryFields } from '@/components/categories/category-fields';
 import { Icon } from '@/components/ui/atoms/icon';
@@ -17,17 +9,15 @@ import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { PriceText } from '@/components/ui/atoms/price-text';
 import { Text } from '@/components/ui/atoms/text';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
-import {
-  SectionList,
-  type SectionListSection,
-} from '@/components/ui/organisms/section-list';
+import { StickyFooter } from '@/components/ui/molecules/sticky-footer';
+import { SectionList, type SectionListSection } from '@/components/ui/organisms/section-list';
+import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { Fonts } from '@/constants/theme';
 import type { Category, TransactionType } from '@/data/finance-types';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCreateCategory } from '@/hooks/use-finance-mutations';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
-import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
@@ -61,7 +51,6 @@ export default function CategorySelectScreen() {
   const [name, setName] = useState('');
   const [budgetCents, setBudgetCents] = useState(0);
 
-  const bottomPadding = useModalBottomPadding();
   const backgroundColor = useThemeColor({}, 'modalBackground');
   const tintColor = useThemeColor({}, 'tint');
   const {
@@ -145,7 +134,7 @@ export default function CategorySelectScreen() {
   if (mode === 'create') {
     const canCreate = name.trim().length > 0 && !isCreating && !demoMode;
     return (
-      <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
+      <>
         <Stack.Screen
           options={{
             headerTitle: t('category.create.title'),
@@ -163,25 +152,8 @@ export default function CategorySelectScreen() {
             ),
           }}
         />
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <ScrollView
-            style={styles.flex}
-            contentContainerStyle={styles.createContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <CategoryFields
-              name={name}
-              onNameChange={setName}
-              budgetCents={budgetCents}
-              onBudgetChange={setBudgetCents}
-              onSubmitBudget={handleCreate}
-            />
-          </ScrollView>
-          <View style={[styles.footer, { borderTopColor: borderColor }]}>
+        <ModalFormScaffold
+          footer={
             <PressableButton
               label={t('categorySelect.createAndSelect')}
               variant="primary"
@@ -190,119 +162,119 @@ export default function CategorySelectScreen() {
               disabled={!canCreate}
               onPress={handleCreate}
             />
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+          }
+        >
+          <CategoryFields
+            name={name}
+            onNameChange={setName}
+            budgetCents={budgetCents}
+            onBudgetChange={setBudgetCents}
+            onSubmitBudget={handleCreate}
+          />
+        </ModalFormScaffold>
+      </>
     );
   }
 
   return (
-    <View style={[styles.root, { backgroundColor, paddingBottom: bottomPadding }]}>
+    <View style={[styles.root, { backgroundColor }]}>
       <Stack.Screen options={{ headerTitle: t('categorySelect.title') }} />
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View style={styles.listHeader}>
-          <View style={[styles.search, { backgroundColor: inputBackground }]}>
-            <Icon name="magnifyingglass" size={16} tone="textMuted" />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t('categorySelect.searchPlaceholder')}
-              placeholderTextColor={mutedColor}
-              autoCorrect={false}
-              returnKeyType="search"
-              style={[styles.searchInput, { color: textColor, fontFamily: Fonts.sans }]}
-            />
-          </View>
-
-          {showInlineCreate ? (
-            <Pressable
-              onPress={() => openCreate(trimmedQuery)}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.createRow,
-                { backgroundColor: `${tintColor}1A` },
-                pressed && styles.pressed,
-              ]}
-            >
-              <Icon name="plus" size={18} tone="tint" />
-              <Text variant="body" weight="medium" numberOfLines={1} style={{ color: tintColor }}>
-                {t('categorySelect.createNamed', { name: trimmedQuery })}
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-
-        <SectionList<Category>
-          variant="flat"
-          sections={sections}
-          keyExtractor={(item) => item.id}
-          stickySectionHeadersEnabled={false}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            showInlineCreate ? null : (
-              <Text variant="body" tone="textMuted" style={styles.empty}>
-                {t('categorySelect.empty')}
-              </Text>
-            )
-          }
-          renderItem={({ item }) => {
-            const count = counts.get(item.id) ?? 0;
-            const selected = item.id === selectedId;
-            const hasGoal = item.monthlyBudget != null;
-            return (
-              <SectionListRow
-                leading={
-                  <View
-                    style={[
-                      styles.selectDot,
-                      selected
-                        ? { backgroundColor: tintColor }
-                        : { borderColor, borderWidth: 1.5 },
-                    ]}
-                  >
-                    {selected ? <Icon name="checkmark" size={18} color={onPrimary} /> : null}
-                  </View>
-                }
-                title={item.name}
-                subtitle={count > 0 ? t('category.transactionCount', { count }) : null}
-                text1={hasGoal ? t('category.create.budgetLabel') : null}
-                text2={
-                  hasGoal ? (
-                    <PriceText
-                      value={item.monthlyBudget as number}
-                      currency={currency}
-                      locale={locale}
-                      tone="neutral"
-                      size="md"
-                    />
-                  ) : null
-                }
-                onPress={() => handleSelect(item.id)}
-                accessibilityLabel={item.name}
-              />
-            );
-          }}
-        />
-
-        <View style={[styles.footer, { borderTopColor: borderColor }]}>
-          <PressableButton
-            label={t('categorySelect.addButton')}
-            variant="primary"
-            size="large"
-            onPress={() => openCreate(trimmedQuery)}
+      <View style={styles.listHeader}>
+        <View style={[styles.search, { backgroundColor: inputBackground }]}>
+          <Icon name="magnifyingglass" size={16} tone="textMuted" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('categorySelect.searchPlaceholder')}
+            placeholderTextColor={mutedColor}
+            autoCorrect={false}
+            returnKeyType="search"
+            style={[styles.searchInput, { color: textColor, fontFamily: Fonts.sans }]}
           />
         </View>
-      </KeyboardAvoidingView>
+
+        {showInlineCreate ? (
+          <Pressable
+            onPress={() => openCreate(trimmedQuery)}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.createRow,
+              { backgroundColor: `${tintColor}1A` },
+              pressed && styles.pressed,
+            ]}
+          >
+            <Icon name="plus" size={18} tone="tint" />
+            <Text variant="body" weight="medium" numberOfLines={1} style={{ color: tintColor }}>
+              {t('categorySelect.createNamed', { name: trimmedQuery })}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      <SectionList<Category>
+        variant="flat"
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        stickySectionHeadersEnabled={false}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          showInlineCreate ? null : (
+            <Text variant="body" tone="textMuted" style={styles.empty}>
+              {t('categorySelect.empty')}
+            </Text>
+          )
+        }
+        renderItem={({ item }) => {
+          const count = counts.get(item.id) ?? 0;
+          const selected = item.id === selectedId;
+          const hasGoal = item.monthlyBudget != null;
+          return (
+            <SectionListRow
+              leading={
+                <View
+                  style={[
+                    styles.selectDot,
+                    selected ? { backgroundColor: tintColor } : { borderColor, borderWidth: 1.5 },
+                  ]}
+                >
+                  {selected ? <Icon name="checkmark" size={18} color={onPrimary} /> : null}
+                </View>
+              }
+              title={item.name}
+              subtitle={count > 0 ? t('category.transactionCount', { count }) : null}
+              text1={hasGoal ? t('category.create.budgetLabel') : null}
+              text2={
+                hasGoal ? (
+                  <PriceText
+                    value={item.monthlyBudget as number}
+                    currency={currency}
+                    locale={locale}
+                    tone="neutral"
+                    size="md"
+                  />
+                ) : null
+              }
+              onPress={() => handleSelect(item.id)}
+              accessibilityLabel={item.name}
+            />
+          );
+        }}
+      />
+
+      <StickyFooter>
+        <PressableButton
+          label={t('categorySelect.addButton')}
+          variant="primary"
+          size="large"
+          onPress={() => openCreate(trimmedQuery)}
+        />
+      </StickyFooter>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  flex: { flex: 1 },
   listHeader: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -325,12 +297,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 24,
   },
-  createContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-    gap: 20,
-  },
   createRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -350,11 +316,5 @@ const styles = StyleSheet.create({
   empty: {
     textAlign: 'center',
     paddingVertical: 32,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 20,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

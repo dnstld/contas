@@ -33,8 +33,4 @@ export const env = {
   ),
   googleIosClientId: optional(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
   sentryDsn: optional(process.env.EXPO_PUBLIC_SENTRY_DSN),
-  // Origin of the EAS Hosting redirect page that bounces an https invite link
-  // into the app (e.g. https://pocko.expo.app). When unset, invite links fall
-  // back to the raw `contas://` scheme, which is not tappable in chat apps.
-  inviteLinkBase: optional(process.env.EXPO_PUBLIC_INVITE_LINK_BASE),
 } as const;

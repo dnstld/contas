@@ -3,7 +3,7 @@ import type { ExpoConfig } from 'expo/config';
 const IS_DEV = process.env.APP_VARIANT === 'development';
 
 const config: ExpoConfig = {
-  name: 'Pocko',
+  name: 'Spendspacey',
   slug: 'contas',
   version: '1.0.0',
   runtimeVersion: {
@@ -51,9 +51,9 @@ const config: ExpoConfig = {
         image: './assets/images/splash-icon.png',
         imageWidth: 200,
         resizeMode: 'contain',
-        backgroundColor: '#22C55E',
+        backgroundColor: '#2A76B5',
         dark: {
-          backgroundColor: '#22C55E',
+          backgroundColor: '#2A76B5',
         },
       },
     ],

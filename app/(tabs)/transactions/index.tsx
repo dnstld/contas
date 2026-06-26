@@ -191,7 +191,7 @@ export default function TransactionsScreen() {
                 ) : (
                   <>
                     <View style={styles.emptyHeader}>{totalCard}</View>
-                    <View style={styles.emptyWrap}>
+                    <View style={styles.emptyBody}>
                       <EmptyState
                         icon="chart.bar.fill"
                         title={t('transactions.empty.title')}
@@ -248,5 +248,9 @@ const styles = StyleSheet.create({
   emptyWrap: {
     flex: 1,
     justifyContent: 'center',
+  },
+  emptyBody: {
+    alignItems: 'center',
+    marginTop: 32,
   },
 });

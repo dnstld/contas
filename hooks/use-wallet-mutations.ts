@@ -27,6 +27,27 @@ export function useCreateWallet() {
   });
 }
 
+export function useRenameWallet() {
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const { walletId, refresh } = useWallet();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }): Promise<string> => {
+      const trimmed = name.trim();
+      if (!trimmed) throw new Error('name is required');
+      const { error } = await supabase.from('wallets').update({ name: trimmed }).eq('id', id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: async (id) => {
+      if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
+      if (walletId === id) await refresh();
+    },
+  });
+}
+
 export function useRequestOrDeleteWallet() {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;

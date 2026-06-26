@@ -23,6 +23,9 @@ export interface ChipProps {
   variant?: ChipVariant;
   showCheckWhenSelected?: boolean;
   disabled?: boolean;
+  /** Tint the label/foreground with the variant color on a glass background (an
+   * action accent), distinct from the filled look of a selected chip. */
+  accent?: boolean;
 }
 
 const VARIANT_TONE: Record<ChipVariant, keyof typeof Colors.light> = {
@@ -39,9 +42,14 @@ export function Chip({
   variant = 'default',
   showCheckWhenSelected = false,
   disabled,
+  accent = false,
 }: ChipProps) {
   const tone = useThemeColor({}, VARIANT_TONE[variant]);
-  const labelColor = useThemeColor({}, selected ? 'onPrimary' : 'text');
+  const textColor = useThemeColor({}, 'text');
+  const onPrimary = useThemeColor({}, 'onPrimary');
+  // Selected → filled tint with onPrimary label. Accent → glass with the
+  // variant color as the label/foreground. Otherwise → neutral glass.
+  const labelColor = selected ? onPrimary : accent ? tone : textColor;
 
   if (Platform.OS === 'ios') {
     return (
@@ -71,9 +79,11 @@ export function Chip({
           enabled={!disabled}
           onClick={onPress}
           colors={{
+            containerColor: accent ? `${tone}1A` : undefined,
+            labelColor: accent ? tone : undefined,
             selectedContainerColor: tone,
-            selectedLabelColor: labelColor,
-            selectedLeadingIconColor: labelColor,
+            selectedLabelColor: onPrimary,
+            selectedLeadingIconColor: onPrimary,
           }}
         >
           <Compose.FilterChip.Label>

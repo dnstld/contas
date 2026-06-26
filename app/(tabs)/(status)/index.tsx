@@ -14,6 +14,7 @@ import {
   Surface,
   Text,
 } from '@/components/ui';
+import { PendingInviteBanner } from '@/components/pending-invite-banner';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
@@ -90,6 +91,8 @@ export default function HomeScreen() {
 
   const header = (
     <View style={styles.headerStack}>
+      <PendingInviteBanner />
+
       <FinanceTimeFilter api={filterApi} now={now} availableYears={dashboard.data?.years} />
 
       <Overview {...dashboard.overview} currency={currency} revenueVisible={revenueVisible} />
