@@ -29,9 +29,13 @@ export function useFreeTierLimits(): FreeTierLimits | undefined {
     queryFn: async (): Promise<FreeTierLimits> => {
       const { data, error } = await supabase.rpc('free_tier_limits');
       if (error) throw error;
+      const limits = data as {
+        max_wallets_per_user: number;
+        max_pending_invites_per_wallet: number;
+      };
       return {
-        maxWalletsPerUser: data.max_wallets_per_user,
-        maxPendingInvitesPerWallet: data.max_pending_invites_per_wallet,
+        maxWalletsPerUser: limits.max_wallets_per_user,
+        maxPendingInvitesPerWallet: limits.max_pending_invites_per_wallet,
       };
     },
   });

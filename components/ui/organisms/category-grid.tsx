@@ -2,10 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui/atoms/text';
-import {
-  CategoryPicker,
-  type CategoryPickerItem,
-} from '@/components/ui/organisms/category-picker';
+import { CategoryPicker, type CategoryPickerItem } from '@/components/ui/organisms/category-picker';
 import { SortMenu, type SortOption } from '@/components/ui/molecules/sort-menu';
 import type { CategorySortMode } from '@/hooks/use-category-grid';
 

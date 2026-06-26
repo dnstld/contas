@@ -196,28 +196,28 @@ export default function CategoryDetailModal() {
       {isExample
         ? listOrEmpty
         : (() => {
-        switch (view.kind) {
-          case 'loading':
-            return <CategoryDetailSkeleton />;
-          case 'error':
-            return (
-              <View style={styles.emptyWrap}>
-                <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
-              </View>
-            );
-          case 'empty':
-          case 'stale':
-          case 'ready':
-            return (
-              <>
-                {view.kind === 'stale' ? (
-                  <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
-                ) : null}
-                {listOrEmpty}
-              </>
-            );
-        }
-      })()}
+            switch (view.kind) {
+              case 'loading':
+                return <CategoryDetailSkeleton />;
+              case 'error':
+                return (
+                  <View style={styles.emptyWrap}>
+                    <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
+                  </View>
+                );
+              case 'empty':
+              case 'stale':
+              case 'ready':
+                return (
+                  <>
+                    {view.kind === 'stale' ? (
+                      <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
+                    ) : null}
+                    {listOrEmpty}
+                  </>
+                );
+            }
+          })()}
     </View>
   );
 }

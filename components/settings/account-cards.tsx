@@ -93,15 +93,19 @@ export function AccountCards() {
         {t('settings.sections.account').toUpperCase()}
       </Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.row}
+      >
         {ordered.map((m) => {
           const isMe = m.userId === currentUserId;
           const name =
-            (isMe ? profileName ?? session?.user?.user_metadata?.full_name : m.displayName) ??
+            (isMe ? (profileName ?? session?.user?.user_metadata?.full_name) : m.displayName) ??
             (isMe ? email : null) ??
             t('wallet.partner.unnamed');
           const avatarUrl = isMe
-            ? profileAvatar ?? session?.user?.user_metadata?.avatar_url ?? null
+            ? (profileAvatar ?? session?.user?.user_metadata?.avatar_url ?? null)
             : m.avatarUrl;
           return (
             <SquareCard

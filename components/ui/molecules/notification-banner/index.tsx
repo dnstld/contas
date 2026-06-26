@@ -6,39 +6,36 @@ import { Logo } from '@/components/ui/molecules/logo';
 
 import type { NotificationBannerProps } from './types';
 
-export const NotificationBanner = React.memo<NotificationBannerProps>(({
-  title,
-  subtitle,
-  showIllustration = true,
-  testID,
-}) => {
-  return (
-    <View
-      style={styles.container}
-      testID={testID}
-      accessible
-      accessibilityRole="alert"
-      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
-    >
-      {showIllustration && (
-        <View style={styles.illustration}>
-          <Logo size="small" />
-        </View>
-      )}
+export const NotificationBanner = React.memo<NotificationBannerProps>(
+  ({ title, subtitle, showIllustration = true, testID }) => {
+    return (
+      <View
+        style={styles.container}
+        testID={testID}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+      >
+        {showIllustration && (
+          <View style={styles.illustration}>
+            <Logo size="small" />
+          </View>
+        )}
 
-      <View style={styles.content}>
-        <Text variant="subtitle" weight="bold" numberOfLines={2}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text variant="body" numberOfLines={3}>
-            {subtitle}
+        <View style={styles.content}>
+          <Text variant="subtitle" weight="bold" numberOfLines={2}>
+            {title}
           </Text>
-        ) : null}
+          {subtitle ? (
+            <Text variant="body" numberOfLines={3}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
       </View>
-    </View>
-  );
-});
+    );
+  },
+);
 
 NotificationBanner.displayName = 'NotificationBanner';
 

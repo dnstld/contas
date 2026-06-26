@@ -40,7 +40,11 @@ export function WalletCards() {
         )}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.row}
+      >
         {wallets.map((w) => {
           const active = w.id === walletId;
           return (

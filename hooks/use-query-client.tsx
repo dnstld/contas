@@ -19,10 +19,7 @@ import { financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 import { walletKeys } from '@/hooks/use-wallet-list';
 import { walletMemberKeys } from '@/hooks/use-wallet-members';
-import {
-  outgoingInvitationKeys,
-  pendingInvitationKeys,
-} from '@/hooks/use-wallet-invitation';
+import { outgoingInvitationKeys, pendingInvitationKeys } from '@/hooks/use-wallet-invitation';
 import i18n from '@/i18n';
 import { mapSupabaseErrorKey } from '@/utils/error';
 import { captureError } from '@/utils/monitoring';

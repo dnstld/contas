@@ -91,13 +91,9 @@ export function useWalletRealtime() {
         if (walletId) qc.invalidateQueries({ queryKey: walletMemberKeys.list(walletId) });
       })
       // An invite being accepted/declined/cancelled refreshes the inviter's cards.
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'wallet_invitations' },
-        () => {
-          if (walletId) qc.invalidateQueries({ queryKey: outgoingInvitationKeys.list(walletId) });
-        },
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_invitations' }, () => {
+        if (walletId) qc.invalidateQueries({ queryKey: outgoingInvitationKeys.list(walletId) });
+      })
       .subscribe();
 
     return () => {

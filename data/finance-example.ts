@@ -36,11 +36,7 @@ const SLOT_SOURCE: Record<ExampleSlot, string> = {
 const CURRENT_COUNT = 5;
 const PREVIOUS_COUNT = 4;
 
-export function generateExampleFinance(
-  currency: string,
-  now: Date,
-  names: ExampleNames,
-): Finance {
+export function generateExampleFinance(currency: string, now: Date, names: ExampleNames): Finance {
   const demo = generateDemoFinance(currency);
   const year = now.getFullYear();
   const month = now.getMonth();

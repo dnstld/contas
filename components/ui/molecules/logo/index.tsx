@@ -6,27 +6,25 @@ import { LogoIllustration } from './svg/logo-illustration';
 import type { LogoProps } from './types';
 import { useLogo } from './use-logo';
 
-export const Logo = React.memo<LogoProps>(({
-  size = 'small',
-  accessibilityLabel = 'Contas logo',
-  testID,
-}) => {
-  const { illustrationWidth, laptopWidth } = useLogo({ size });
+export const Logo = React.memo<LogoProps>(
+  ({ size = 'small', accessibilityLabel = 'Contas logo', testID }) => {
+    const { illustrationWidth, laptopWidth } = useLogo({ size });
 
-  return (
-    <View
-      style={styles.container}
-      accessibilityRole="image"
-      accessibilityLabel={accessibilityLabel}
-      testID={testID}
-    >
-      <LogoIllustration width={illustrationWidth} />
-      <View style={styles.laptopContainer}>
-        <Laptop width={laptopWidth} />
+    return (
+      <View
+        style={styles.container}
+        accessibilityRole="image"
+        accessibilityLabel={accessibilityLabel}
+        testID={testID}
+      >
+        <LogoIllustration width={illustrationWidth} />
+        <View style={styles.laptopContainer}>
+          <Laptop width={laptopWidth} />
+        </View>
       </View>
-    </View>
-  );
-});
+    );
+  },
+);
 
 Logo.displayName = 'Logo';
 

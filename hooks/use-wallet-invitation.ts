@@ -75,16 +75,18 @@ export function useOutgoingInvitations() {
         .order('created_at', { ascending: false });
       if (error) throw error;
       const now = Date.now();
-      return (data ?? [])
-        // Pending invites disappear once expired; declined ones stick around
-        // until the inviter dismisses them.
-        .filter((row) => row.status === 'declined' || new Date(row.expires_at).getTime() > now)
-        .map((row) => ({
-          id: row.id,
-          email: row.invited_email as string,
-          status: row.status as OutgoingInvitation['status'],
-          createdAt: row.created_at,
-        }));
+      return (
+        (data ?? [])
+          // Pending invites disappear once expired; declined ones stick around
+          // until the inviter dismisses them.
+          .filter((row) => row.status === 'declined' || new Date(row.expires_at).getTime() > now)
+          .map((row) => ({
+            id: row.id,
+            email: row.invited_email as string,
+            status: row.status as OutgoingInvitation['status'],
+            createdAt: row.created_at,
+          }))
+      );
     },
   });
 }
@@ -177,10 +179,7 @@ export function useCancelInvitation() {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const { error } = await supabase
-        .from('wallet_invitations')
-        .delete()
-        .eq('id', invitationId);
+      const { error } = await supabase.from('wallet_invitations').delete().eq('id', invitationId);
       if (error) throw error;
     },
     onSuccess: () => {

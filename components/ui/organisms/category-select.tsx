@@ -19,7 +19,12 @@ export interface CategorySelectProps {
  * `category-select` modal where options are shown in groups. Presentational —
  * the modal owns the data and grouping logic.
  */
-export function CategorySelect({ title, selectedLabel, placeholder, onPress }: CategorySelectProps) {
+export function CategorySelect({
+  title,
+  selectedLabel,
+  placeholder,
+  onPress,
+}: CategorySelectProps) {
   const { text, textMuted, inputBackground } = useModalChrome();
   const hasValue = !!selectedLabel;
 

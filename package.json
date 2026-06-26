@@ -84,6 +84,7 @@
   },
   "devDependencies": {
     "@sentry/cli": "2.58.4",
+    "@types/node": "^26.0.1",
     "@types/react": "~19.2.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~56.0.4",
