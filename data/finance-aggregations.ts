@@ -1,4 +1,5 @@
 import { type CategoryCardData } from '@/components/ui/organisms/category-card';
+import { type DailyTimelinePoint } from '@/components/ui/organisms/daily-timeline';
 import { type MonthlyTimelinePoint } from '@/components/ui/organisms/monthly-timeline';
 import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter';
 
@@ -19,9 +20,12 @@ export interface DashboardOverviewData {
   net?: number;
   /** Max `updatedAt` across the wallet's transactions; undefined when the wallet is empty. */
   lastUpdatedAt?: string;
-  // Year mode only:
+  // Months strip (year mode):
   timeline?: MonthlyTimelinePoint[];
+  /** Anchors the strip ordering (current-month-first); undefined for past years. */
   currentMonth?: Month;
+  // Per-day spend strip (month mode), newest day first:
+  dailyTimeline?: DailyTimelinePoint[];
 }
 
 export interface DashboardData {
@@ -60,7 +64,12 @@ function isCategoryVisibleInYear(
   category: Category,
   year: number,
   activeIds: Set<string>,
+  usedIds: Set<string>,
 ): boolean {
+  // Categories with no transactions anywhere always show, so a freshly created
+  // category is visible immediately in any selected period (not just its
+  // creation year).
+  if (!usedIds.has(category.id)) return true;
   if (activeIds.has(category.id)) return true;
   if (category.createdAt && new Date(category.createdAt).getFullYear() === year) {
     return true;
@@ -76,6 +85,14 @@ function yearActiveCategoryIds(mock: Finance, year: number): Set<string> {
     if (!d) continue;
     if (d.getFullYear() === year) ids.add(t.categoryId);
   }
+  return ids;
+}
+
+// Categories referenced by at least one transaction (any year/status). Used to
+// distinguish brand-new/unused categories, which are always shown.
+function usedCategoryIds(mock: Finance): Set<string> {
+  const ids = new Set<string>();
+  for (const t of mock.transactions) ids.add(t.categoryId);
   return ids;
 }
 
@@ -110,6 +127,9 @@ function toCardData(
   totalDenominator: number,
   budget: number | undefined,
   previousLabel: string,
+  // When the previous period has no data (e.g. no past year), omit the
+  // comparison so the card doesn't render a "vs 2025: 0" row.
+  hasPrevious: boolean,
 ): CategoryCardData {
   const total = category.type === 'income' ? current.revenue : current.expense;
   const previousTotal = category.type === 'income' ? previous.revenue : previous.expense;
@@ -119,19 +139,105 @@ function toCardData(
     id: category.id,
     name: category.name,
     total,
-    percentage: totalDenominator > 0 ? current.expense / totalDenominator : 0,
+    // Percentage is the category's share of total expenses; it's meaningless for
+    // income categories, so omit it there.
+    percentage:
+      category.type === 'income'
+        ? undefined
+        : totalDenominator > 0
+          ? current.expense / totalDenominator
+          : 0,
     budget,
-    delta,
-    deltaPercentage: safePct(delta, previousTotal),
+    delta: hasPrevious ? delta : undefined,
+    deltaPercentage: hasPrevious ? safePct(delta, previousTotal) : undefined,
     revenue: current.revenue,
     entryCount: current.count,
     kind: category.type,
-    previousValue: previousTotal,
-    previousLabel,
+    previousValue: hasPrevious ? previousTotal : undefined,
+    previousLabel: hasPrevious ? previousLabel : undefined,
   };
 }
 
-function buildMonthMode(mock: Finance, year: number, month: number, locale: string): DashboardData {
+// Per-month expense totals for the selected year, shaped for the timeline strip.
+// Months run Jan→ but are truncated to the current month for the in-progress
+// (current) year; past years show all twelve. `delta` compares each month
+// against the same month of the previous year.
+function buildYearTimeline(mock: Finance, year: number, now: Date): MonthlyTimelinePoint[] {
+  const prevYear = year - 1;
+  const monthExpense = new Array<number>(12).fill(0);
+  const prevMonthExpense = new Array<number>(12).fill(0);
+
+  for (const t of mock.transactions) {
+    if (!isCompletedExpense(t)) continue;
+    const d = txDate(t);
+    if (!d) continue;
+    if (inYear(d, year)) monthExpense[d.getMonth()]! += t.amount;
+    else if (inYear(d, prevYear)) prevMonthExpense[d.getMonth()]! += t.amount;
+  }
+
+  const lastMonthIdx = year === now.getFullYear() ? now.getMonth() : MONTHS.length - 1;
+  return MONTHS.slice(0, lastMonthIdx + 1).map((monthKey, idx) => {
+    const value = monthExpense[idx] ?? 0;
+    const previous = prevMonthExpense[idx] ?? 0;
+    return { month: monthKey, value, delta: value - previous };
+  });
+}
+
+function daysInMonth(year: number, month: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function isoDay(year: number, month: number, day: number): string {
+  const mm = String(month + 1).padStart(2, '0');
+  const dd = String(day).padStart(2, '0');
+  return `${year}-${mm}-${dd}`;
+}
+
+// Per-day expense totals for the selected month, newest day first. For the
+// current month the strip stops at today; past months show every day.
+function buildDailyTimeline(
+  mock: Finance,
+  year: number,
+  month: number,
+  now: Date,
+): DailyTimelinePoint[] {
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+  const lastDay = isCurrentMonth ? now.getDate() : daysInMonth(year, month);
+
+  const dayExpense = new Array<number>(lastDay + 1).fill(0);
+  const dayCount = new Array<number>(lastDay + 1).fill(0);
+  for (const t of mock.transactions) {
+    if (!isCompletedExpense(t)) continue;
+    const d = txDate(t);
+    if (!d) continue;
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const day = d.getDate();
+      if (day >= 1 && day <= lastDay) {
+        dayExpense[day]! += t.amount;
+        dayCount[day]! += 1;
+      }
+    }
+  }
+
+  const points: DailyTimelinePoint[] = [];
+  for (let day = lastDay; day >= 1; day--) {
+    points.push({
+      date: isoDay(year, month, day),
+      value: dayExpense[day] ?? 0,
+      count: dayCount[day] ?? 0,
+      current: isCurrentMonth && day === now.getDate(),
+    });
+  }
+  return points;
+}
+
+function buildMonthMode(
+  mock: Finance,
+  year: number,
+  month: number,
+  now: Date,
+  locale: string,
+): DashboardData {
   const fmtMonth = monthFormatter(locale);
   const monthLabel = `${fmtMonth(month)} ${year}`;
 
@@ -187,13 +293,15 @@ function buildMonthMode(mock: Finance, year: number, month: number, locale: stri
     revenue: monthRevenue,
     expenses: monthExpenses,
     net: monthRevenue - monthExpenses,
+    dailyTimeline: buildDailyTimeline(mock, year, month, now),
   };
 
   const yearActive = yearActiveCategoryIds(mock, year);
-  const expenseCategories = mock.categories.filter(
-    (c) => c.type === 'expense' && isCategoryVisibleInYear(c, year, yearActive),
+  const used = usedCategoryIds(mock);
+  const visibleCategories = mock.categories.filter((c) =>
+    isCategoryVisibleInYear(c, year, yearActive, used),
   );
-  const categories = expenseCategories.map((c) =>
+  const categories = visibleCategories.map((c) =>
     toCardData(
       c,
       current[c.id] ?? emptyBucket(),
@@ -201,6 +309,7 @@ function buildMonthMode(mock: Finance, year: number, month: number, locale: stri
       monthExpenses,
       c.monthlyBudget,
       prevMonthLabel,
+      hasPrevMonthData,
     ),
   );
 
@@ -208,7 +317,7 @@ function buildMonthMode(mock: Finance, year: number, month: number, locale: stri
     mode: 'month',
     overview,
     categories,
-    filterItems: expenseCategories.map((c) => ({ id: c.id, label: c.name })),
+    filterItems: visibleCategories.map((c) => ({ id: c.id, label: c.name })),
   };
 }
 
@@ -229,23 +338,14 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     previous[c.id] = emptyBucket();
   }
 
-  // Per-month expense totals for the selected year (for the timeline).
-  const monthExpense = new Array<number>(12).fill(0);
-  // Same for previous year, used for monthly delta in the timeline.
-  const prevMonthExpense = new Array<number>(12).fill(0);
-
   for (const t of mock.transactions) {
     if (t.status !== 'completed') continue;
     const d = txDate(t);
     if (!d) continue;
 
     if (inYear(d, year)) {
-      if (isCompletedExpense(t)) {
-        yearExpenses += t.amount;
-        monthExpense[d.getMonth()] = (monthExpense[d.getMonth()] ?? 0) + t.amount;
-      } else if (isCompletedIncome(t)) {
-        yearRevenue += t.amount;
-      }
+      if (isCompletedExpense(t)) yearExpenses += t.amount;
+      else if (isCompletedIncome(t)) yearRevenue += t.amount;
       const bucket = current[t.categoryId];
       if (bucket) {
         if (t.type === 'expense') bucket.expense += t.amount;
@@ -253,12 +353,8 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
         bucket.count += 1;
       }
     } else if (inYear(d, prevYear)) {
-      if (isCompletedExpense(t)) {
-        prevYearExpenses += t.amount;
-        prevMonthExpense[d.getMonth()] = (prevMonthExpense[d.getMonth()] ?? 0) + t.amount;
-      } else if (isCompletedIncome(t)) {
-        prevYearRevenue += t.amount;
-      }
+      if (isCompletedExpense(t)) prevYearExpenses += t.amount;
+      else if (isCompletedIncome(t)) prevYearRevenue += t.amount;
       const bucket = previous[t.categoryId];
       if (bucket) {
         if (t.type === 'expense') bucket.expense += t.amount;
@@ -267,15 +363,7 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     }
   }
 
-  const timeline: MonthlyTimelinePoint[] = MONTHS.map((monthKey, idx) => {
-    const value = monthExpense[idx] ?? 0;
-    const previous = prevMonthExpense[idx] ?? 0;
-    return {
-      month: monthKey,
-      value,
-      delta: value - previous,
-    };
-  }).filter((p) => p.value > 0 || p.delta !== 0);
+  const timeline = buildYearTimeline(mock, year, now);
 
   const hasPrevYear = mock.years.includes(prevYear);
 
@@ -294,10 +382,11 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
   };
 
   const yearActive = yearActiveCategoryIds(mock, year);
-  const expenseCategories = mock.categories.filter(
-    (c) => c.type === 'expense' && isCategoryVisibleInYear(c, year, yearActive),
+  const used = usedCategoryIds(mock);
+  const visibleCategories = mock.categories.filter((c) =>
+    isCategoryVisibleInYear(c, year, yearActive, used),
   );
-  const categories = expenseCategories.map((c) =>
+  const categories = visibleCategories.map((c) =>
     toCardData(
       c,
       current[c.id] ?? emptyBucket(),
@@ -305,6 +394,7 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
       yearExpenses,
       undefined,
       prevYearLabel,
+      hasPrevYear,
     ),
   );
 
@@ -312,7 +402,7 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     mode: 'year',
     overview,
     categories,
-    filterItems: expenseCategories.map((c) => ({ id: c.id, label: c.name })),
+    filterItems: visibleCategories.map((c) => ({ id: c.id, label: c.name })),
   };
 }
 
@@ -336,7 +426,7 @@ export function buildDashboard(
     : (() => {
         const monthKey: Month = filter.months[0] ?? MONTHS[now.getMonth()]!;
         const month = MONTHS.indexOf(monthKey);
-        return buildMonthMode(mock, year, month, locale);
+        return buildMonthMode(mock, year, month, now, locale);
       })();
   return {
     ...base,

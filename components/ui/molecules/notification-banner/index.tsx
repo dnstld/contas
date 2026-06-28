@@ -7,7 +7,7 @@ import { Logo } from '@/components/ui/molecules/logo';
 import type { NotificationBannerProps } from './types';
 
 export const NotificationBanner = React.memo<NotificationBannerProps>(
-  ({ title, subtitle, showIllustration = true, testID }) => {
+  ({ title, subtitle, showIllustration = true, icon, testID }) => {
     return (
       <View
         style={styles.container}
@@ -17,8 +17,8 @@ export const NotificationBanner = React.memo<NotificationBannerProps>(
         accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
       >
         {showIllustration && (
-          <View style={styles.illustration}>
-            <Logo size="small" />
+          <View style={icon ? undefined : styles.illustration}>
+            {icon ?? <Logo size="small" />}
           </View>
         )}
 

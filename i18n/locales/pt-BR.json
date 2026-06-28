@@ -153,6 +153,7 @@
     "revenue": "Receitas",
     "balance": "Saldo",
     "allMonths": "TODOS OS MESES",
+    "byDay": "POR DIA",
     "primaryPrefix": "Contas",
     "lastUpdate": "Última atualização às {{time}}",
     "addFirstTransaction": "Adicione sua primeira transação",
@@ -170,7 +171,6 @@
     },
     "amountPlaceholder": "Valor",
     "dateLabel": "Data",
-    "categoryEmptyHint": "Toque em Criar para adicionar sua primeira categoria deste tipo.",
     "descriptionLabel": "Descrição",
     "descriptionPlaceholder": "ex: Passagem aérea",
     "descriptionCaption": "Aparece nas transações",
@@ -306,8 +306,7 @@
       "chipLabelCategory": "+ Categoria",
       "title": "Nova Categoria",
       "nameLabel": "Nome",
-      "namePlaceholder": "ex: Mercado",
-      "nameCaption": "Exibido nas transações e relatórios",
+      "namePlaceholder": "Digite o nome da categoria",
       "budgetLabel": "Meta mensal",
       "budgetCaption": "Defina uma meta mensal para sempre saber quanto ainda dá pra gastar.",
       "createButton": "Criar",
@@ -365,19 +364,33 @@
     "sort": {
       "label": "Ordenar por",
       "highestExpense": "Maior despesa",
-      "mostUsed": "Mais usadas"
+      "mostUsed": "Mais usadas",
+      "income": "Maior receita"
+    },
+    "gridEmpty": {
+      "expense": {
+        "title": "Nenhuma categoria de despesa",
+        "body": "Crie uma categoria para começar a organizar seus gastos."
+      },
+      "income": {
+        "title": "Nenhuma categoria de receita",
+        "body": "Crie uma categoria de receita para acompanhar o que entra."
+      }
     }
   },
   "categorySelect": {
     "title": "Selecionar categoria",
     "placeholder": "Selecione uma categoria",
-    "searchPlaceholder": "Buscar categorias",
+    "searchPlaceholder": "Nome da categoria",
     "groups": {
       "all": "Todas as categorias"
     },
-    "addButton": "Nova categoria",
     "createNamed": "Criar “{{name}}”",
     "createAndSelect": "Criar e selecionar",
-    "empty": "Nenhuma categoria encontrada"
+    "suggestions": {
+      "section": "Sugestões",
+      "expense": "Mercado, Farmácia, Aluguel",
+      "income": "Salário, Investimentos, Freelance"
+    }
   }
 }

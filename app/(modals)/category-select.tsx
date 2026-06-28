@@ -6,25 +6,24 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { CategoryFields } from '@/components/categories/category-fields';
 import { Icon } from '@/components/ui/atoms/icon';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
-import { PriceText } from '@/components/ui/atoms/price-text';
 import { Text } from '@/components/ui/atoms/text';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
-import { StickyFooter } from '@/components/ui/molecules/sticky-footer';
 import { SectionList, type SectionListSection } from '@/components/ui/organisms/section-list';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { Fonts } from '@/constants/theme';
 import type { Category, TransactionType } from '@/data/finance-types';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCreateCategory } from '@/hooks/use-finance-mutations';
-import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
-import { useFormatters } from '@/hooks/use-formatters';
+import { useCategories } from '@/hooks/use-finance-queries';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useWallet } from '@/hooks/use-wallet';
 import { categoryFormBridge } from '@/utils/modal-bridge';
 import { toast } from '@/utils/toast';
 
-const MOST_USED_LIMIT = 5;
+/** A starter suggestion shown when the picker has no categories of this type yet. */
+type SuggestionRow = { suggestion: string };
+type Row = Category | SuggestionRow;
+const isSuggestion = (r: Row): r is SuggestionRow => 'suggestion' in r;
 
 export default function CategorySelectScreen() {
   const router = useRouter();
@@ -40,11 +39,8 @@ export default function CategorySelectScreen() {
   const selectedId = params.selectedId ?? null;
 
   const { data: categories = [] } = useCategories();
-  const { data: transactions = [] } = useTransactions();
   const { enabled: demoMode } = useDemoMode();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
-  const { currency } = useWallet();
-  const { locale } = useFormatters();
 
   const [mode, setMode] = useState<'list' | 'create'>('list');
   const [query, setQuery] = useState('');
@@ -53,45 +49,43 @@ export default function CategorySelectScreen() {
 
   const backgroundColor = useThemeColor({}, 'modalBackground');
   const tintColor = useThemeColor({}, 'tint');
-  const {
-    text: textColor,
-    textMuted: mutedColor,
-    border: borderColor,
-    inputBackground,
-    onPrimary,
-  } = useModalChrome();
+  const { text: textColor, textMuted: mutedColor, inputBackground } = useModalChrome();
 
-  const counts = useMemo(() => {
-    const countById = new Map<string, number>();
-    for (const tx of transactions) {
-      countById.set(tx.categoryId, (countById.get(tx.categoryId) ?? 0) + 1);
-    }
-    return countById;
-  }, [transactions]);
+  // Starter category names for this type, minus any the wallet already has.
+  const suggestionNames = useMemo(() => {
+    const existing = new Set(
+      categories.filter((c) => c.type === type).map((c) => c.name.toLowerCase()),
+    );
+    return t(`categorySelect.suggestions.${type}`)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .filter((name) => !existing.has(name.toLowerCase()));
+  }, [categories, type, t]);
 
-  const sections = useMemo<SectionListSection<Category>[]>(() => {
+  const sections = useMemo<SectionListSection<Row>[]>(() => {
     const needle = query.trim().toLowerCase();
     const ofType = categories
       .filter((c) => c.type === type)
-      .filter((c) => (needle ? c.name.toLowerCase().includes(needle) : true));
-
-    const used = ofType
-      .filter((c) => (counts.get(c.id) ?? 0) > 0)
-      .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0));
-    const mostUsed = used.slice(0, MOST_USED_LIMIT);
-    const mostUsedIds = new Set(mostUsed.map((c) => c.id));
-
-    const rest = ofType
-      .filter((c) => !mostUsedIds.has(c.id))
+      .filter((c) => (needle ? c.name.toLowerCase().includes(needle) : true))
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    // RNSectionList (flat variant) renders a header even for empty sections,
-    // so drop any group with no rows.
-    return [
-      { id: 'most-used', title: t('category.sort.mostUsed'), data: mostUsed },
-      { id: 'all', title: t('categorySelect.groups.all'), data: rest },
-    ].filter((s) => s.data.length > 0);
-  }, [categories, counts, type, query, t]);
+    if (ofType.length > 0) {
+      return [{ id: 'all', title: t('categorySelect.groups.all'), data: ofType }];
+    }
+
+    // No categories of this type yet (and not searching): offer starter suggestions
+    // in their own group. Tapping one opens the in-sheet create view.
+    if (needle.length === 0) {
+      const suggestionRows: Row[] = suggestionNames.map((suggestion) => ({ suggestion }));
+      return [
+        { id: 'suggestions', title: t('categorySelect.suggestions.section'), data: suggestionRows },
+      ];
+    }
+
+    // Searching with no match: the inline "+ Criar X" header row covers creation.
+    return [];
+  }, [categories, type, query, t, suggestionNames]);
 
   // Offer "Create X" when the typed term doesn't exactly match an existing
   // category of this type (case-insensitive).
@@ -211,64 +205,34 @@ export default function CategorySelectScreen() {
         ) : null}
       </View>
 
-      <SectionList<Category>
+      <SectionList<Row>
         variant="flat"
         sections={sections}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => (isSuggestion(item) ? `sugg:${item.suggestion}` : item.id)}
         stickySectionHeadersEnabled={false}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          showInlineCreate ? null : (
-            <Text variant="body" tone="textMuted" style={styles.empty}>
-              {t('categorySelect.empty')}
-            </Text>
-          )
-        }
         renderItem={({ item }) => {
-          const count = counts.get(item.id) ?? 0;
+          if (isSuggestion(item)) {
+            return (
+              <SectionListRow
+                title={item.suggestion}
+                trailing={<Icon name="plus" size={20} tone="tint" />}
+                onPress={() => openCreate(item.suggestion)}
+                accessibilityLabel={item.suggestion}
+              />
+            );
+          }
           const selected = item.id === selectedId;
-          const hasGoal = item.monthlyBudget != null;
           return (
             <SectionListRow
-              leading={
-                <View
-                  style={[
-                    styles.selectDot,
-                    selected ? { backgroundColor: tintColor } : { borderColor, borderWidth: 1.5 },
-                  ]}
-                >
-                  {selected ? <Icon name="checkmark" size={18} color={onPrimary} /> : null}
-                </View>
-              }
               title={item.name}
-              subtitle={count > 0 ? t('category.transactionCount', { count }) : null}
-              text1={hasGoal ? t('category.create.budgetLabel') : null}
-              text2={
-                hasGoal ? (
-                  <PriceText
-                    value={item.monthlyBudget as number}
-                    currency={currency}
-                    locale={locale}
-                    tone="neutral"
-                    size="md"
-                  />
-                ) : null
-              }
+              trailing={selected ? <Icon name="checkmark" size={20} tone="tint" /> : null}
               onPress={() => handleSelect(item.id)}
               accessibilityLabel={item.name}
             />
           );
         }}
       />
-
-      <StickyFooter>
-        <PressableButton
-          label={t('categorySelect.addButton')}
-          variant="primary"
-          size="large"
-          onPress={() => openCreate(trimmedQuery)}
-        />
-      </StickyFooter>
     </View>
   );
 }
@@ -306,15 +270,4 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   pressed: { opacity: 0.6 },
-  selectDot: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  empty: {
-    textAlign: 'center',
-    paddingVertical: 32,
-  },
 });

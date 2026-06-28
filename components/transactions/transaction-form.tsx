@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { categorySelectHref } from '@/constants/routes';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
+import { Chip } from '@/components/ui/atoms/chip';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
@@ -12,7 +13,7 @@ import { Text } from '@/components/ui/atoms/text';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { CategorySelect } from '@/components/ui/organisms/category-select';
 import { Fonts } from '@/constants/theme';
-import { useCategories } from '@/hooks/use-finance-queries';
+import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
@@ -52,6 +53,7 @@ export function TransactionForm({
   const { t } = useTranslation();
   const router = useRouter();
   const { data: categories = [] } = useCategories();
+  const { data: transactions = [] } = useTransactions();
   const { currency } = useWallet();
   const { formatDecimal } = useFormatters();
   // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
@@ -88,7 +90,19 @@ export function TransactionForm({
   const selectedCategoryName = categoryId
     ? (categories.find((c) => c.id === categoryId)?.name ?? null)
     : null;
-  const hasCategoriesForType = categories.some((c) => c.type === type);
+
+  // Top 5 most-used categories of the current type, for quick selection. Hidden
+  // entirely when there is no usage data (e.g. a fresh wallet).
+  const topCategories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const tx of transactions) {
+      counts.set(tx.categoryId, (counts.get(tx.categoryId) ?? 0) + 1);
+    }
+    return categories
+      .filter((c) => c.type === type && (counts.get(c.id) ?? 0) > 0)
+      .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
+      .slice(0, 5);
+  }, [categories, transactions, type]);
 
   const formattedAmount = formatDecimal(amountCents / 100);
 
@@ -234,10 +248,26 @@ export function TransactionForm({
             router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }))
           }
         />
-        {!hasCategoriesForType ? (
-          <Text variant="caption" tone="textMuted">
-            {t('create.categoryEmptyHint')}
-          </Text>
+        {topCategories.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.chipRow}
+          >
+            {topCategories.map((c) => {
+              const selected = categoryId === c.id;
+              return (
+                <Chip
+                  key={c.id}
+                  label={c.name}
+                  variant={selected ? 'secondary' : 'default'}
+                  selected={selected}
+                  onPress={() => setCategoryId(c.id)}
+                />
+              );
+            })}
+          </ScrollView>
         ) : null}
       </View>
 
@@ -303,6 +333,12 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: 8,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
   },
   label: {
     letterSpacing: 0.8,

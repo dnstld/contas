@@ -2,6 +2,7 @@ import { type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text as RNText, TextInput, View } from 'react-native';
 
+import { Chip } from '@/components/ui/atoms/chip';
 import { Text } from '@/components/ui/atoms/text';
 import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
 import { Fonts } from '@/constants/theme';
@@ -18,6 +19,11 @@ export interface CategoryFieldsProps {
   nameInputRef?: RefObject<TextInput | null>;
   /** Called when the goal field's "done" key is pressed (e.g. to submit). */
   onSubmitBudget?: () => void;
+  /**
+   * Starter category names shown as chips below the name input. Tapping one
+   * fills the name (and toggles off if it already matches). Omit/empty to hide.
+   */
+  nameSuggestions?: readonly string[];
 }
 
 /**
@@ -32,6 +38,7 @@ export function CategoryFields({
   onBudgetChange,
   nameInputRef,
   onSubmitBudget,
+  nameSuggestions,
 }: CategoryFieldsProps) {
   const { t } = useTranslation();
   const { currency } = useWallet();
@@ -70,9 +77,23 @@ export function CategoryFields({
             { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
           ]}
         />
-        <Text variant="caption" tone="textMuted">
-          {t('category.create.nameCaption')}
-        </Text>
+        {nameSuggestions && nameSuggestions.length > 0 ? (
+          <View style={styles.suggestions}>
+            {nameSuggestions.map((s) => {
+              const selected = name.trim() === s;
+              return (
+                <Chip
+                  key={s}
+                  label={s}
+                  variant={selected ? 'secondary' : 'default'}
+                  selected={selected}
+                  showCheckWhenSelected
+                  onPress={() => onNameChange(selected ? '' : s)}
+                />
+              );
+            })}
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.field}>
@@ -106,6 +127,12 @@ export function CategoryFields({
 
 const styles = StyleSheet.create({
   field: { gap: 6 },
+  suggestions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 2,
+  },
   label: { letterSpacing: 0.8 },
   fieldInput: {
     fontSize: 15,

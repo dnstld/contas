@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { Surface, Text } from '@/components/ui';
+import { Avatar, Surface } from '@/components/ui';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
+import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import {
   useAcceptInvitation,
   useDeclineInvitation,
@@ -62,15 +63,12 @@ function InviteCard({ invite }: { invite: PendingInvitation }) {
   };
 
   return (
-    <Surface variant="plain" bordered padding={16} style={styles.card}>
-      <View style={styles.text}>
-        <Text variant="body" weight="semibold">
-          {t('wallet.inviteBanner.title')}
-        </Text>
-        <Text variant="caption" tone="textMuted">
-          {body}
-        </Text>
-      </View>
+    <Surface variant="plain" tone="positiveSurface" bordered padding={16} style={styles.card}>
+      <NotificationBanner
+        title={t('wallet.inviteBanner.title')}
+        subtitle={body}
+        icon={<Avatar icon="envelope" size="md" tone="positive" iconTone="onPrimary" />}
+      />
       <View style={styles.actions}>
         <PressableButton
           label={t('wallet.inviteBanner.decline')}
@@ -101,9 +99,6 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: 12,
-  },
-  text: {
-    gap: 4,
   },
   actions: {
     flexDirection: 'row',

@@ -7,6 +7,7 @@ import {
   CategoryCard,
   CategoryGridControls,
   CategoryGridSkeleton,
+  EmptyState,
   FinanceTimeFilter,
   Icon,
   Overview,
@@ -15,6 +16,7 @@ import {
   Text,
 } from '@/components/ui';
 import { PendingInviteBanner } from '@/components/pending-invite-banner';
+import { WalletSelect } from '@/components/settings/wallet-select';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
@@ -47,6 +49,7 @@ export default function HomeScreen() {
 
   const grid = useCategoryGrid({
     categories: dashboard.categories,
+    filterItems: dashboard.filterItems,
     currency,
     period: dashboard.mode,
   });
@@ -93,9 +96,16 @@ export default function HomeScreen() {
     <View style={styles.headerStack}>
       <PendingInviteBanner />
 
+      <WalletSelect />
+
       <FinanceTimeFilter api={filterApi} now={now} availableYears={dashboard.data?.years} />
 
-      <Overview {...dashboard.overview} currency={currency} revenueVisible={revenueVisible} />
+      <Overview
+        {...dashboard.overview}
+        currency={currency}
+        revenueVisible={revenueVisible}
+        onSelectMonth={filterApi.toggleMonth}
+      />
 
       {demoMode ? (
         <Surface variant="muted" padding={12} bordered style={styles.notice}>
@@ -115,13 +125,20 @@ export default function HomeScreen() {
         sortOptions={grid.sortOptions}
         sort={grid.sort}
         onSortChange={grid.setSort}
-        filterItems={dashboard.filterItems}
+        filterItems={grid.filterItems}
         selectedIds={grid.selected}
         onSelectedChange={grid.setSelected}
         onCreateCategory={handleCreateCategory}
         createLabel={t('category.create.chipLabelCategory')}
         onEditCategory={handleCategoryLongPress}
-        title={t(noTransactions ? 'category.section.expensesEmpty' : 'category.section.expenses')}
+        // Keep the sort menu visible whenever any categories exist, so the user
+        // can switch back after landing on an empty kind (e.g. no income).
+        showSort={dashboard.categories.length > 0}
+        title={
+          grid.sort === 'income'
+            ? t('category.section.income')
+            : t(noTransactions ? 'category.section.expensesEmpty' : 'category.section.expenses')
+        }
         summary={grid.summary}
       />
     </View>
@@ -170,12 +187,27 @@ export default function HomeScreen() {
             ListHeaderComponent={header}
             columnWrapperStyle={styles.gridRow}
             ListEmptyComponent={
-              <Surface variant="plain" bordered padding={16}>
-                <NotificationBanner
-                  title={t('balance.welcome.title')}
-                  subtitle={t('balance.welcome.body')}
+              dashboard.categories.length === 0 ? (
+                <Surface variant="plain" bordered padding={16}>
+                  <NotificationBanner
+                    title={t('balance.welcome.title')}
+                    subtitle={t('balance.welcome.body')}
+                  />
+                </Surface>
+              ) : (
+                <EmptyState
+                  title={t(
+                    grid.sort === 'income'
+                      ? 'category.gridEmpty.income.title'
+                      : 'category.gridEmpty.expense.title',
+                  )}
+                  body={t(
+                    grid.sort === 'income'
+                      ? 'category.gridEmpty.income.body'
+                      : 'category.gridEmpty.expense.body',
+                  )}
                 />
-              </Surface>
+              )
             }
             renderItem={({ item }) => (
               <View style={styles.cell}>

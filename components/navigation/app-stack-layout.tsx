@@ -17,11 +17,9 @@ import { ROUTES } from '@/constants/routes';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useWallet } from '@/hooks/use-wallet';
 
 function HeaderLogo() {
   const { t } = useTranslation();
-  const { name } = useWallet();
   return (
     <View
       style={{
@@ -34,16 +32,6 @@ function HeaderLogo() {
       <Text variant="subtitle" weight="bold" style={{ letterSpacing: 1.5 }}>
         {t('common.appName')}
       </Text>
-      {name ? (
-        <>
-          <Text variant="body" tone="textMuted" weight="medium">
-            |
-          </Text>
-          <Text variant="caption" weight="medium">
-            {name}
-          </Text>
-        </>
-      ) : null}
     </View>
   );
 }

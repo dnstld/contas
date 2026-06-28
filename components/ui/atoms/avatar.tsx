@@ -2,8 +2,10 @@ import { Image, type ImageStyle } from 'expo-image';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { AvatarBadge, type AvatarBadgeVariant } from '@/components/ui/atoms/avatar-badge';
+import { Icon, type IconName } from '@/components/ui/atoms/icon';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text, type TextVariant } from '@/components/ui/atoms/text';
+import { Colors } from '@/constants/theme';
 
 /** Shared size scale for the avatar and its corner badge. */
 export type AvatarSize = 'sm' | 'md' | 'lg';
@@ -26,6 +28,12 @@ export interface AvatarProps {
   size?: AvatarSize;
   /** Optional corner badge; sized to match the avatar automatically. */
   badge?: AvatarBadgeVariant;
+  /** Renders an icon (centered) instead of initials, when no `url` is set. */
+  icon?: IconName;
+  /** Color token for the `icon`. Defaults to `icon`. */
+  iconTone?: keyof typeof Colors.light;
+  /** Background tone token for the fallback circle. Defaults to the muted surface. */
+  tone?: keyof typeof Colors.light;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -47,7 +55,17 @@ function pickTextVariant(dimension: number): TextVariant {
   return 'caption';
 }
 
-export function Avatar({ url, name, initials, size = 'md', badge, style }: AvatarProps) {
+export function Avatar({
+  url,
+  name,
+  initials,
+  size = 'md',
+  badge,
+  icon,
+  iconTone = 'icon',
+  tone,
+  style,
+}: AvatarProps) {
   const dimension = AVATAR_DIMENSIONS[size];
   const radius = Math.round(dimension / 2);
 
@@ -62,13 +80,18 @@ export function Avatar({ url, name, initials, size = 'md', badge, style }: Avata
   ) : (
     <Surface
       variant="muted"
+      tone={tone}
       padding={0}
       radius={radius}
       style={[styles.fallback, { width: dimension, height: dimension }, !badge ? style : null]}
     >
-      <Text variant={pickTextVariant(dimension)} weight="semibold">
-        {initials ?? deriveInitials(name)}
-      </Text>
+      {icon ? (
+        <Icon name={icon} size={Math.round(dimension * 0.5)} tone={iconTone} />
+      ) : (
+        <Text variant={pickTextVariant(dimension)} weight="semibold">
+          {initials ?? deriveInitials(name)}
+        </Text>
+      )}
     </Surface>
   );
 

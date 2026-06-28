@@ -13,7 +13,10 @@ export interface MonthlyTimelinePoint {
 export interface MonthlyTimelineProps {
   points: readonly MonthlyTimelinePoint[];
   currency?: string;
+  /** Anchors the ordering: this month is first, prior months follow in reverse. */
   currentMonth?: Month;
+  /** When provided, each card is tappable and reports its month. */
+  onSelectMonth?: (month: Month) => void;
 }
 
 /**
@@ -38,6 +41,7 @@ export function MonthlyTimeline({
   points,
   currency = 'USD',
   currentMonth = MONTHS[new Date().getMonth()]!,
+  onSelectMonth,
 }: MonthlyTimelineProps) {
   const ordered = orderPoints(points, currentMonth);
   const { monthName } = useFormatters();
@@ -56,6 +60,7 @@ export function MonthlyTimeline({
             delta={p.delta}
             currency={currency}
             current={p.month === currentMonth}
+            onPress={onSelectMonth ? () => onSelectMonth(p.month) : undefined}
             tone={
               p.value === 0
                 ? 'neutral'

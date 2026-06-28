@@ -7,7 +7,6 @@ import { SectionList, SortMenu, Toggle } from '@/components/ui';
 import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { AccountCards } from '@/components/settings/account-cards';
-import { WalletCards } from '@/components/settings/wallet-cards';
 import { DangerZone } from '@/components/settings/danger-zone';
 import { useAuth } from '@/hooks/use-auth';
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
@@ -132,8 +131,6 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={{ backgroundColor: background }} contentContainerStyle={styles.content}>
       <AccountCards />
-
-      <WalletCards />
 
       <SectionList<Row>
         variant="card"

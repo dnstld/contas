@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { CategoryCardData } from '@/components/ui/organisms/category-card';
@@ -6,7 +6,12 @@ import type { CategoryPickerItem } from '@/components/ui/organisms/category-pick
 import type { SortOption } from '@/components/ui/molecules/sort-menu';
 import { useFormatters } from '@/hooks/use-formatters';
 
-export type CategorySortMode = 'highestExpense' | 'mostUsed';
+export type CategorySortMode = 'highestExpense' | 'mostUsed' | 'income';
+
+/** Each sort mode also scopes the list to a category kind. */
+function kindForSort(sort: CategorySortMode): 'expense' | 'income' {
+  return sort === 'income' ? 'income' : 'expense';
+}
 
 export interface UseCategoryGridOptions {
   categories: readonly CategoryCardData[];
@@ -22,31 +27,58 @@ export interface UseCategoryGridResult {
   selected: readonly string[];
   setSelected: (next: readonly string[]) => void;
   sorted: CategoryCardData[];
+  /** Filter chips scoped to the active sort's kind (expense vs income). */
+  filterItems: readonly CategoryPickerItem[];
   summary: string | null;
 }
 
 export function useCategoryGrid({
   categories,
+  filterItems,
   currency = 'USD',
   period,
 }: UseCategoryGridOptions): UseCategoryGridResult {
   const { t } = useTranslation();
   const { formatCurrency } = useFormatters();
-  const [sort, setSort] = useState<CategorySortMode>('highestExpense');
+  const [sort, setSortState] = useState<CategorySortMode>('highestExpense');
   const [selected, setSelectedState] = useState<readonly string[]>([]);
+
+  // Switching between expense- and income-scoped sorts clears the chip selection,
+  // since selected ids belong to the previous kind.
+  const setSort = useCallback((next: CategorySortMode) => {
+    setSortState((prev) => {
+      if (kindForSort(prev) !== kindForSort(next)) setSelectedState([]);
+      return next;
+    });
+  }, []);
 
   const sortOptions = useMemo<readonly SortOption<CategorySortMode>[]>(
     () => [
       { value: 'highestExpense', label: t('category.sort.highestExpense') },
       { value: 'mostUsed', label: t('category.sort.mostUsed') },
+      { value: 'income', label: t('category.sort.income') },
     ],
     [t],
   );
 
+  const kind = kindForSort(sort);
+
+  const byKind = useMemo(
+    () => categories.filter((c) => (c.kind ?? 'expense') === kind),
+    [categories, kind],
+  );
+
+  // Chips reflect the active kind's categories (pre-selection).
+  const kindFilterItems = useMemo(() => {
+    if (!filterItems) return [];
+    const ids = new Set(byKind.map((c) => c.id));
+    return filterItems.filter((f) => ids.has(f.id));
+  }, [filterItems, byKind]);
+
   const filtered = useMemo(() => {
-    if (selected.length === 0) return categories;
-    return categories.filter((c) => selected.includes(c.id));
-  }, [categories, selected]);
+    if (selected.length === 0) return byKind;
+    return byKind.filter((c) => selected.includes(c.id));
+  }, [byKind, selected]);
 
   const summary = useMemo(() => {
     if (selected.length === 0) return null;
@@ -85,7 +117,10 @@ export function useCategoryGrid({
           if (countDiff !== 0) return countDiff;
           return b.total - a.total;
         });
+      // Highest expense and highest income both order by the card's total
+      // (which is revenue for income cards) descending.
       case 'highestExpense':
+      case 'income':
         return arr.sort((a, b) => b.total - a.total);
       default: {
         const _exhaustive: never = sort;
@@ -101,6 +136,7 @@ export function useCategoryGrid({
     selected,
     setSelected: setSelectedState,
     sorted,
+    filterItems: kindFilterItems,
     summary,
   };
 }

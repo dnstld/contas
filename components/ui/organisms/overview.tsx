@@ -10,6 +10,10 @@ import { Text } from '@/components/ui/atoms/text';
 import { TrendIndicator } from '@/components/ui/atoms/trend-indicator';
 import { MetricRow } from '@/components/ui/molecules/metric-row';
 import {
+  DailyTimeline,
+  type DailyTimelinePoint,
+} from '@/components/ui/organisms/daily-timeline';
+import {
   MonthlyTimeline,
   type MonthlyTimelinePoint,
 } from '@/components/ui/organisms/monthly-timeline';
@@ -39,6 +43,10 @@ export interface OverviewProps {
   yearTotals?: { year: number; value: number }[];
   timeline?: readonly MonthlyTimelinePoint[];
   currentMonth?: Month;
+  /** When provided, months-strip cards are tappable to switch the selected month. */
+  onSelectMonth?: (month: Month) => void;
+  // Month mode: per-day spend strip (newest day first).
+  dailyTimeline?: readonly DailyTimelinePoint[];
 }
 
 function safePct(delta: number, base: number): number | undefined {
@@ -63,6 +71,8 @@ export function Overview({
   yearTotals,
   timeline,
   currentMonth,
+  onSelectMonth,
+  dailyTimeline,
 }: OverviewProps) {
   const [lens, setLens] = useState<OverviewLens>('expenses');
   const { t } = useTranslation();
@@ -225,12 +235,26 @@ export function Overview({
         </View>
       ) : null}
 
-      {(mode === 'all' || mode === 'year') && timeline && timeline.length > 0 ? (
+      {timeline && timeline.length > 0 ? (
         <View style={styles.timeline}>
           <Text variant="caption" tone="textMuted" weight="semibold">
             {t('overview.allMonths')}
           </Text>
-          <MonthlyTimeline points={timeline} currency={currency} currentMonth={currentMonth} />
+          <MonthlyTimeline
+            points={timeline}
+            currency={currency}
+            currentMonth={currentMonth}
+            onSelectMonth={onSelectMonth}
+          />
+        </View>
+      ) : null}
+
+      {dailyTimeline && dailyTimeline.length > 0 ? (
+        <View style={styles.timeline}>
+          <Text variant="caption" tone="textMuted" weight="semibold">
+            {t('overview.byDay')}
+          </Text>
+          <DailyTimeline points={dailyTimeline} currency={currency} />
         </View>
       ) : null}
     </Surface>
