@@ -235,7 +235,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
+  return <WalletContext value={value}>{children}</WalletContext>;
 }
 
 export function useWallet() {

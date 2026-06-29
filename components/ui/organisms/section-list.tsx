@@ -1,4 +1,4 @@
-import { Fragment, forwardRef, type ReactElement, type ReactNode, type Ref } from 'react';
+import { Fragment, type ReactNode, type Ref } from 'react';
 import {
   SectionList as RNSectionList,
   StyleSheet,
@@ -58,23 +58,23 @@ function FlatSectionHeader({ title }: { title?: string }) {
   );
 }
 
-function FlatSectionListInner<T>(
-  {
-    sections,
-    renderItem,
-    keyExtractor,
-    ListHeaderComponent,
-    ListEmptyComponent,
-    contentContainerStyle,
-    style,
-    stickySectionHeadersEnabled = false,
-    scrollEnabled,
-    initialNumToRender,
-    windowSize,
-    removeClippedSubviews,
-  }: Omit<SectionListProps<T>, 'variant'>,
-  ref: Ref<RNSectionList<T, SectionListSection<T>>>,
-) {
+function FlatSectionList<T>({
+  ref,
+  sections,
+  renderItem,
+  keyExtractor,
+  ListHeaderComponent,
+  ListEmptyComponent,
+  contentContainerStyle,
+  style,
+  stickySectionHeadersEnabled = false,
+  scrollEnabled,
+  initialNumToRender,
+  windowSize,
+  removeClippedSubviews,
+}: Omit<SectionListProps<T>, 'variant'> & {
+  ref?: Ref<RNSectionList<T, SectionListSection<T>>>;
+}) {
   return (
     <RNSectionList<T, SectionListSection<T>>
       ref={ref}
@@ -95,12 +95,6 @@ function FlatSectionListInner<T>(
     />
   );
 }
-
-const FlatSectionList = forwardRef(FlatSectionListInner) as <T>(
-  props: Omit<SectionListProps<T>, 'variant'> & {
-    ref?: Ref<RNSectionList<T, SectionListSection<T>>>;
-  },
-) => ReactElement | null;
 
 function CardSectionList<T>({
   sections,
@@ -161,19 +155,16 @@ function CardSectionList<T>({
   );
 }
 
-function SectionListInner<T>(
-  { variant = 'flat', ...rest }: SectionListProps<T>,
-  ref: Ref<RNSectionList<T, SectionListSection<T>>>,
-) {
+export function SectionList<T>({
+  variant = 'flat',
+  ref,
+  ...rest
+}: SectionListProps<T> & { ref?: Ref<RNSectionList<T, SectionListSection<T>>> }) {
   if (variant === 'card') {
     return <CardSectionList<T> {...rest} />;
   }
   return <FlatSectionList<T> {...rest} ref={ref} />;
 }
-
-export const SectionList = forwardRef(SectionListInner) as <T>(
-  props: SectionListProps<T> & { ref?: Ref<RNSectionList<T, SectionListSection<T>>> },
-) => ReactElement | null;
 
 const flatStyles = StyleSheet.create({
   header: {
