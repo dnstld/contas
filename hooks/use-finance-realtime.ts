@@ -12,7 +12,7 @@ import { supabase } from '@/utils/supabase';
 
 function extractRowId(value: unknown): string | undefined {
   if (value && typeof value === 'object' && 'id' in value) {
-    const id = (value as { id: unknown }).id;
+    const { id } = value;
     if (typeof id === 'string') return id;
   }
   return undefined;

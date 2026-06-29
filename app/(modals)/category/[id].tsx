@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Platform, StyleSheet, View } from 'react-native';
+import { FlatList, Platform, StyleSheet, View, type ListRenderItem } from 'react-native';
 
 import { CategoryDetailSkeleton, Divider, EmptyState, Text, TransactionRow } from '@/components/ui';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
@@ -144,9 +144,8 @@ export default function CategoryDetailModal() {
 
   const hasTransactions = sections.length > 0;
 
-  const renderItem = useCallback(
-    ({ item }: { item: unknown }) => {
-      const row = item as Row;
+  const renderItem = useCallback<ListRenderItem<Row>>(
+    ({ item: row }) => {
       if (row.type === 'header') {
         return (
           <View style={[styles.sectionHeader, { backgroundColor: background }]}>
@@ -174,7 +173,7 @@ export default function CategoryDetailModal() {
   const listOrEmpty = hasTransactions ? (
     <FlatList
       data={rows}
-      keyExtractor={(item: unknown) => (item as Row).id}
+      keyExtractor={(item: Row) => item.id}
       contentContainerStyle={styles.listContent}
       initialNumToRender={20}
       windowSize={10}

@@ -9,10 +9,7 @@ import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
 import { TrendIndicator } from '@/components/ui/atoms/trend-indicator';
 import { MetricRow } from '@/components/ui/molecules/metric-row';
-import {
-  DailyTimeline,
-  type DailyTimelinePoint,
-} from '@/components/ui/organisms/daily-timeline';
+import { DailyTimeline, type DailyTimelinePoint } from '@/components/ui/organisms/daily-timeline';
 import {
   MonthlyTimeline,
   type MonthlyTimelinePoint,

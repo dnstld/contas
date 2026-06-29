@@ -1,6 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
-import { changeLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n';
+import {
+  changeLanguage,
+  DEFAULT_LANGUAGE,
+  isSupportedLanguage,
+  SUPPORTED_LANGUAGES,
+  type SupportedLanguage,
+} from '@/i18n';
 import { usePersistedState } from '@/hooks/use-persisted-state';
 
 const STORAGE_KEY = 'settings:language';
@@ -12,7 +18,7 @@ export function useLanguage() {
     null,
   );
 
-  const current = (i18n.language as SupportedLanguage) ?? 'en';
+  const current = isSupportedLanguage(i18n.language) ? i18n.language : DEFAULT_LANGUAGE;
 
   const setLanguage = (next: SupportedLanguage) => {
     setStored(next);

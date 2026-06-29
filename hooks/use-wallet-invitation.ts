@@ -77,12 +77,19 @@ export function useOutgoingInvitations() {
       const now = Date.now();
       return (
         (data ?? [])
+          // The `.not('invited_email', 'is', null)` filter guarantees this at the
+          // DB level; narrow it here so the mapped `email` is honestly `string`.
+          .filter(
+            (row): row is typeof row & { invited_email: string } => row.invited_email !== null,
+          )
           // Pending invites disappear once expired; declined ones stick around
           // until the inviter dismisses them.
           .filter((row) => row.status === 'declined' || new Date(row.expires_at).getTime() > now)
           .map((row) => ({
             id: row.id,
-            email: row.invited_email as string,
+            email: row.invited_email,
+            // boundary: `status` is `string` in generated types (text column, not
+            // a PG enum); narrowing to the union is runtime-validated in Topic 5.
             status: row.status as OutgoingInvitation['status'],
             createdAt: row.created_at,
           }))
@@ -144,7 +151,7 @@ export function useAcceptInvitation() {
         p_invitation_id: invitationId,
       });
       if (error) throw error;
-      return data as string; // joined wallet_id
+      return data; // joined wallet_id (RPC `Returns: string`)
     },
     onSuccess: (joinedWalletId) => {
       switchWallet(joinedWalletId);

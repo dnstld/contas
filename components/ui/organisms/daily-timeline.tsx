@@ -29,10 +29,7 @@ export interface DailyTimelineProps {
 export function DailyTimeline({ points, currency = 'USD' }: DailyTimelineProps) {
   const { t } = useTranslation();
   const { locale } = useFormatters();
-  const weekdayFmt = useMemo(
-    () => new Intl.DateTimeFormat(locale, { weekday: 'short' }),
-    [locale],
-  );
+  const weekdayFmt = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: 'short' }), [locale]);
 
   return (
     <ScrollView

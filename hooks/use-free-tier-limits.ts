@@ -29,6 +29,8 @@ export function useFreeTierLimits(): FreeTierLimits | undefined {
     queryFn: async (): Promise<FreeTierLimits> => {
       const { data, error } = await supabase.rpc('free_tier_limits');
       if (error) throw error;
+      // boundary: `free_tier_limits` RPC returns `Json` in the generated types;
+      // this shape is runtime-validated in Topic 5.
       const limits = data as {
         max_wallets_per_user: number;
         max_pending_invites_per_wallet: number;

@@ -6,7 +6,7 @@ export function getErrorMessage(err: unknown, fallback: string): string {
 
 export function getErrorCode(err: unknown): string | undefined {
   if (err && typeof err === 'object' && 'code' in err) {
-    const code = (err as { code?: unknown }).code;
+    const { code } = err;
     if (typeof code === 'string') return code;
   }
   return undefined;

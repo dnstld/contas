@@ -49,13 +49,14 @@ const MAPPING = {
   envelope: 'mail',
   'lock.fill': 'lock',
   ellipsis: 'more-horiz',
+  'ellipsis.circle': 'more-horiz',
   eye: 'visibility',
   'eye.slash': 'visibility-off',
   'exclamationmark.triangle.fill': 'warning',
   hourglass: 'hourglass-empty',
   'arrow.clockwise': 'refresh',
   'hand.tap': 'touch-app',
-} as IconMapping;
+} satisfies IconMapping;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.

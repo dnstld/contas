@@ -14,6 +14,22 @@ export type KVStore = {
   setItem: (key: string, value: string) => Promise<void>;
 };
 
+/**
+ * Structural guard for the `expo-sqlite/kv-store` default export. The native
+ * module satisfies the `Storage`-like contract at runtime but isn't typed as
+ * our explicit `KVStore`, so we validate the two methods we rely on here
+ * instead of asserting through `unknown`.
+ */
+function isKVStore(value: unknown): value is KVStore {
+  if (!value || typeof value !== 'object') return false;
+  return (
+    'getItem' in value &&
+    typeof value.getItem === 'function' &&
+    'setItem' in value &&
+    typeof value.setItem === 'function'
+  );
+}
+
 let storagePromise: Promise<KVStore | null> | null = null;
 
 export function getKVStore(): Promise<KVStore | null> {
@@ -21,15 +37,7 @@ export function getKVStore(): Promise<KVStore | null> {
   storagePromise = import('expo-sqlite/kv-store')
     .then((mod): KVStore | null => {
       const candidate = mod.default;
-      if (!candidate) return null;
-      // `expo-sqlite/kv-store` exposes a default export that satisfies the
-      // `Storage`-like contract at runtime. We narrow it to our explicit type
-      // here so callers don't see `unknown`.
-      const store = candidate as unknown as KVStore;
-      if (typeof store.getItem !== 'function' || typeof store.setItem !== 'function') {
-        return null;
-      }
-      return store;
+      return isKVStore(candidate) ? candidate : null;
     })
     .catch((err: unknown) => {
       captureError(err, { tags: { source: 'kv-store-bootstrap' } });

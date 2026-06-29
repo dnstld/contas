@@ -71,7 +71,7 @@ export const queryClient = new QueryClient({
       // Known business errors: handled by callers, never toasted, never sent
       // to Sentry (they're expected).
       if (isDemoModeReadOnlyError(err)) {
-        if (!mutation.meta?.silent) toast.info(i18n.t('edit.demoReadOnly'));
+        if (!mutation.meta?.['silent']) toast.info(i18n.t('edit.demoReadOnly'));
         return;
       }
       if (isCategoryHasTransactionsError(err)) return;
@@ -79,7 +79,7 @@ export const queryClient = new QueryClient({
       // Always capture unexpected errors — `silent` only suppresses the user-
       // facing toast for screens that render their own inline error UI.
       captureError(err, { tags: { source: 'mutation' } });
-      if (mutation.meta?.silent) return;
+      if (mutation.meta?.['silent']) return;
       toast.error(i18n.t('common.errors.actionFailed'), i18n.t(mapSupabaseErrorKey(err)));
     },
   }),

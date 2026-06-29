@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getKVStore } from '@/utils/kv-store';
 import { captureError } from '@/utils/monitoring';
 
+// Cells hold heterogeneous values keyed by string, so the store is `unknown`
+// and each consumer re-applies its own `T` at read time. The `value as T` casts
+// below are an inherent trust boundary over persisted (JSON-parsed) data —
+// optional per-key schema validation is a Topic 5 (Zod) concern.
 type Cell = {
   value: unknown;
   hasValue: boolean;

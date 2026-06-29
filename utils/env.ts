@@ -22,15 +22,15 @@ function optional(value: string | undefined): string | undefined {
 }
 
 export const env = {
-  supabaseUrl: required('EXPO_PUBLIC_SUPABASE_URL', process.env.EXPO_PUBLIC_SUPABASE_URL),
+  supabaseUrl: required('EXPO_PUBLIC_SUPABASE_URL', process.env['EXPO_PUBLIC_SUPABASE_URL']),
   supabasePublishableKey: required(
     'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-    process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    process.env['EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY'],
   ),
   googleWebClientId: required(
     'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID',
-    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    process.env['EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID'],
   ),
-  googleIosClientId: optional(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
-  sentryDsn: optional(process.env.EXPO_PUBLIC_SENTRY_DSN),
+  googleIosClientId: optional(process.env['EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID']),
+  sentryDsn: optional(process.env['EXPO_PUBLIC_SENTRY_DSN']),
 } as const;

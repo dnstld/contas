@@ -5,7 +5,7 @@ let cached: Burnt | null | undefined;
 function getBurnt(): Burnt | null {
   if (cached !== undefined) return cached;
   const registry = (globalThis as { expo?: { modules?: Record<string, unknown> } }).expo?.modules;
-  if (!registry || !registry.Burnt) {
+  if (!registry || !registry['Burnt']) {
     cached = null;
     return null;
   }

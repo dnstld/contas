@@ -12,7 +12,7 @@ export function getDeviceLanguageTag(): string | null {
   // module registry before requiring the JS wrapper, so we never touch a
   // module that would throw "Cannot find native module 'ExpoLocalization'".
   const registry = (globalThis as { expo?: { modules?: Record<string, unknown> } }).expo?.modules;
-  if (!registry || !registry.ExpoLocalization) return null;
+  if (!registry || !registry['ExpoLocalization']) return null;
   try {
     const Localization = require('expo-localization') as typeof import('expo-localization');
     return Localization.getLocales()[0]?.languageTag ?? null;
@@ -31,14 +31,14 @@ const resources = {
   'pt-BR': { translation: ptBR },
 } as const;
 
-function isSupported(tag: string | null | undefined): tag is SupportedLanguage {
+export function isSupportedLanguage(tag: string | null | undefined): tag is SupportedLanguage {
   return !!tag && (SUPPORTED_LANGUAGES as readonly string[]).includes(tag);
 }
 
 function resolveInitialLanguage(stored: string | null): SupportedLanguage {
-  if (isSupported(stored)) return stored;
+  if (isSupportedLanguage(stored)) return stored;
   const device = getDeviceLanguageTag();
-  if (isSupported(device)) return device;
+  if (isSupportedLanguage(device)) return device;
   const prefix = device?.split('-')[0];
   const match = SUPPORTED_LANGUAGES.find((lng) => lng.split('-')[0] === prefix);
   return match ?? DEFAULT_LANGUAGE;
@@ -50,7 +50,7 @@ async function readStoredLanguage(): Promise<SupportedLanguage | null> {
     const raw = storage ? await storage.getItem(LANGUAGE_STORAGE_KEY) : null;
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
-    return typeof parsed === 'string' && isSupported(parsed) ? parsed : null;
+    return typeof parsed === 'string' && isSupportedLanguage(parsed) ? parsed : null;
   } catch {
     return null;
   }

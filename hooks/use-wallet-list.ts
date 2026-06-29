@@ -58,12 +58,7 @@ export function useWalletList(): UseQueryResult<WalletWithMeta[]> {
       }
 
       return memberRows.map((row) => {
-        const wallet = row.wallets as {
-          id: string;
-          name: string;
-          currency: string;
-          created_at: string;
-        } | null;
+        const wallet = row.wallets;
         if (!wallet) throw new Error('wallet join returned null');
 
         const members = membersByWallet.get(row.wallet_id) ?? [];
@@ -74,10 +69,7 @@ export function useWalletList(): UseQueryResult<WalletWithMeta[]> {
           createdAt: wallet.created_at,
           memberCount: members.length,
           members: members.map((m) => {
-            const profile = m.profiles as {
-              display_name: string | null;
-              avatar_url: string | null;
-            } | null;
+            const profile = m.profiles;
             return {
               userId: m.user_id,
               displayName: profile?.display_name ?? null,

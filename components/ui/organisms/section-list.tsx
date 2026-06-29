@@ -119,7 +119,7 @@ function CardSectionList<T>({
       const Comp = ListHeaderComponent;
       return <Comp />;
     }
-    return ListHeaderComponent as ReactNode;
+    return ListHeaderComponent;
   };
 
   const renderEmpty = (): ReactNode => {
@@ -128,7 +128,7 @@ function CardSectionList<T>({
       const Comp = ListEmptyComponent;
       return <Comp />;
     }
-    return ListEmptyComponent as ReactNode;
+    return ListEmptyComponent;
   };
 
   return (
