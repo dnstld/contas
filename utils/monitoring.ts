@@ -12,7 +12,18 @@ export function initMonitoring() {
   Sentry.init({
     dsn: env.sentryDsn,
     environment: 'production',
+    // Finance app: never let Sentry attach IPs/cookies/headers by default.
+    sendDefaultPii: false,
     tracesSampleRate: 0.2,
+    beforeBreadcrumb(breadcrumb) {
+      // Console breadcrumbs can echo logged finance data — drop them entirely.
+      if (breadcrumb.category === 'console') return null;
+      // Strip query strings from network breadcrumb URLs (REST filters can
+      // carry wallet ids / emails). Keep path/method/status for debugging.
+      const url = breadcrumb.data?.['url'];
+      if (typeof url === 'string') breadcrumb.data!['url'] = url.split('?')[0];
+      return breadcrumb;
+    },
   });
 }
 
@@ -28,7 +39,8 @@ export function captureMessage(
   Sentry.captureMessage(message, { level, ...context });
 }
 
-export function setMonitoringUser(user: { id: string; email?: string } | null) {
+// Send only the user id — never the email or other PII to Sentry.
+export function setMonitoringUser(user: { id: string } | null) {
   Sentry.setUser(user);
 }
 

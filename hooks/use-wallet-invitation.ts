@@ -37,6 +37,9 @@ export function useInviteToWallet() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // The invite screen renders errors inline via `mapInviteError`; suppress
+    // the global MutationCache toast to avoid double-surfacing the same failure.
+    meta: { silent: true },
     mutationFn: async (email: string) => {
       if (!walletId) throw new Error('no wallet');
       const { data, error } = await supabase.rpc('invite_to_wallet', {

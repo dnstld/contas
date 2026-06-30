@@ -31,10 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(({ data }) => {
         setSession(data.session);
         if (data.session) {
-          setMonitoringUser({
-            id: data.session.user.id,
-            email: data.session.user.email ?? undefined,
-          });
+          setMonitoringUser({ id: data.session.user.id });
         }
       })
       .catch((err) => {
@@ -48,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
       if (next) {
-        setMonitoringUser({ id: next.user.id, email: next.user.email ?? undefined });
+        setMonitoringUser({ id: next.user.id });
       } else {
         setMonitoringUser(null);
       }

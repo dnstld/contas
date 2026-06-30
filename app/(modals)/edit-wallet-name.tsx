@@ -45,7 +45,8 @@ export default function EditWalletNameScreen() {
       await renameWallet.mutateAsync({ id, name: trimmed });
       router.back();
     } catch {
-      // error surfaced via mutation state if needed
+      // Failure is surfaced to the user via the global MutationCache toast
+      // (this mutation is not `meta.silent`); nothing to do here but stay open.
     }
   };
 

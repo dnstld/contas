@@ -27,7 +27,7 @@ export const unstable_settings = { anchor: '(tabs)' };
 
 function RootStack() {
   const { session, loading: authLoading } = useAuth();
-  const { loading: walletLoading } = useWallet();
+  const { loading: walletLoading, error: walletError, walletId, refresh } = useWallet();
 
   useFinanceRealtime();
   useWalletRealtime();
@@ -41,6 +41,17 @@ function RootStack() {
   }, []);
 
   if (booting) return null;
+
+  // Wallet resolution failed and there's no wallet to render — show a retry
+  // screen instead of empty tabs. `refresh()` → `resolve()` sets `error:null`
+  // and re-attempts.
+  if (session && walletError && !walletId) {
+    return (
+      <View style={{ flex: 1 }} onLayout={onRootLayout}>
+        <ErrorFallback onReset={() => void refresh()} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }} onLayout={onRootLayout}>

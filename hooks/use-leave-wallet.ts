@@ -11,6 +11,9 @@ export function useLeaveWallet() {
   const qc = useQueryClient();
 
   return useMutation({
+    // The danger-zone screen surfaces failures via its own Alert; suppress the
+    // global MutationCache toast to avoid double-surfacing the same failure.
+    meta: { silent: true },
     mutationFn: async () => {
       if (!walletId || !session?.user.id) throw new Error('Not authenticated');
       const { error } = await supabase

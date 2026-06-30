@@ -11,16 +11,38 @@ import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold
 import { Fonts } from '@/constants/theme';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useInviteToWallet } from '@/hooks/use-wallet-invitation';
+import { mapSupabaseErrorKey } from '@/utils/error';
 import { captureError } from '@/utils/monitoring';
 import { toast } from '@/utils/toast';
 
-function errorKey(err: unknown): string {
-  const message = err instanceof Error ? err.message : String(err);
-  if (message.includes('invalid email')) return 'wallet.invitation.errorInvalidEmail';
-  if (message.includes('cannot invite self')) return 'wallet.invitation.errorSelf';
-  if (message.includes('already a member')) return 'wallet.invitation.errorAlreadyMember';
-  if (message.includes('free_tier_limit')) return 'wallet.invitation.errorLimit';
-  return 'wallet.invitation.error';
+// Maps `invite_to_wallet` RPC failures to an inline i18n key. `known` flags
+// expected business/network errors so the caller skips Sentry capture.
+//
+// BRITTLE: this matches the RPC's raw `raise exception` message text, so it
+// breaks silently if those strings change. The durable fix is a backend
+// addendum migration giving `invite_to_wallet` stable SQLSTATEs (e.g.
+// `using errcode = 'SS001'`), letting us map on `getErrorCode` instead — flagged
+// as a Topic 7 follow-up, not done in this pass.
+function mapInviteError(err: unknown): { key: string; known: boolean } {
+  // Network first — an offline invite shouldn't look like an unknown failure.
+  if (mapSupabaseErrorKey(err) === 'common.errors.network') {
+    return { key: 'common.errors.network', known: true };
+  }
+  const message = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  if (message.includes('invalid email')) {
+    return { key: 'wallet.invitation.errorInvalidEmail', known: true };
+  }
+  if (message.includes('cannot invite self'))
+    return { key: 'wallet.invitation.errorSelf', known: true };
+  if (message.includes('already a member')) {
+    return { key: 'wallet.invitation.errorAlreadyMember', known: true };
+  }
+  if (message.includes('free_tier_limit'))
+    return { key: 'wallet.invitation.errorLimit', known: true };
+  if (message.includes('not a member') || message.includes('not authenticated')) {
+    return { key: 'wallet.invitation.error', known: true };
+  }
+  return { key: 'wallet.invitation.error', known: false };
 }
 
 export default function InviteMemberScreen() {
@@ -55,8 +77,8 @@ export default function InviteMemberScreen() {
       toast.success(t('wallet.invitation.sentToast', { email: trimmed.toLowerCase() }));
       router.back();
     } catch (err) {
-      const key = errorKey(err);
-      if (key === 'wallet.invitation.error') {
+      const { key, known } = mapInviteError(err);
+      if (!known) {
         captureError(err, { tags: { context: 'invitation' } });
       }
       setError(t(key));
