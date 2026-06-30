@@ -23,6 +23,7 @@ type WalletContextValue = {
   currency: SupportedCurrency;
   showRevenue: boolean | null;
   loading: boolean;
+  error: Error | null;
   switchWallet: (id: string) => void;
   refresh: () => Promise<void>;
   setCurrency: (next: SupportedCurrency) => Promise<void>;
@@ -41,9 +42,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [name, setName] = useState<string | null>(null);
   const [currency, setCurrencyState] = useState<SupportedCurrency>(DEFAULT_CURRENCY);
   const [showRevenue, setShowRevenueState] = useState<boolean | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const requestRef = useRef(0);
 
-  const loading = userId != null && walletId == null;
+  // `error` is a terminal state: a failed `resolve` settles `loading` to false
+  // (instead of hanging the boot gate forever) and surfaces the failure for the
+  // error/retry UI (Topic 8). `refresh()` clears it on the next attempt.
+  const loading = userId != null && walletId == null && error == null;
 
   const fetchWalletData = useCallback(async (wid: string, reqId: number) => {
     const { data, error } = await supabase
@@ -64,6 +69,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const resolve = useCallback(
     async (uid: string) => {
       const reqId = ++requestRef.current;
+      setError(null);
       const key = KEY_PREFIX + uid;
       const storage = await getKVStore();
       if (reqId !== requestRef.current) return;
@@ -99,6 +105,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (reqId !== requestRef.current) return;
       if (resolveErr) {
         captureError(resolveErr, { tags: { context: 'wallet' } });
+        setError(resolveErr);
         return;
       }
 
@@ -122,6 +129,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (reqId !== requestRef.current) return;
       if (bootstrapErr) {
         captureError(bootstrapErr, { tags: { context: 'wallet' } });
+        setError(bootstrapErr);
         return;
       }
       if (!bootstrapped) return;
@@ -145,6 +153,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setName(null);
       setCurrencyState(DEFAULT_CURRENCY);
       setShowRevenueState(null);
+      setError(null);
       return;
     }
     resolve(userId);
@@ -195,6 +204,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       currency,
       showRevenue,
       loading,
+      error,
       async refresh() {
         if (userId) await resolve(userId);
       },
@@ -226,6 +236,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       currency,
       showRevenue,
       loading,
+      error,
       userId,
       resolve,
       setCurrency,

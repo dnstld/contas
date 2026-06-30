@@ -8,8 +8,8 @@ import {
 } from '@tanstack/react-query';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { AppState } from 'react-native';
 
+import { useAppForeground } from '@/hooks/use-app-foreground';
 import { useAuth } from '@/hooks/use-auth';
 import {
   isCategoryHasTransactionsError,
@@ -103,8 +103,10 @@ onlineManager.subscribe((isOnline) => {
  * incoming notification banner) which would refetch unnecessarily.
  *
  * iOS surfaces the foreground sequence as `background → inactive → active`,
- * so we can't rely on the immediate `previous` state. Instead we set a flag
- * the moment we see `background` and clear it on the next `active`.
+ * so we can't rely on the immediate `previous` state. `useAppForeground`
+ * handles that detection; the callback below reads the current identifiers
+ * from render scope (kept fresh via `useAppForeground`'s callback ref, so the
+ * AppState listener still subscribes only once).
  *
  * Must be called inside `WalletProvider` because it reads the current wallet
  * to scope invalidation to the relevant cache entries.
@@ -115,48 +117,25 @@ export function useAppStateInvalidate() {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
   const email = session?.user.email ?? null;
-  const wasBackgroundedRef = useRef(false);
-  const walletIdRef = useRef(walletId);
-  const userIdRef = useRef(userId);
-  const emailRef = useRef(email);
 
-  // Keep the latest identifiers in refs so the long-lived AppState listener
-  // reads current values without re-subscribing.
-  useEffect(() => {
-    walletIdRef.current = walletId;
-    userIdRef.current = userId;
-    emailRef.current = email;
-  }, [walletId, userId, email]);
-
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (next) => {
-      if (next === 'background') {
-        wasBackgroundedRef.current = true;
-        return;
-      }
-      if (next === 'active' && wasBackgroundedRef.current) {
-        wasBackgroundedRef.current = false;
-        const wid = walletIdRef.current;
-        if (wid) {
-          qc.invalidateQueries({ queryKey: financeKeys.all(wid) });
-          // Refresh shared-wallet state on app open: the invitee's banner and
-          // the inviter's member/invite cards.
-          qc.invalidateQueries({ queryKey: walletMemberKeys.list(wid) });
-          qc.invalidateQueries({ queryKey: outgoingInvitationKeys.list(wid) });
-        }
-        if (userIdRef.current) {
-          qc.invalidateQueries({ queryKey: walletKeys.list(userIdRef.current) });
-          // Catch a cross-device self-edit of the profile on app open (the only
-          // case not covered by `useUpdateMyProfile`'s own invalidation).
-          qc.invalidateQueries({ queryKey: myProfileKey(userIdRef.current) });
-        }
-        if (emailRef.current) {
-          qc.invalidateQueries({ queryKey: pendingInvitationKeys.list(emailRef.current) });
-        }
-      }
-    });
-    return () => sub.remove();
-  }, [qc]);
+  useAppForeground(() => {
+    if (walletId) {
+      qc.invalidateQueries({ queryKey: financeKeys.all(walletId) });
+      // Refresh shared-wallet state on app open: the invitee's banner and
+      // the inviter's member/invite cards.
+      qc.invalidateQueries({ queryKey: walletMemberKeys.list(walletId) });
+      qc.invalidateQueries({ queryKey: outgoingInvitationKeys.list(walletId) });
+    }
+    if (userId) {
+      qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
+      // Catch a cross-device self-edit of the profile on app open (the only
+      // case not covered by `useUpdateMyProfile`'s own invalidation).
+      qc.invalidateQueries({ queryKey: myProfileKey(userId) });
+    }
+    if (email) {
+      qc.invalidateQueries({ queryKey: pendingInvitationKeys.list(email) });
+    }
+  });
 }
 
 /**
