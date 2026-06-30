@@ -77,23 +77,30 @@ function isCategoryVisibleInYear(
   return false;
 }
 
-function yearActiveCategoryIds(mock: Finance, year: number): Set<string> {
-  const ids = new Set<string>();
-  for (const t of mock.transactions) {
-    if (t.status !== 'completed') continue;
-    const d = txDate(t);
-    if (!d) continue;
-    if (d.getFullYear() === year) ids.add(t.categoryId);
-  }
-  return ids;
+interface FinanceScan {
+  // Categories with a completed transaction in `year`.
+  yearActiveIds: Set<string>;
+  // Categories referenced by at least one transaction (any year/status). Used to
+  // distinguish brand-new/unused categories, which are always shown.
+  usedIds: Set<string>;
+  // Max `updatedAt` across the wallet's transactions; undefined when empty.
+  lastUpdatedAt?: string;
 }
 
-// Categories referenced by at least one transaction (any year/status). Used to
-// distinguish brand-new/unused categories, which are always shown.
-function usedCategoryIds(mock: Finance): Set<string> {
-  const ids = new Set<string>();
-  for (const t of mock.transactions) ids.add(t.categoryId);
-  return ids;
+// Single pass replacing the former `yearActiveCategoryIds` / `usedCategoryIds` /
+// `lastUpdatedAt` helpers, which each scanned the full transaction set.
+function scanFinance(mock: Finance, year: number): FinanceScan {
+  const yearActiveIds = new Set<string>();
+  const usedIds = new Set<string>();
+  let lastUpdatedAt: string | undefined;
+  for (const t of mock.transactions) {
+    usedIds.add(t.categoryId);
+    if (lastUpdatedAt === undefined || t.updatedAt > lastUpdatedAt) lastUpdatedAt = t.updatedAt;
+    if (t.status !== 'completed') continue;
+    const d = txDate(t);
+    if (d && d.getFullYear() === year) yearActiveIds.add(t.categoryId);
+  }
+  return { yearActiveIds, usedIds, lastUpdatedAt };
 }
 
 function previousMonth(year: number, month: number): { year: number; month: number } {
@@ -237,6 +244,8 @@ function buildMonthMode(
   month: number,
   now: Date,
   locale: string,
+  yearActiveIds: Set<string>,
+  usedIds: Set<string>,
 ): DashboardData {
   const fmtMonth = monthFormatter(locale);
   const monthLabel = `${fmtMonth(month)} ${year}`;
@@ -296,10 +305,8 @@ function buildMonthMode(
     dailyTimeline: buildDailyTimeline(mock, year, month, now),
   };
 
-  const yearActive = yearActiveCategoryIds(mock, year);
-  const used = usedCategoryIds(mock);
   const visibleCategories = mock.categories.filter((c) =>
-    isCategoryVisibleInYear(c, year, yearActive, used),
+    isCategoryVisibleInYear(c, year, yearActiveIds, usedIds),
   );
   const categories = visibleCategories.map((c) =>
     toCardData(
@@ -321,7 +328,13 @@ function buildMonthMode(
   };
 }
 
-function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
+function buildYearMode(
+  mock: Finance,
+  year: number,
+  now: Date,
+  yearActiveIds: Set<string>,
+  usedIds: Set<string>,
+): DashboardData {
   const yearLabel = String(year);
   const prevYear = year - 1;
   const prevYearLabel = String(prevYear);
@@ -381,10 +394,8 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
     currentMonth: year === now.getFullYear() ? MONTHS[now.getMonth()]! : undefined,
   };
 
-  const yearActive = yearActiveCategoryIds(mock, year);
-  const used = usedCategoryIds(mock);
   const visibleCategories = mock.categories.filter((c) =>
-    isCategoryVisibleInYear(c, year, yearActive, used),
+    isCategoryVisibleInYear(c, year, yearActiveIds, usedIds),
   );
   const categories = visibleCategories.map((c) =>
     toCardData(
@@ -406,14 +417,6 @@ function buildYearMode(mock: Finance, year: number, now: Date): DashboardData {
   };
 }
 
-function lastUpdatedAt(mock: Finance): string | undefined {
-  let max: string | undefined;
-  for (const t of mock.transactions) {
-    if (max === undefined || t.updatedAt > max) max = t.updatedAt;
-  }
-  return max;
-}
-
 export function buildDashboard(
   mock: Finance,
   filter: TimeFilterState,
@@ -421,15 +424,16 @@ export function buildDashboard(
   locale: string = 'en',
 ): DashboardData {
   const year = filter.years[0] ?? now.getFullYear();
+  const { yearActiveIds, usedIds, lastUpdatedAt } = scanFinance(mock, year);
   const base = filter.all
-    ? buildYearMode(mock, year, now)
+    ? buildYearMode(mock, year, now, yearActiveIds, usedIds)
     : (() => {
         const monthKey: Month = filter.months[0] ?? MONTHS[now.getMonth()]!;
         const month = MONTHS.indexOf(monthKey);
-        return buildMonthMode(mock, year, month, now, locale);
+        return buildMonthMode(mock, year, month, now, locale, yearActiveIds, usedIds);
       })();
   return {
     ...base,
-    overview: { ...base.overview, lastUpdatedAt: lastUpdatedAt(mock) },
+    overview: { ...base.overview, lastUpdatedAt },
   };
 }

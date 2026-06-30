@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { PriceText } from '@/components/ui/atoms/price-text';
@@ -137,7 +138,11 @@ function DuplicateTransactionPreviewCard({
     <Surface variant="muted" padding={14} radius={14} style={styles.card}>
       <View style={styles.cardHeader}>
         {member?.avatarUrl ? (
-          <Image source={{ uri: member.avatarUrl }} style={styles.avatar} />
+          <Image
+            source={{ uri: member.avatarUrl }}
+            cachePolicy="memory-disk"
+            style={styles.avatar}
+          />
         ) : (
           <Surface
             variant="elevated"

@@ -183,6 +183,11 @@ export default function HomeScreen() {
             data={displayItems}
             keyExtractor={(item) => item.id}
             numColumns={2}
+            initialNumToRender={10}
+            windowSize={10}
+            // `removeClippedSubviews` is intentionally omitted: on a multi-column
+            // grid with variable-height cards it can clip cells incorrectly, and
+            // the category list is bounded, so there's nothing to gain.
             contentContainerStyle={styles.content}
             ListHeaderComponent={header}
             columnWrapperStyle={styles.gridRow}

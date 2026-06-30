@@ -4,10 +4,10 @@ import type {
   TransactionFormValues,
   TransactionType,
 } from '@/components/transactions/transaction-form';
-import type { Category } from '@/data/finance-types';
+import { transactionDate, type Category, type Transaction } from '@/data/finance-types';
 import { useAuth } from '@/hooks/use-auth';
 import { useDemoMode } from '@/hooks/use-demo-mode';
-import { financeKeys } from '@/hooks/use-finance-queries';
+import { adaptTransaction, financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
 
@@ -27,6 +27,13 @@ export function isDemoModeReadOnlyError(e: unknown): e is DemoModeReadOnlyError 
 function ensureCategoryId(values: TransactionFormValues): string {
   if (!values.categoryId) throw new Error('categoryId is required');
   return values.categoryId;
+}
+
+// Keep the cached transaction list ordered like `fetchTransactionRows`
+// (`occurred_at` descending). `transactionDate` returns the ISO `occurred_at`,
+// so a lexical string compare matches the server ordering.
+function sortTransactionsByDateDesc(list: Transaction[]): Transaction[] {
+  return [...list].sort((a, b) => transactionDate(b).localeCompare(transactionDate(a)));
 }
 
 export function useCreateTransaction() {
@@ -60,10 +67,21 @@ export function useCreateTransaction() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      if (walletId) {
-        qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
+    onSuccess: (data) => {
+      if (!walletId) return;
+      // Patch the inserted row into the cached list so it shows instantly, before
+      // the realtime echo / invalidate refetch reconciles. Requires the categories
+      // cache to denormalize `categoryName`/`type`; if it's missing, skip the patch
+      // and let the invalidate below produce the correct list.
+      const categories = qc.getQueryData<Category[]>(financeKeys.categories(walletId));
+      if (categories) {
+        const categoryById = new Map(categories.map((c) => [c.id, c]));
+        const created = adaptTransaction(data, categoryById);
+        qc.setQueryData<Transaction[]>(financeKeys.transactions(walletId), (old) =>
+          sortTransactionsByDateDesc([...(old ?? []), created]),
+        );
       }
+      qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
     },
   });
 }
@@ -96,11 +114,23 @@ export function useUpdateTransaction() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_data, { id }) => {
-      if (walletId) {
-        qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
-        qc.invalidateQueries({ queryKey: financeKeys.transaction(walletId, id) });
+    onSuccess: (data, { id }) => {
+      if (!walletId) return;
+      // Patch the updated row into the cached list (re-sorting, since `occurred_at`
+      // may have changed) for instant feedback; the invalidates reconcile.
+      const categories = qc.getQueryData<Category[]>(financeKeys.categories(walletId));
+      if (categories) {
+        const categoryById = new Map(categories.map((c) => [c.id, c]));
+        const updated = adaptTransaction(data, categoryById);
+        qc.setQueryData<Transaction[]>(financeKeys.transactions(walletId), (old) =>
+          old ? sortTransactionsByDateDesc(old.map((t) => (t.id === id ? updated : t))) : old,
+        );
       }
+      qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
+      // The detail query key carries a `demo|live` suffix and `setQueryData` is
+      // exact-match, so we can't patch it directly here — invalidate (prefix-match)
+      // refetches the single row, which is fast.
+      qc.invalidateQueries({ queryKey: financeKeys.transaction(walletId, id) });
     },
   });
 }
@@ -261,6 +291,10 @@ export function useDeleteTransaction() {
     },
     onSuccess: (id) => {
       if (walletId) {
+        // Drop the row from the cached list immediately; the invalidate reconciles.
+        qc.setQueryData<Transaction[]>(financeKeys.transactions(walletId), (old) =>
+          old?.filter((t) => t.id !== id),
+        );
         qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
         qc.removeQueries({ queryKey: financeKeys.transaction(walletId, id) });
       }

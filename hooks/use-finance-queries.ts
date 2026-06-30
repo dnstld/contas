@@ -29,7 +29,10 @@ function adaptCategory(row: CategoryRow): Category {
   };
 }
 
-function adaptTransaction(row: TransactionRow, categoryById: Map<string, Category>): Transaction {
+export function adaptTransaction(
+  row: TransactionRow,
+  categoryById: Map<string, Category>,
+): Transaction {
   const cat = categoryById.get(row.category_id);
   const recurrence = RecurrenceSchema.catch('none').parse(row.recurrence);
   const base = {

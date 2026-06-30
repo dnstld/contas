@@ -72,6 +72,12 @@ export function Avatar({
   const visual = url ? (
     <Image
       source={{ uri: url }}
+      // Avatars render in recycled transaction rows; `recyclingKey` ties the
+      // decoded image to its uri so a recycled row doesn't briefly show the
+      // previous occupant's avatar before re-decoding.
+      cachePolicy="memory-disk"
+      recyclingKey={url}
+      transition={120}
       style={[
         { width: dimension, height: dimension, borderRadius: radius },
         !badge ? (style as StyleProp<ImageStyle>) : null,
