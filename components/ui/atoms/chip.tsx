@@ -5,6 +5,7 @@ import * as SwiftUI from '@expo/ui/swift-ui';
 import {
   buttonStyle,
   controlSize,
+  disabled as disabledMod,
   fixedSize,
   foregroundStyle,
   labelStyle,
@@ -57,13 +58,14 @@ export function Chip({
         <SwiftUI.Button
           label={label}
           systemImage={selected && showCheckWhenSelected ? 'checkmark' : undefined}
-          onPress={onPress}
+          onPress={disabled ? undefined : onPress}
           modifiers={[
             buttonStyle(selected ? 'glassProminent' : 'glass'),
             controlSize('small'),
             tintMod(tone),
             foregroundStyle(labelColor),
             labelStyle('titleAndIcon'),
+            disabledMod(!!disabled),
             fixedSize(),
           ]}
         />

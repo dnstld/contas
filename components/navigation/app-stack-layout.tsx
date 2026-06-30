@@ -54,7 +54,7 @@ function HeaderCreateButton({ onPress }: { onPress: () => void }) {
             buttonStyle('glassProminent'),
             controlSize('regular'),
             tintMod(tintColor),
-            foregroundStyle('white'),
+            foregroundStyle(onPrimary),
             labelStyle('titleAndIcon'),
             fixedSize(),
           ]}

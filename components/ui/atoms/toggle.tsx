@@ -1,8 +1,4 @@
-import { Platform } from 'react-native';
-
-import * as Compose from '@expo/ui/jetpack-compose';
-import * as SwiftUI from '@expo/ui/swift-ui';
-import { disabled as disabledModifier } from '@expo/ui/swift-ui/modifiers';
+import { Host, Switch } from '@expo/ui';
 
 export interface ToggleProps {
   value: boolean;
@@ -12,26 +8,9 @@ export interface ToggleProps {
 }
 
 export function Toggle({ value, onValueChange, label, disabled }: ToggleProps) {
-  if (Platform.OS === 'ios') {
-    return (
-      <SwiftUI.Host matchContents>
-        <SwiftUI.Toggle
-          isOn={value}
-          label={label ?? ''}
-          onIsOnChange={onValueChange}
-          modifiers={disabled ? [disabledModifier(true)] : undefined}
-        />
-      </SwiftUI.Host>
-    );
-  }
-
-  if (Platform.OS === 'android') {
-    return (
-      <Compose.Host matchContents>
-        <Compose.Switch value={value} enabled={!disabled} onCheckedChange={onValueChange} />
-      </Compose.Host>
-    );
-  }
-
-  return null;
+  return (
+    <Host matchContents>
+      <Switch value={value} label={label} onValueChange={onValueChange} disabled={disabled} />
+    </Host>
+  );
 }
