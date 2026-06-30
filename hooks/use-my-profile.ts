@@ -14,7 +14,6 @@ export function useMyProfile() {
   const query = useQuery({
     queryKey: myProfileKey(userId ?? ''),
     enabled: !!userId,
-    refetchOnMount: 'always',
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')

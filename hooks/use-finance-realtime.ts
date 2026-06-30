@@ -55,7 +55,10 @@ export function useFinanceRealtime() {
           filter: `wallet_id=eq.${walletId}`,
         },
         () => {
-          qc.invalidateQueries({ queryKey: financeKeys.categories(walletId) });
+          // Invalidate the whole finance subtree, not just categories: transactions
+          // denormalize `categoryName`, so a category rename by another user must
+          // refresh the transaction lists too (mirrors `useUpdateCategory`).
+          qc.invalidateQueries({ queryKey: financeKeys.all(walletId) });
         },
       )
       .subscribe();

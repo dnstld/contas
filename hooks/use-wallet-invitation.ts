@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { InvitationStatusSchema } from '@/data/schemas';
 import { useAuth } from '@/hooks/use-auth';
 import { useWallet } from '@/hooks/use-wallet';
 import { walletKeys } from '@/hooks/use-wallet-list';
 import { walletMemberKeys } from '@/hooks/use-wallet-members';
+import { captureMessage } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
 
 export type PendingInvitation = {
@@ -85,14 +87,26 @@ export function useOutgoingInvitations() {
           // Pending invites disappear once expired; declined ones stick around
           // until the inviter dismisses them.
           .filter((row) => row.status === 'declined' || new Date(row.expires_at).getTime() > now)
-          .map((row) => ({
-            id: row.id,
-            email: row.invited_email,
-            // boundary: `status` is `string` in generated types (text column, not
-            // a PG enum); narrowing to the union is runtime-validated in Topic 5.
-            status: row.status as OutgoingInvitation['status'],
-            createdAt: row.created_at,
-          }))
+          // Validate the `text` status against the known union; drop any row with
+          // an unexpected value (DB-constrained, so this should never fire) rather
+          // than surfacing an invite of unknown status.
+          .flatMap((row) => {
+            const status = InvitationStatusSchema.safeParse(row.status);
+            if (!status.success) {
+              captureMessage('Dropped outgoing invitation with unexpected status', 'warning', {
+                extra: { invitationId: row.id, status: row.status },
+              });
+              return [];
+            }
+            return [
+              {
+                id: row.id,
+                email: row.invited_email,
+                status: status.data,
+                createdAt: row.created_at,
+              },
+            ];
+          })
       );
     },
   });

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-q
 
 import { generateDemoFinance } from '@/data/finance-demo';
 import type { Category, Transaction } from '@/data/finance-types';
-import { RecurrenceSchema, TransactionTypeSchema } from '@/data/schemas';
+import { RecurrenceSchema, TransactionStatusSchema, TransactionTypeSchema } from '@/data/schemas';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
@@ -39,7 +39,7 @@ function adaptTransaction(row: TransactionRow, categoryById: Map<string, Categor
     categoryName: cat?.name ?? '',
     amount: row.amount_cents / 100,
     description: row.description,
-    status: row.status === 'scheduled' ? ('scheduled' as const) : ('completed' as const),
+    status: TransactionStatusSchema.catch('completed').parse(row.status),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     createdByUserId: row.created_by ?? null,
@@ -109,6 +109,11 @@ export function useTransaction(transactionId: string | null): UseQueryResult<Tra
   const queryClient = useQueryClient();
 
   return useQuery({
+    // Unlike `useCategories`/`useTransactions` (which are `enabled: !demoMode`),
+    // this query runs in *both* modes, so the key carries a `demo`/`live` suffix
+    // to keep demo data from bleeding into the live cache for the same id.
+    // Mutation/realtime invalidations use the unsuffixed base key and still match
+    // via TanStack's prefix matching — don't switch those to `exact: true`.
     queryKey:
       walletId && transactionId
         ? [...financeKeys.transaction(walletId, transactionId), demoMode ? 'demo' : 'live']

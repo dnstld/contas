@@ -18,3 +18,22 @@ export type RecurrenceParsed = z.infer<typeof RecurrenceSchema>;
 
 export const DeleteWalletResultSchema = z.enum(['deleted', 'pending']);
 export type DeleteWalletResultParsed = z.infer<typeof DeleteWalletResultSchema>;
+
+/**
+ * Outgoing-invitation status. The `wallet_invitations.status` column is `text`
+ * (generated type `string`) but constrained at the DB to exactly these values
+ * (`wallet_invitations_status_check`), so this enum is the complete set.
+ */
+export const InvitationStatusSchema = z.enum(['pending', 'declined']);
+export type InvitationStatusParsed = z.infer<typeof InvitationStatusSchema>;
+
+/**
+ * Shape of the `free_tier_limits()` RPC payload (typed `Json` in the generated
+ * types). Validated at the boundary so a server/client drift surfaces instead
+ * of silently producing `NaN` limits.
+ */
+export const FreeTierLimitsRowSchema = z.object({
+  max_wallets_per_user: z.number(),
+  max_pending_invites_per_wallet: z.number(),
+});
+export type FreeTierLimitsRowParsed = z.infer<typeof FreeTierLimitsRowSchema>;

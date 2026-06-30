@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { FreeTierLimitsRowSchema } from '@/data/schemas';
+import { captureMessage } from '@/utils/monitoring';
 import { supabase } from '@/utils/supabase';
 
 export type FreeTierLimits = {
@@ -26,21 +28,25 @@ export function useFreeTierLimits(): FreeTierLimits | undefined {
     queryKey: freeTierLimitKeys.all,
     staleTime: Infinity,
     gcTime: Infinity,
-    queryFn: async (): Promise<FreeTierLimits> => {
+    // Returns `null` (not `undefined`) on parse failure: TanStack Query v5
+    // disallows a queryFn resolving to `undefined`. The hook maps it back to
+    // `undefined` below so callers keep their "unknown ⇒ not at limit" handling.
+    queryFn: async (): Promise<FreeTierLimits | null> => {
       const { data, error } = await supabase.rpc('free_tier_limits');
       if (error) throw error;
-      // boundary: `free_tier_limits` RPC returns `Json` in the generated types;
-      // this shape is runtime-validated in Topic 5.
-      const limits = data as {
-        max_wallets_per_user: number;
-        max_pending_invites_per_wallet: number;
-      };
+      const parsed = FreeTierLimitsRowSchema.safeParse(data);
+      if (!parsed.success) {
+        captureMessage('free_tier_limits returned an unexpected shape', 'warning', {
+          extra: { issues: parsed.error.issues },
+        });
+        return null;
+      }
       return {
-        maxWalletsPerUser: limits.max_wallets_per_user,
-        maxPendingInvitesPerWallet: limits.max_pending_invites_per_wallet,
+        maxWalletsPerUser: parsed.data.max_wallets_per_user,
+        maxPendingInvitesPerWallet: parsed.data.max_pending_invites_per_wallet,
       };
     },
   });
 
-  return data;
+  return data ?? undefined;
 }

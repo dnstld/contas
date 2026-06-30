@@ -16,6 +16,7 @@ import {
   isDemoModeReadOnlyError,
 } from '@/hooks/use-finance-mutations';
 import { financeKeys } from '@/hooks/use-finance-queries';
+import { myProfileKey } from '@/hooks/use-my-profile';
 import { useWallet } from '@/hooks/use-wallet';
 import { walletKeys } from '@/hooks/use-wallet-list';
 import { walletMemberKeys } from '@/hooks/use-wallet-members';
@@ -145,6 +146,9 @@ export function useAppStateInvalidate() {
         }
         if (userIdRef.current) {
           qc.invalidateQueries({ queryKey: walletKeys.list(userIdRef.current) });
+          // Catch a cross-device self-edit of the profile on app open (the only
+          // case not covered by `useUpdateMyProfile`'s own invalidation).
+          qc.invalidateQueries({ queryKey: myProfileKey(userIdRef.current) });
         }
         if (emailRef.current) {
           qc.invalidateQueries({ queryKey: pendingInvitationKeys.list(emailRef.current) });
