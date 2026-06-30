@@ -41,6 +41,11 @@
     "body": "Something unexpected happened. Try again.",
     "retry": "Try again"
   },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This screen doesn't exist.",
+    "home": "Go to home"
+  },
   "balance": {
     "demoBadge": {
       "title": "Demo mode on",

@@ -41,6 +41,11 @@
     "body": "Algo inesperado aconteceu. Tente novamente.",
     "retry": "Tentar novamente"
   },
+  "notFound": {
+    "title": "Página não encontrada",
+    "body": "Esta tela não existe.",
+    "home": "Ir para o início"
+  },
   "balance": {
     "demoBadge": {
       "title": "Modo demo ativado",

@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { ErrorFallback } from '@/components/error-fallback';
-import { ROUTES } from '@/constants/routes';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFinanceRealtime, useWalletRealtime } from '@/hooks/use-finance-realtime';
@@ -24,11 +23,11 @@ initMonitoring();
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+export const unstable_settings = { anchor: '(tabs)' };
+
 function RootStack() {
   const { session, loading: authLoading } = useAuth();
   const { loading: walletLoading } = useWallet();
-  const segments = useSegments();
-  const router = useRouter();
 
   useFinanceRealtime();
   useWalletRealtime();
@@ -36,16 +35,6 @@ function RootStack() {
   useClearCacheOnSignOut();
 
   const booting = authLoading || (!!session && walletLoading);
-
-  useEffect(() => {
-    if (booting) return;
-    const inAuthRoute = segments[0] === 'authentication';
-    if (!session && !inAuthRoute) {
-      router.replace(ROUTES.authentication);
-    } else if (session && inAuthRoute) {
-      router.replace(ROUTES.home);
-    }
-  }, [session, booting, segments, router]);
 
   const onRootLayout = useCallback(() => {
     SplashScreen.hideAsync().catch(() => {});
@@ -56,9 +45,13 @@ function RootStack() {
   return (
     <View style={{ flex: 1 }} onLayout={onRootLayout}>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="authentication" />
-        <Stack.Screen name="(modals)" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Protected guard={!!session}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(modals)" options={{ presentation: 'modal', headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!session}>
+          <Stack.Screen name="authentication" />
+        </Stack.Protected>
       </Stack>
     </View>
   );

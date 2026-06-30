@@ -45,8 +45,7 @@ export default function WalletsScreen() {
     if (!name || createWallet.isPending) return;
     const newId = await createWallet.mutateAsync({ name, currency: newCurrency });
     switchWallet(newId);
-    router.back();
-    router.navigate(ROUTES.home);
+    router.dismissTo(ROUTES.home);
   }
 
   const canCreate = newName.trim().length > 0 && !createWallet.isPending;
