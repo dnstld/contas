@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import * as Compose from '@expo/ui/jetpack-compose';
@@ -22,6 +23,7 @@ export interface SortMenuProps<T extends string> {
 }
 
 export function SortMenu<T extends string>({ label, options, value, onChange }: SortMenuProps<T>) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
@@ -54,7 +56,7 @@ export function SortMenu<T extends string>({ label, options, value, onChange }: 
         <Pressable
           onPress={() => setOpen((o) => !o)}
           accessibilityRole="button"
-          accessibilityLabel={label ?? 'Sort'}
+          accessibilityLabel={label ?? t('accessibility.sort')}
           accessibilityState={{ expanded: open }}
           style={[styles.trigger, { backgroundColor: surface, borderColor: border }]}
         >

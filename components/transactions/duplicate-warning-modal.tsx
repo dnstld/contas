@@ -38,10 +38,7 @@ export function DuplicateWarningModal({
     return new Map(members.map((m) => [m.userId, m]));
   }, [members]);
 
-  const body =
-    transactions.length === 1
-      ? t('create.duplicateWarning.bodyOne')
-      : t('create.duplicateWarning.bodyMany', { count: transactions.length });
+  const body = t('create.duplicateWarning.body', { count: transactions.length });
 
   return (
     <Modal

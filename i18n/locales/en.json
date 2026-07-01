@@ -7,7 +7,9 @@
     "hints": {
       "viewTransactions": "Opens this category's transactions",
       "filterByMonth": "Filters by this month"
-    }
+    },
+    "sort": "Sort",
+    "logo": "Spendspacey logo"
   },
   "common": {
     "appName": "Spendspacey",
@@ -20,6 +22,7 @@
     "loading": "Loading…",
     "saving": "Saving…",
     "create": "Create",
+    "close": "Close",
     "errors": {
       "actionFailed": "Something didn't go through",
       "duplicate": "That already exists.",
@@ -194,8 +197,8 @@
     "error": "Something didn't save. Give it another try.",
     "duplicateWarning": {
       "title": "Possible duplicate",
-      "bodyOne": "You already have a transaction with the same date, amount, and category.",
-      "bodyMany": "You already have {{count}} transactions with the same date, amount, and category.",
+      "body_one": "You already have a transaction with the same date, amount, and category.",
+      "body_other": "You already have {{count}} transactions with the same date, amount, and category.",
       "saveAnyway": "Save anyway",
       "cancel": "Cancel"
     }
@@ -245,7 +248,7 @@
       "button": "Leave wallet",
       "disabledCaption": "You are the only member of this wallet.",
       "confirmTitle": "Leave wallet?",
-      "confirmBody": "Your partner will keep access. You'll start a new personal wallet.",
+      "confirmBody": "The other person will keep access. You'll start a new personal wallet.",
       "confirmLeave": "Leave",
       "confirmCancel": "Cancel",
       "errorToast": "Something went wrong. Give it another try."
@@ -302,8 +305,8 @@
     "freeTierLimit": "You've reached the {{count}}-wallet limit",
     "activeLabel": "Active",
     "switchButton": "Switch",
-    "membersOne": "1 member",
-    "membersMany": "{{count}} members",
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
     "pendingDeleteOwner": "Waiting for the other person to confirm deletion.",
     "pendingDeleteOther": "The other person wants to delete this wallet.",
     "confirmDeleteButton": "Confirm",
@@ -312,7 +315,7 @@
     "deleteConfirmMessage": "This will permanently delete the wallet and all its data. This cannot be undone.",
     "deleteConfirmAction": "Delete",
     "deleteRequestTitle": "Request Deletion",
-    "deleteRequestMessage": "Your partner will need to confirm before the wallet is deleted.",
+    "deleteRequestMessage": "The other person will need to confirm before the wallet is deleted.",
     "deleteRequestAction": "Send request"
   },
   "category": {

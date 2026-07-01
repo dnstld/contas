@@ -39,8 +39,7 @@ export function WalletSelect() {
   const active = wallets.find((w) => w.id === walletId) ?? wallets[0];
   const atLimit = maxWallets != null && wallets.length >= maxWallets;
 
-  const memberLabel = (count: number) =>
-    count === 1 ? t('wallets.membersOne') : t('wallets.membersMany', { count });
+  const memberLabel = (count: number) => t('wallets.members', { count });
 
   function openMenu() {
     triggerRef.current?.measureInWindow((x, y, width, height) => {

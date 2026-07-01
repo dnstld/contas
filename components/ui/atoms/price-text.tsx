@@ -13,7 +13,8 @@ const SIZE_TO_VARIANT: Record<PriceSize, TextProps['variant']> = {
 export interface PriceTextProps {
   value: number;
   currency?: string;
-  locale?: string;
+  /** Active locale for `Intl` formatting. Required — pass `useFormatters().locale`. */
+  locale: string;
   tone?: PriceTone;
   size?: PriceSize;
   showSign?: boolean;
@@ -23,7 +24,7 @@ export interface PriceTextProps {
 export function PriceText({
   value,
   currency = 'USD',
-  locale = 'pt-BR',
+  locale,
   tone = 'neutral',
   size = 'md',
   showSign = false,

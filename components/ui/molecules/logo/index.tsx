@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Laptop } from './svg/laptop';
@@ -6,25 +7,24 @@ import { LogoIllustration } from './svg/logo-illustration';
 import type { LogoProps } from './types';
 import { useLogo } from './use-logo';
 
-export const Logo = React.memo<LogoProps>(
-  ({ size = 'small', accessibilityLabel = 'Contas logo', testID }) => {
-    const { illustrationWidth, laptopWidth } = useLogo({ size });
+export const Logo = React.memo<LogoProps>(({ size = 'small', accessibilityLabel, testID }) => {
+  const { t } = useTranslation();
+  const { illustrationWidth, laptopWidth } = useLogo({ size });
 
-    return (
-      <View
-        style={styles.container}
-        accessibilityRole="image"
-        accessibilityLabel={accessibilityLabel}
-        testID={testID}
-      >
-        <LogoIllustration width={illustrationWidth} />
-        <View style={styles.laptopContainer}>
-          <Laptop width={laptopWidth} />
-        </View>
+  return (
+    <View
+      style={styles.container}
+      accessibilityRole="image"
+      accessibilityLabel={accessibilityLabel ?? t('accessibility.logo')}
+      testID={testID}
+    >
+      <LogoIllustration width={illustrationWidth} />
+      <View style={styles.laptopContainer}>
+        <Laptop width={laptopWidth} />
       </View>
-    );
-  },
-);
+    </View>
+  );
+});
 
 Logo.displayName = 'Logo';
 

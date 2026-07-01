@@ -7,7 +7,9 @@
     "hints": {
       "viewTransactions": "Abre as transações desta categoria",
       "filterByMonth": "Filtra por este mês"
-    }
+    },
+    "sort": "Ordenar",
+    "logo": "Logotipo do Spendspacey"
   },
   "common": {
     "appName": "Spendspacey",
@@ -20,6 +22,7 @@
     "loading": "Carregando…",
     "saving": "Salvando…",
     "create": "Criar",
+    "close": "Fechar",
     "errors": {
       "actionFailed": "Algo não deu certo",
       "duplicate": "Isso já existe.",
@@ -169,7 +172,7 @@
     "balance": "Saldo",
     "allMonths": "TODOS OS MESES",
     "byDay": "POR DIA",
-    "primaryPrefix": "Contas",
+    "primaryPrefix": "Para",
     "lastUpdate": "Última atualização às {{time}}",
     "addFirstTransaction": "Adicione sua primeira transação",
     "vsPrevious": "vs {{label}}: {{value}}"
@@ -194,8 +197,8 @@
     "error": "Algo não salvou. Tente de novo.",
     "duplicateWarning": {
       "title": "Possível duplicata",
-      "bodyOne": "Você já tem uma transação com a mesma data, valor e categoria.",
-      "bodyMany": "Você já tem {{count}} transações com a mesma data, valor e categoria.",
+      "body_one": "Você já tem uma transação com a mesma data, valor e categoria.",
+      "body_other": "Você já tem {{count}} transações com a mesma data, valor e categoria.",
       "saveAnyway": "Salvar mesmo assim",
       "cancel": "Cancelar"
     }
@@ -302,8 +305,8 @@
     "freeTierLimit": "Você chegou ao limite de {{count}} carteiras",
     "activeLabel": "Ativa",
     "switchButton": "Mudar",
-    "membersOne": "1 membro",
-    "membersMany": "{{count}} membros",
+    "members_one": "{{count}} membro",
+    "members_other": "{{count}} membros",
     "pendingDeleteOwner": "Aguardando a outra pessoa confirmar a exclusão.",
     "pendingDeleteOther": "A outra pessoa quer excluir esta carteira.",
     "confirmDeleteButton": "Confirmar",
@@ -312,7 +315,7 @@
     "deleteConfirmMessage": "Esta ação excluirá permanentemente a carteira e todos os seus dados. Isso não pode ser desfeito.",
     "deleteConfirmAction": "Excluir",
     "deleteRequestTitle": "Solicitar Exclusão",
-    "deleteRequestMessage": "Seu parceiro(a) precisará confirmar antes de a carteira ser excluída.",
+    "deleteRequestMessage": "A outra pessoa precisará confirmar antes de a carteira ser excluída.",
     "deleteRequestAction": "Enviar Solicitação"
   },
   "category": {

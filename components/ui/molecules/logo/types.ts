@@ -13,8 +13,8 @@ export interface LogoProps {
   size?: LogoSize;
 
   /**
-   * Accessibility label for the logo
-   * @default "Contas logo"
+   * Accessibility label for the logo.
+   * @default t('accessibility.logo') — "Spendspacey logo"
    */
   accessibilityLabel?: string;
 

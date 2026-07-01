@@ -31,7 +31,7 @@ export function TimelineItem({
   footer,
 }: TimelineItemProps) {
   const { t } = useTranslation();
-  const { formatCurrency } = useFormatters();
+  const { formatCurrency, locale } = useFormatters();
   const card = (
     <Surface
       variant={current ? 'elevated' : 'muted'}
@@ -42,11 +42,11 @@ export function TimelineItem({
       <Text variant="caption" tone={current ? 'tint' : 'textMuted'} weight="semibold">
         {label.toUpperCase()}
       </Text>
-      <PriceText value={value} currency={currency} tone={tone} size="md" />
+      <PriceText value={value} currency={currency} locale={locale} tone={tone} size="md" />
       {footer !== undefined ? (
         footer
       ) : delta !== undefined ? (
-        <TrendIndicator delta={delta} hideValue currency={currency} />
+        <TrendIndicator delta={delta} hideValue currency={currency} locale={locale} />
       ) : (
         <View style={styles.trendPlaceholder} />
       )}

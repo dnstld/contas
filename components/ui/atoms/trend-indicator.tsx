@@ -7,7 +7,8 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 export interface TrendIndicatorProps {
   delta: number;
   percentage?: number;
-  locale?: string;
+  /** Active locale for `Intl` formatting. Required — pass `useFormatters().locale`. */
+  locale: string;
   currency?: string;
   hideValue?: boolean;
   /** When true, a positive delta is treated as bad (red/down) — e.g. for expenses. */
@@ -17,7 +18,7 @@ export interface TrendIndicatorProps {
 export function TrendIndicator({
   delta,
   percentage,
-  locale = 'pt-BR',
+  locale,
   currency = 'USD',
   hideValue = false,
   lowerIsBetter = false,

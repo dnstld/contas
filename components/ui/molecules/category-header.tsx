@@ -9,7 +9,8 @@ export interface CategoryHeaderProps {
   total: number;
   percentage?: number;
   currency?: string;
-  locale?: string;
+  /** Active locale for `Intl` formatting. Required — pass `useFormatters().locale`. */
+  locale: string;
   tone?: PriceTone;
   /** Rendered in the top-right slot in place of the percentage when provided. */
   badge?: ReactNode;
@@ -22,7 +23,7 @@ export function CategoryHeader({
   total,
   percentage,
   currency = 'USD',
-  locale = 'pt-BR',
+  locale,
   tone = 'neutral',
   badge,
   goalText,
@@ -46,7 +47,7 @@ export function CategoryHeader({
           ) : null)}
       </View>
       <View style={styles.amountRow}>
-        <PriceText value={total} currency={currency} tone={tone} size="lg" />
+        <PriceText value={total} currency={currency} locale={locale} tone={tone} size="lg" />
         {goalText ? (
           <Text variant="caption" tone="textMuted" weight="medium">
             {goalText}
