@@ -11,7 +11,7 @@ export function initMonitoring() {
   if (__DEV__ || !env.sentryDsn) return;
   Sentry.init({
     dsn: env.sentryDsn,
-    environment: 'production',
+    environment: env.appVariant,
     // Finance app: never let Sentry attach IPs/cookies/headers by default.
     sendDefaultPii: false,
     tracesSampleRate: 0.2,

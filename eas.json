@@ -9,18 +9,21 @@
       "distribution": "internal",
       "environment": "development",
       "env": {
-        "APP_VARIANT": "development"
+        "EXPO_PUBLIC_APP_VARIANT": "development"
       }
     },
     "preview": {
       "distribution": "internal",
-      "environment": "preview"
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_APP_VARIANT": "preview"
+      }
     },
     "production": {
       "autoIncrement": true,
       "environment": "production",
       "env": {
-        "APP_VARIANT": "production"
+        "EXPO_PUBLIC_APP_VARIANT": "production"
       }
     }
   },

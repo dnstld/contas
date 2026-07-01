@@ -33,4 +33,10 @@ export const env = {
   ),
   googleIosClientId: optional(process.env['EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID']),
   sentryDsn: optional(process.env['EXPO_PUBLIC_SENTRY_DSN']),
+  appVariant:
+    (process.env['EXPO_PUBLIC_APP_VARIANT'] as
+      | 'development'
+      | 'preview'
+      | 'production'
+      | undefined) ?? 'development',
 } as const;
