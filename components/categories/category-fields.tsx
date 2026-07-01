@@ -72,6 +72,7 @@ export function CategoryFields({
           placeholderTextColor={mutedColor}
           maxLength={CATEGORY_NAME_MAX_LENGTH}
           returnKeyType="next"
+          accessibilityLabel={t('category.create.nameLabel')}
           style={[
             styles.fieldInput,
             { color: textColor, backgroundColor: inputBackground, fontFamily: Fonts.sans },
@@ -111,6 +112,7 @@ export function CategoryFields({
             inputMode="numeric"
             returnKeyType="done"
             onSubmitEditing={onSubmitBudget}
+            accessibilityLabel={t('category.create.budgetLabel')}
             style={[
               styles.budgetInput,
               { color: budgetCents > 0 ? textColor : mutedColor, fontFamily: Fonts.sans },

@@ -1,8 +1,10 @@
 import { Platform, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import * as Compose from '@expo/ui/jetpack-compose';
 import * as SwiftUI from '@expo/ui/swift-ui';
 import {
+  accessibilityValue,
   buttonStyle,
   controlSize,
   disabled as disabledMod,
@@ -45,6 +47,7 @@ export function Chip({
   disabled,
   accent = false,
 }: ChipProps) {
+  const { t } = useTranslation();
   const tone = useThemeColor({}, VARIANT_TONE[variant]);
   const textColor = useThemeColor({}, 'text');
   const onPrimary = useThemeColor({}, 'onPrimary');
@@ -66,6 +69,9 @@ export function Chip({
             foregroundStyle(labelColor),
             labelStyle('titleAndIcon'),
             disabledMod(!!disabled),
+            accessibilityValue(
+              selected ? t('accessibility.state.selected') : t('accessibility.state.notSelected'),
+            ),
             fixedSize(),
           ]}
         />

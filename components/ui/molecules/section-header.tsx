@@ -14,7 +14,7 @@ export function SectionHeader({ title, subtitle, trailing, style }: SectionHeade
   return (
     <View style={[styles.container, style]}>
       <View style={styles.text}>
-        <Text variant="title" weight="bold">
+        <Text variant="title" weight="bold" heading>
           {title}
         </Text>
         {subtitle ? (

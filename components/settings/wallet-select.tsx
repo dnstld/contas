@@ -122,6 +122,9 @@ export function WalletSelect() {
                     <View key={w.id} style={styles.row}>
                       <Pressable
                         onPress={() => selectWallet(w.id)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${w.name}, ${w.currency} · ${memberLabel(w.memberCount)}`}
+                        accessibilityState={{ selected: isActive }}
                         style={({ pressed }) => [styles.rowMain, pressed && styles.rowPressed]}
                       >
                         <View style={styles.rowText}>
@@ -156,6 +159,9 @@ export function WalletSelect() {
                 <Pressable
                   onPress={atLimit ? undefined : addWallet}
                   disabled={atLimit}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('settings.walletCards.add')}
+                  accessibilityState={{ disabled: atLimit }}
                   style={({ pressed }) => [
                     styles.rowMain,
                     styles.createRow,

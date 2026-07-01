@@ -140,6 +140,8 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
           trailing={
             <Pressable
               onPress={handleSignOut}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.actions.signOut')}
               style={({ pressed }) => [
                 styles.actionBtn,
                 { borderColor: dangerColor, opacity: pressed ? 0.5 : 1 },
@@ -167,6 +169,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
                 <Pressable
                   onPress={handleLeave}
                   disabled={leaveWallet.isPending}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('dangerZone.leave.button')}
+                  accessibilityState={{
+                    disabled: leaveWallet.isPending,
+                    busy: leaveWallet.isPending,
+                  }}
                   style={({ pressed }) => [
                     styles.actionBtn,
                     {
@@ -208,6 +216,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               <Pressable
                 onPress={handleDeletePress}
                 disabled={requestOrDelete.isPending || isLastWallet}
+                accessibilityRole="button"
+                accessibilityLabel={t('dangerZone.delete.button')}
+                accessibilityState={{
+                  disabled: requestOrDelete.isPending || isLastWallet,
+                  busy: requestOrDelete.isPending,
+                }}
                 style={({ pressed }) => [
                   styles.actionBtn,
                   {
@@ -231,7 +245,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
         {/* State: current user requested deletion — waiting for partner */}
         {iAmRequester && (
           <View style={styles.pendingBlock}>
-            <View style={styles.pendingHeader}>
+            <View
+              style={styles.pendingHeader}
+              accessible
+              accessibilityLiveRegion="polite"
+              accessibilityLabel={`${t('dangerZone.delete.title')}, ${t('dangerZone.delete.waitingBadge')}`}
+            >
               <Text variant="body" weight="medium">
                 {t('dangerZone.delete.title')}
               </Text>
@@ -256,6 +275,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               onPress={handleCancel}
               disabled={cancelDeletion.isPending}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('dangerZone.delete.cancelRequest')}
+              accessibilityState={{
+                disabled: cancelDeletion.isPending,
+                busy: cancelDeletion.isPending,
+              }}
               style={({ pressed }) => [{ opacity: pressed || cancelDeletion.isPending ? 0.5 : 1 }]}
             >
               {cancelDeletion.isPending ? (
@@ -276,7 +301,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
         {/* State: partner requested deletion — awaiting current user's approval */}
         {partnerIsRequester && (
           <View style={[styles.approveBlock, { backgroundColor: withAlpha(dangerColor, 0.05) }]}>
-            <Text variant="body" weight="semibold" style={{ color: dangerColor }}>
+            <Text
+              variant="body"
+              weight="semibold"
+              accessibilityLiveRegion="polite"
+              style={{ color: dangerColor }}
+            >
               {t('dangerZone.delete.partnerRequestedTitle', { partner: displayPartner })}
             </Text>
             <Text variant="caption" tone="textMuted" style={styles.pendingCaption}>
@@ -287,6 +317,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               <Pressable
                 onPress={handleApprove}
                 disabled={confirmDeletion.isPending || cancelDeletion.isPending}
+                accessibilityRole="button"
+                accessibilityLabel={t('dangerZone.delete.approveAction')}
+                accessibilityState={{
+                  disabled: confirmDeletion.isPending || cancelDeletion.isPending,
+                  busy: confirmDeletion.isPending,
+                }}
                 style={({ pressed }) => [
                   styles.approveBtn,
                   {
@@ -307,6 +343,12 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
               <Pressable
                 onPress={handleCancel}
                 disabled={cancelDeletion.isPending || confirmDeletion.isPending}
+                accessibilityRole="button"
+                accessibilityLabel={t('dangerZone.delete.cancelRequest')}
+                accessibilityState={{
+                  disabled: cancelDeletion.isPending || confirmDeletion.isPending,
+                  busy: cancelDeletion.isPending,
+                }}
                 style={({ pressed }) => [
                   styles.cancelBtn,
                   {

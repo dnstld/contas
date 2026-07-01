@@ -11,6 +11,12 @@ export interface TextProps extends RNTextProps {
   variant?: TextVariant;
   tone?: TextTone;
   weight?: 'regular' | 'medium' | 'semibold' | 'bold';
+  /**
+   * Exposes the text as a navigable heading to VoiceOver/TalkBack. Opt-in —
+   * apply to section/screen titles only, not body copy or captions. An explicit
+   * `accessibilityRole` in props takes precedence.
+   */
+  heading?: boolean;
 }
 
 const VARIANT_STYLE = StyleSheet.create({
@@ -33,15 +39,18 @@ export function Text({
   variant = 'body',
   tone = 'text',
   weight = 'regular',
+  heading = false,
   style,
   ...rest
 }: TextProps) {
   const color = useThemeColor({}, tone);
   const fontFamily = variant === 'mono' ? Fonts.mono : Fonts.sans;
+  const accessibilityRole = rest.accessibilityRole ?? (heading ? 'header' : undefined);
 
   return (
     <RNText
       {...rest}
+      accessibilityRole={accessibilityRole}
       style={[{ color, fontFamily, fontWeight: WEIGHT_MAP[weight] }, VARIANT_STYLE[variant], style]}
     />
   );

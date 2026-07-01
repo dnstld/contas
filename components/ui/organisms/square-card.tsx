@@ -72,8 +72,15 @@ function SquareCardImpl({
 
   if (!onPress) return body;
 
+  const accessibilityLabel = [name, subtitle].filter(Boolean).join(', ');
+
   return (
-    <Pressable onPress={handlePress} style={({ pressed }) => (pressed ? styles.pressed : null)}>
+    <Pressable
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => (pressed ? styles.pressed : null)}
+    >
       {body}
     </Pressable>
   );
@@ -93,8 +100,19 @@ function AddSquareCardImpl({ label, onPress, locked = false, lockedLabel }: AddS
   const border = useThemeColor({}, 'border');
   const muted = useThemeColor({}, 'textMuted');
 
+  // When locked the card is non-interactive, so announce it here as a disabled
+  // button. When interactive, the wrapping Pressable below carries the label.
+  const bodyA11y = locked
+    ? {
+        accessible: true,
+        accessibilityRole: 'button' as const,
+        accessibilityLabel: lockedLabel ?? label,
+        accessibilityState: { disabled: true },
+      }
+    : undefined;
+
   const body = (
-    <View style={[styles.addCard, { borderColor: border }]}>
+    <View {...bodyA11y} style={[styles.addCard, { borderColor: border }]}>
       {locked ? (
         <>
           <Icon name="lock.fill" size={20} color={muted} />
@@ -116,7 +134,12 @@ function AddSquareCardImpl({ label, onPress, locked = false, lockedLabel }: AddS
   if (locked || !onPress) return body;
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => (pressed ? styles.pressed : null)}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => (pressed ? styles.pressed : null)}
+    >
       {body}
     </Pressable>
   );

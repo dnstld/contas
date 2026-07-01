@@ -36,7 +36,7 @@ export default function AuthenticationScreen() {
         <Text variant="caption" weight="semibold" tone="tint">
           {t('common.appName')}
         </Text>
-        <Text variant="display" weight="bold">
+        <Text variant="display" weight="bold" heading>
           {t('common.appTagline')}
         </Text>
         <Text variant="body" tone="textMuted">

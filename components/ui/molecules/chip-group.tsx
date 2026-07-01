@@ -72,6 +72,9 @@ export function ChipGroup<T extends string>({
                 onPress={() => onToggle(item.id)}
                 onLongPress={() => onLongPress(item.id)}
                 delayLongPress={500}
+                accessibilityRole="button"
+                accessibilityLabel={item.label}
+                accessibilityState={{ selected }}
               />
             </View>
           );

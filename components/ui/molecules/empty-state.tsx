@@ -33,7 +33,7 @@ export function EmptyState({
   return (
     <View style={styles.container}>
       <Icon name={resolvedIcon} size={36} color={iconColor} />
-      <View style={styles.text}>
+      <View style={styles.text} accessible accessibilityLiveRegion="polite">
         <Text variant="subtitle" weight="semibold">
           {title}
         </Text>

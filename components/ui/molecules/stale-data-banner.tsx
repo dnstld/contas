@@ -23,6 +23,7 @@ export function StaleDataBanner({ messageKey, onRetry }: StaleDataBannerProps) {
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={t('common.errors.staleRetry')}
+      accessibilityLiveRegion="polite"
       style={({ pressed }) => [
         styles.container,
         { backgroundColor: background, borderColor: border, opacity: pressed ? 0.7 : 1 },

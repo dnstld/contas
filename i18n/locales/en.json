@@ -1,4 +1,14 @@
 {
+  "accessibility": {
+    "state": {
+      "selected": "selected",
+      "notSelected": "not selected"
+    },
+    "hints": {
+      "viewTransactions": "Opens this category's transactions",
+      "filterByMonth": "Filters by this month"
+    }
+  },
   "common": {
     "appName": "Spendspacey",
     "appTagline": "Everyday spending, your space",

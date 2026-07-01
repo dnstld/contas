@@ -1,10 +1,12 @@
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { PriceText, type PriceTone } from '@/components/ui/atoms/price-text';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
 import { TrendIndicator } from '@/components/ui/atoms/trend-indicator';
+import { useFormatters } from '@/hooks/use-formatters';
 
 export interface TimelineItemProps {
   label: string;
@@ -28,6 +30,8 @@ export function TimelineItem({
   onPress,
   footer,
 }: TimelineItemProps) {
+  const { t } = useTranslation();
+  const { formatCurrency } = useFormatters();
   const card = (
     <Surface
       variant={current ? 'elevated' : 'muted'}
@@ -50,8 +54,18 @@ export function TimelineItem({
   );
 
   if (!onPress) return card;
+
+  const accessibilityLabel = [label, formatCurrency(value, currency)].filter(Boolean).join(', ');
+
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => (pressed ? styles.pressed : undefined)}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ selected: current }}
+      accessibilityHint={t('accessibility.hints.filterByMonth')}
+      style={({ pressed }) => (pressed ? styles.pressed : undefined)}
+    >
       {card}
     </Pressable>
   );
