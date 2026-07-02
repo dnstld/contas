@@ -1,6 +1,6 @@
 import { aggregate, inMonth, inYear } from '@/data/finance-aggregations';
 import { transactionDate, type Finance, type Transaction } from '@/data/finance-types';
-import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter';
+import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter-state';
 
 export interface TransactionsSection {
   /** Stable per-day identifier (e.g. "2026-4-30"). Same data → same key. */

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { buildDashboard } from '@/data/finance-aggregations';
 import type { Category, Finance, OneOffTransaction } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';
-import type { TimeFilterState } from '@/hooks/use-time-filter';
+import type { TimeFilterState } from '@/hooks/use-time-filter-state';
 
 // Fixed reference instant so tests never depend on the real "today".
 const now = new Date('2026-07-15T12:00:00Z');

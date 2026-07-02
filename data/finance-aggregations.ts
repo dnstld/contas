@@ -1,7 +1,7 @@
 import { type CategoryCardData } from '@/components/ui/organisms/category-card';
 import { type DailyTimelinePoint } from '@/components/ui/organisms/daily-timeline';
 import { type MonthlyTimelinePoint } from '@/components/ui/organisms/monthly-timeline';
-import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter';
+import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter-state';
 
 import { transactionDate, type Category, type Finance, type Transaction } from './finance-types';
 

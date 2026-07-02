@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { aggregate, buildDashboard, inYear } from '@/data/finance-aggregations';
 import type { Category, Finance, OneOffTransaction } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';
-import type { TimeFilterState } from '@/hooks/use-time-filter';
+import type { TimeFilterState } from '@/hooks/use-time-filter-state';
 
 const now = new Date('2026-07-15T12:00:00Z');
 

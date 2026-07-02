@@ -1,16 +1,10 @@
-import path from 'node:path';
-
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  // `@/*` path aliases are resolved natively from tsconfig.json (Vite's built-in
+  // tsconfig-paths support), so no plugin is needed.
   resolve: {
-    alias: {
-      // Cuts off a transitive chain (Sentry/env/kv-store) that can't load
-      // outside Metro. See test/stubs/use-persisted-state.ts for why.
-      '@/hooks/use-persisted-state': path.resolve(__dirname, 'test/stubs/use-persisted-state.ts'),
-    },
+    tsconfigPaths: true,
   },
   test: {
     environment: 'node',

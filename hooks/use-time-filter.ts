@@ -2,89 +2,35 @@ import { useCallback, useMemo } from 'react';
 
 import { usePersistedState } from '@/hooks/use-persisted-state';
 
-export type Month =
-  | 'jan'
-  | 'feb'
-  | 'mar'
-  | 'apr'
-  | 'may'
-  | 'jun'
-  | 'jul'
-  | 'aug'
-  | 'sep'
-  | 'oct'
-  | 'nov'
-  | 'dec';
+import {
+  DEFAULT_TIME_FILTER_KEY,
+  defaultTimeFilterState,
+  normalizeTimeFilterState,
+  type Month,
+  type TimeFilterApi,
+  type TimeFilterState,
+  type UseTimeFilterOptions,
+} from './use-time-filter-state';
 
-export const MONTHS: readonly Month[] = [
-  'jan',
-  'feb',
-  'mar',
-  'apr',
-  'may',
-  'jun',
-  'jul',
-  'aug',
-  'sep',
-  'oct',
-  'nov',
-  'dec',
-] as const;
-
-/**
- * Single-select per axis. A year is always selected. Either a specific month
- * is selected (`all=false`) OR "all months" is selected (`all=true`).
- */
-export interface TimeFilterState {
-  years: number[];
-  months: Month[];
-  all: boolean;
-}
-
-export interface TimeFilterApi {
-  state: TimeFilterState;
-  selectAll: () => void;
-  toggleYear: (year: number) => void;
-  toggleMonth: (month: Month) => void;
-  reset: () => void;
-}
-
-export interface UseTimeFilterOptions {
-  storageKey?: string;
-  now?: Date;
-  yearsRange?: number;
-}
-
-const DEFAULT_KEY = 'time-filter:v2';
-
-function currentMonth(now: Date): Month {
-  return MONTHS[now.getMonth()]!;
-}
-
-export function defaultTimeFilterState(now: Date = new Date()): TimeFilterState {
-  return {
-    years: [now.getFullYear()],
-    months: [currentMonth(now)],
-    all: false,
-  };
-}
-
-function normalize(state: TimeFilterState, now: Date): TimeFilterState {
-  const firstYear = state.years?.[0];
-  const years = firstYear !== undefined ? [firstYear] : [now.getFullYear()];
-  if (state.all) return { years, months: [], all: true };
-  const firstMonth = state.months?.[0];
-  const months: Month[] = [firstMonth ?? currentMonth(now)];
-  return { years, months, all: false };
-}
+// Re-export the pure time-filter API so existing consumers can keep importing
+// from `@/hooks/use-time-filter`. New pure/data-layer code should import from
+// `@/hooks/use-time-filter-state` directly to avoid the native import chain.
+export {
+  MONTHS,
+  defaultTimeFilterState,
+  type Month,
+  type TimeFilterState,
+  type TimeFilterApi,
+  type UseTimeFilterOptions,
+} from './use-time-filter-state';
 
 export function useTimeFilter({
-  storageKey = DEFAULT_KEY,
+  storageKey = DEFAULT_TIME_FILTER_KEY,
   now = new Date(),
 }: UseTimeFilterOptions = {}): TimeFilterApi {
   const initial = useMemo(() => defaultTimeFilterState(now), [now]);
   const [rawState, setState] = usePersistedState<TimeFilterState>(storageKey, initial);
-  const state = useMemo(() => normalize(rawState, now), [rawState, now]);
+  const state = useMemo(() => normalizeTimeFilterState(rawState, now), [rawState, now]);
 
   const selectAll = useCallback(() => {
     setState((prev) => ({
