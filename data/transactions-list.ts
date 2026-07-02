@@ -1,3 +1,4 @@
+import { aggregate, inMonth, inYear } from '@/data/finance-aggregations';
 import { transactionDate, type Finance, type Transaction } from '@/data/finance-types';
 import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter';
 
@@ -49,19 +50,16 @@ export function buildTransactionsList(
   const monthKey = filter.all ? undefined : (filter.months[0] ?? MONTHS[now.getMonth()]);
   const monthIndex = monthKey ? MONTHS.indexOf(monthKey) : undefined;
 
-  const filtered: { tx: Transaction; date: Date }[] = [];
-  let income = 0;
-  let expenses = 0;
+  const inPeriod = (d: Date): boolean =>
+    monthIndex !== undefined ? inMonth(d, year, monthIndex) : inYear(d, year);
+  const agg = aggregate(finance.transactions, inPeriod);
 
+  const filtered: { tx: Transaction; date: Date }[] = [];
   for (const tx of finance.transactions) {
     if (tx.status !== 'completed') continue;
     const date = new Date(transactionDate(tx));
-    if (date.getFullYear() !== year) continue;
-    if (monthIndex !== undefined && date.getMonth() !== monthIndex) continue;
-
+    if (!inPeriod(date)) continue;
     filtered.push({ tx, date });
-    if (tx.type === 'income') income += tx.amount;
-    else expenses += tx.amount;
   }
 
   filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -81,7 +79,7 @@ export function buildTransactionsList(
 
   return {
     sections,
-    totals: { income, expenses, net: income - expenses },
+    totals: { income: agg.income, expenses: agg.expenses, net: agg.net },
     count: filtered.length,
   };
 }

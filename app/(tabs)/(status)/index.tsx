@@ -3,6 +3,8 @@ import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
+import { PendingInviteBanner } from '@/components/pending-invite-banner';
+import { WalletSelect } from '@/components/settings/wallet-select';
 import {
   CategoryCard,
   CategoryGridControls,
@@ -15,8 +17,6 @@ import {
   Surface,
   Text,
 } from '@/components/ui';
-import { PendingInviteBanner } from '@/components/pending-invite-banner';
-import { WalletSelect } from '@/components/settings/wallet-select';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';

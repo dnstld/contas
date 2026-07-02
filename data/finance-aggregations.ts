@@ -40,7 +40,7 @@ function monthFormatter(locale: string): (monthIndex: number) => string {
   return (monthIndex: number) => fmt.format(new Date(2024, monthIndex, 1));
 }
 
-function txDate(t: Transaction): Date | null {
+export function txDate(t: Transaction): Date | null {
   return new Date(transactionDate(t));
 }
 
@@ -52,11 +52,11 @@ function isCompletedIncome(t: Transaction): boolean {
   return t.status === 'completed' && t.type === 'income';
 }
 
-function inMonth(d: Date, year: number, month: number): boolean {
+export function inMonth(d: Date, year: number, month: number): boolean {
   return d.getFullYear() === year && d.getMonth() === month;
 }
 
-function inYear(d: Date, year: number): boolean {
+export function inYear(d: Date, year: number): boolean {
   return d.getFullYear() === year;
 }
 
@@ -113,7 +113,7 @@ function safePct(delta: number, base: number): number | undefined {
   return delta / base;
 }
 
-interface CategoryBucket {
+export interface CategoryBucket {
   expense: number;
   revenue: number;
   count: number;
@@ -125,6 +125,49 @@ function emptyBucket(): CategoryBucket {
 
 function bucketKey(): Record<string, CategoryBucket> {
   return Object.create(null);
+}
+
+export interface PeriodAggregate {
+  income: number;
+  expenses: number;
+  net: number;
+  count: number;
+  byCategory: Record<string, CategoryBucket>;
+}
+
+/**
+ * Single-pass classification + summation of completed transactions within a
+ * period. The one place that decides what counts as "completed income" /
+ * "completed expense" for period totals — every period-summing caller goes
+ * through this so the classification never gets re-inlined and drifts.
+ */
+export function aggregate(
+  transactions: Transaction[],
+  inPeriod: (d: Date) => boolean,
+): PeriodAggregate {
+  let income = 0;
+  let expenses = 0;
+  let count = 0;
+  const byCategory = bucketKey();
+
+  for (const t of transactions) {
+    if (t.status !== 'completed') continue;
+    const d = txDate(t);
+    if (!d || !inPeriod(d)) continue;
+
+    count += 1;
+    const bucket = (byCategory[t.categoryId] ??= emptyBucket());
+    if (t.type === 'expense') {
+      expenses += t.amount;
+      bucket.expense += t.amount;
+    } else {
+      income += t.amount;
+      bucket.revenue += t.amount;
+    }
+    bucket.count += 1;
+  }
+
+  return { income, expenses, net: income - expenses, count, byCategory };
 }
 
 function toCardData(
@@ -253,55 +296,21 @@ function buildMonthMode(
   const prev = previousMonth(year, month);
   const prevMonthLabel = fmtMonth(prev.month);
 
-  let monthExpenses = 0;
-  let monthRevenue = 0;
-  let prevExpenses = 0;
-  let prevRevenue = 0;
+  const cur = aggregate(mock.transactions, (d) => inMonth(d, year, month));
+  const prevAgg = aggregate(mock.transactions, (d) => inMonth(d, prev.year, prev.month));
 
-  const current = bucketKey();
-  const previousBucket = bucketKey();
-  for (const c of mock.categories) {
-    current[c.id] = emptyBucket();
-    previousBucket[c.id] = emptyBucket();
-  }
-
-  for (const t of mock.transactions) {
-    if (t.status !== 'completed') continue;
-    const d = txDate(t);
-    if (!d) continue;
-
-    if (inMonth(d, year, month)) {
-      if (isCompletedExpense(t)) monthExpenses += t.amount;
-      else if (isCompletedIncome(t)) monthRevenue += t.amount;
-      const bucket = current[t.categoryId];
-      if (bucket) {
-        if (t.type === 'expense') bucket.expense += t.amount;
-        else bucket.revenue += t.amount;
-        bucket.count += 1;
-      }
-    } else if (inMonth(d, prev.year, prev.month)) {
-      if (isCompletedExpense(t)) prevExpenses += t.amount;
-      else if (isCompletedIncome(t)) prevRevenue += t.amount;
-      const bucket = previousBucket[t.categoryId];
-      if (bucket) {
-        if (t.type === 'expense') bucket.expense += t.amount;
-        else bucket.revenue += t.amount;
-      }
-    }
-  }
-
-  const hasPrevMonthData = prevExpenses > 0 || prevRevenue > 0;
+  const hasPrevMonthData = prevAgg.expenses > 0 || prevAgg.income > 0;
 
   const overview: DashboardOverviewData = {
     mode: 'month',
     primaryLabel: monthLabel,
-    primaryValue: monthExpenses,
+    primaryValue: cur.expenses,
     comparisonLabel: hasPrevMonthData ? prevMonthLabel : undefined,
-    previousExpenses: hasPrevMonthData ? prevExpenses : undefined,
-    previousRevenue: hasPrevMonthData ? prevRevenue : undefined,
-    revenue: monthRevenue,
-    expenses: monthExpenses,
-    net: monthRevenue - monthExpenses,
+    previousExpenses: hasPrevMonthData ? prevAgg.expenses : undefined,
+    previousRevenue: hasPrevMonthData ? prevAgg.income : undefined,
+    revenue: cur.income,
+    expenses: cur.expenses,
+    net: cur.net,
     dailyTimeline: buildDailyTimeline(mock, year, month, now),
   };
 
@@ -311,9 +320,9 @@ function buildMonthMode(
   const categories = visibleCategories.map((c) =>
     toCardData(
       c,
-      current[c.id] ?? emptyBucket(),
-      previousBucket[c.id] ?? emptyBucket(),
-      monthExpenses,
+      cur.byCategory[c.id] ?? emptyBucket(),
+      prevAgg.byCategory[c.id] ?? emptyBucket(),
+      cur.expenses,
       c.monthlyBudget,
       prevMonthLabel,
       hasPrevMonthData,
@@ -339,42 +348,8 @@ function buildYearMode(
   const prevYear = year - 1;
   const prevYearLabel = String(prevYear);
 
-  let yearExpenses = 0;
-  let yearRevenue = 0;
-  let prevYearExpenses = 0;
-  let prevYearRevenue = 0;
-
-  const current = bucketKey();
-  const previous = bucketKey();
-  for (const c of mock.categories) {
-    current[c.id] = emptyBucket();
-    previous[c.id] = emptyBucket();
-  }
-
-  for (const t of mock.transactions) {
-    if (t.status !== 'completed') continue;
-    const d = txDate(t);
-    if (!d) continue;
-
-    if (inYear(d, year)) {
-      if (isCompletedExpense(t)) yearExpenses += t.amount;
-      else if (isCompletedIncome(t)) yearRevenue += t.amount;
-      const bucket = current[t.categoryId];
-      if (bucket) {
-        if (t.type === 'expense') bucket.expense += t.amount;
-        else bucket.revenue += t.amount;
-        bucket.count += 1;
-      }
-    } else if (inYear(d, prevYear)) {
-      if (isCompletedExpense(t)) prevYearExpenses += t.amount;
-      else if (isCompletedIncome(t)) prevYearRevenue += t.amount;
-      const bucket = previous[t.categoryId];
-      if (bucket) {
-        if (t.type === 'expense') bucket.expense += t.amount;
-        else bucket.revenue += t.amount;
-      }
-    }
-  }
+  const cur = aggregate(mock.transactions, (d) => inYear(d, year));
+  const prevAgg = aggregate(mock.transactions, (d) => inYear(d, prevYear));
 
   const timeline = buildYearTimeline(mock, year, now);
 
@@ -383,13 +358,13 @@ function buildYearMode(
   const overview: DashboardOverviewData = {
     mode: 'year',
     primaryLabel: yearLabel,
-    primaryValue: yearExpenses,
+    primaryValue: cur.expenses,
     comparisonLabel: hasPrevYear ? prevYearLabel : undefined,
-    previousExpenses: hasPrevYear ? prevYearExpenses : undefined,
-    previousRevenue: hasPrevYear ? prevYearRevenue : undefined,
-    revenue: yearRevenue,
-    expenses: yearExpenses,
-    net: yearRevenue - yearExpenses,
+    previousExpenses: hasPrevYear ? prevAgg.expenses : undefined,
+    previousRevenue: hasPrevYear ? prevAgg.income : undefined,
+    revenue: cur.income,
+    expenses: cur.expenses,
+    net: cur.net,
     timeline,
     currentMonth: year === now.getFullYear() ? MONTHS[now.getMonth()]! : undefined,
   };
@@ -400,9 +375,9 @@ function buildYearMode(
   const categories = visibleCategories.map((c) =>
     toCardData(
       c,
-      current[c.id] ?? emptyBucket(),
-      previous[c.id] ?? emptyBucket(),
-      yearExpenses,
+      cur.byCategory[c.id] ?? emptyBucket(),
+      prevAgg.byCategory[c.id] ?? emptyBucket(),
+      cur.expenses,
       undefined,
       prevYearLabel,
       hasPrevYear,
