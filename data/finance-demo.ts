@@ -1,4 +1,4 @@
-import { transactionDate, type Category, type Finance, type Transaction } from './finance-types';
+import { txDate, type Category, type Finance, type Transaction } from './finance-types';
 
 type DemoCategory = Category & {
   behavior: {
@@ -239,7 +239,7 @@ function sumMonthExpenses(transactions: Transaction[], year: number, month: numb
   let sum = 0;
   for (const t of transactions) {
     if (t.status !== 'completed' || t.type !== 'expense') continue;
-    const d = new Date(transactionDate(t));
+    const d = txDate(t);
     if (d.getFullYear() === year && d.getMonth() === month) sum += t.amount;
   }
   return sum;
@@ -385,8 +385,8 @@ export function generateDemoFinance(currency: string = 'BRL'): Finance {
     currency,
     categories: publicCategories,
     transactions: transactions.sort((a, b) => {
-      const dateA = new Date(transactionDate(a)).getTime();
-      const dateB = new Date(transactionDate(b)).getTime();
+      const dateA = txDate(a).getTime();
+      const dateB = txDate(b).getTime();
       return dateB - dateA;
     }),
   };

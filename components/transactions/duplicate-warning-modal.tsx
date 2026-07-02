@@ -7,7 +7,7 @@ import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { PriceText } from '@/components/ui/atoms/price-text';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
-import { transactionDate, type Transaction } from '@/data/finance-types';
+import { txDate, type Transaction } from '@/data/finance-types';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
@@ -126,7 +126,7 @@ function DuplicateTransactionPreviewCard({
 
   const creatorName = member?.displayName ?? t('wallet.partner.unnamed');
   const dateLabel = useMemo(() => {
-    return formatDate(new Date(transactionDate(transaction)), { dateStyle: 'medium' });
+    return formatDate(txDate(transaction), { dateStyle: 'medium' });
   }, [formatDate, transaction]);
 
   return (

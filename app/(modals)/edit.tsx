@@ -10,7 +10,7 @@ import {
 import { Skeleton } from '@/components/ui/atoms/skeleton';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
-import { transactionDate } from '@/data/finance-types';
+import { txDate } from '@/data/finance-types';
 import {
   isDemoModeReadOnlyError,
   useDeleteTransaction,
@@ -77,7 +77,7 @@ export default function EditScreen() {
   const initialValues: Partial<TransactionFormValues> = {
     type: transaction.type,
     amountCents: Math.round(transaction.amount * 100),
-    date: new Date(transactionDate(transaction)),
+    date: txDate(transaction),
     categoryId: transaction.categoryId,
     description: transaction.description,
   };

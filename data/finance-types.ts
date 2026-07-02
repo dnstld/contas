@@ -47,6 +47,13 @@ export function transactionDate(t: Transaction): string {
   return t.kind === 'one-off' ? t.date : t.startDate;
 }
 
+/** The canonical timestamp as a `Date`. Single place that turns a transaction
+ *  into a date object (an invalid stored date yields an `Invalid Date`, never
+ *  `null`, matching `new Date(...)`). */
+export function txDate(t: Transaction): Date {
+  return new Date(transactionDate(t));
+}
+
 export type Finance = {
   years: number[];
   currency: string;

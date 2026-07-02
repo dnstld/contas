@@ -1,12 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { generateDemoFinance } from '@/data/finance-demo';
-import {
-  transactionDate,
-  type Category,
-  type Finance,
-  type Transaction,
-} from '@/data/finance-types';
+import { txDate, type Category, type Finance, type Transaction } from '@/data/finance-types';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
@@ -26,9 +21,9 @@ function assembleFinance(
   transactions: Transaction[],
   currency: string,
 ): Finance {
-  const years = Array.from(
-    new Set(transactions.map((t) => new Date(transactionDate(t)).getFullYear())),
-  ).sort((a, b) => a - b);
+  const years = Array.from(new Set(transactions.map((t) => txDate(t).getFullYear()))).sort(
+    (a, b) => a - b,
+  );
 
   return {
     years,

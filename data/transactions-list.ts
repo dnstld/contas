@@ -1,5 +1,5 @@
 import { aggregate, inMonth, inYear } from '@/data/finance-aggregations';
-import { transactionDate, type Finance, type Transaction } from '@/data/finance-types';
+import { txDate, type Finance, type Transaction } from '@/data/finance-types';
 import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter-state';
 import { formatDate } from '@/utils/format';
 
@@ -58,7 +58,7 @@ export function buildTransactionsList(
   const filtered: { tx: Transaction; date: Date }[] = [];
   for (const tx of finance.transactions) {
     if (tx.status !== 'completed') continue;
-    const date = new Date(transactionDate(tx));
+    const date = txDate(tx);
     if (!inPeriod(date)) continue;
     filtered.push({ tx, date });
   }

@@ -1,6 +1,6 @@
 import { generateDemoFinance } from './finance-demo';
 import {
-  transactionDate,
+  txDate,
   type Category,
   type Finance,
   type OneOffTransaction,
@@ -86,9 +86,9 @@ export function generateExampleFinance(currency: string, now: Date, names: Examp
     place(pool.slice(CURRENT_COUNT, CURRENT_COUNT + PREVIOUS_COUNT), prevYear, prevMonth, 'p');
   });
 
-  const years = Array.from(
-    new Set(transactions.map((t) => new Date(transactionDate(t)).getFullYear())),
-  ).sort((a, b) => a - b);
+  const years = Array.from(new Set(transactions.map((t) => txDate(t).getFullYear()))).sort(
+    (a, b) => a - b,
+  );
 
   return { years, currency, categories, transactions };
 }

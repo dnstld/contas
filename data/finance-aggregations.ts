@@ -4,7 +4,7 @@ import { type MonthlyTimelinePoint } from '@/components/ui/organisms/monthly-tim
 import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter-state';
 import { monthName } from '@/utils/format';
 
-import { transactionDate, type Category, type Finance, type Transaction } from './finance-types';
+import { txDate, type Category, type Finance, type Transaction } from './finance-types';
 
 export type DashboardMode = 'month' | 'year';
 
@@ -34,10 +34,6 @@ export interface DashboardData {
   overview: DashboardOverviewData;
   categories: CategoryCardData[];
   filterItems: { id: string; label: string }[];
-}
-
-export function txDate(t: Transaction): Date | null {
-  return new Date(transactionDate(t));
 }
 
 function isCompletedExpense(t: Transaction): boolean {
@@ -93,8 +89,7 @@ function scanFinance(mock: Finance, year: number): FinanceScan {
     usedIds.add(t.categoryId);
     if (lastUpdatedAt === undefined || t.updatedAt > lastUpdatedAt) lastUpdatedAt = t.updatedAt;
     if (t.status !== 'completed') continue;
-    const d = txDate(t);
-    if (d && d.getFullYear() === year) yearActiveIds.add(t.categoryId);
+    if (txDate(t).getFullYear() === year) yearActiveIds.add(t.categoryId);
   }
   return { yearActiveIds, usedIds, lastUpdatedAt };
 }
@@ -149,7 +144,7 @@ export function aggregate(
   for (const t of transactions) {
     if (t.status !== 'completed') continue;
     const d = txDate(t);
-    if (!d || !inPeriod(d)) continue;
+    if (!inPeriod(d)) continue;
 
     count += 1;
     const bucket = (byCategory[t.categoryId] ??= emptyBucket());
@@ -216,7 +211,6 @@ function buildYearTimeline(mock: Finance, year: number, now: Date): MonthlyTimel
   for (const t of mock.transactions) {
     if (!isCompletedExpense(t)) continue;
     const d = txDate(t);
-    if (!d) continue;
     if (inYear(d, year)) monthExpense[d.getMonth()]! += t.amount;
     else if (inYear(d, prevYear)) prevMonthExpense[d.getMonth()]! += t.amount;
   }
@@ -255,7 +249,6 @@ function buildDailyTimeline(
   for (const t of mock.transactions) {
     if (!isCompletedExpense(t)) continue;
     const d = txDate(t);
-    if (!d) continue;
     if (d.getFullYear() === year && d.getMonth() === month) {
       const day = d.getDate();
       if (day >= 1 && day <= lastDay) {

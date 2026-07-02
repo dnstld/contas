@@ -1,4 +1,4 @@
-import { transactionDate, type Transaction } from '@/data/finance-types';
+import { txDate, type Transaction } from '@/data/finance-types';
 
 export type DuplicateCandidate = {
   date: Date;
@@ -22,6 +22,6 @@ export function findDuplicateTransactions(
   return existing.filter((t) => {
     if (t.categoryId !== candidate.categoryId) return false;
     if (Math.round(t.amount * 100) !== candidate.amountCents) return false;
-    return localDayKey(new Date(transactionDate(t))) === candidateDay;
+    return localDayKey(txDate(t)) === candidateDay;
   });
 }
