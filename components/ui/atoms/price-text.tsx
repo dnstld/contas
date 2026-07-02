@@ -1,4 +1,5 @@
 import { Text, type TextProps } from '@/components/ui/atoms/text';
+import { formatCurrency } from '@/utils/format';
 
 export type PriceTone = 'neutral' | 'positive' | 'negative' | 'warning' | 'auto';
 export type PriceSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -39,11 +40,8 @@ export function PriceText({
           : 'text'
       : toneToColor(tone);
 
-  const formatter = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
+  const formatted = formatCurrency(value, currency, locale, {
+    fractionDigits,
     signDisplay: showSign ? 'always' : 'auto',
   });
 
@@ -53,7 +51,7 @@ export function PriceText({
       tone={resolvedTone}
       weight={size === 'xl' || size === 'lg' ? 'semibold' : 'medium'}
     >
-      {formatter.format(value)}
+      {formatted}
     </Text>
   );
 }

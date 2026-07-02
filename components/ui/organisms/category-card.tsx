@@ -52,7 +52,7 @@ function CategoryCardImpl({
   const iconBg = useThemeColor({}, 'surfaceMuted');
   const iconColor = useThemeColor({}, 'icon');
   const { t } = useTranslation();
-  const { formatNumber, formatCurrency, locale } = useFormatters();
+  const { formatNumber, formatCurrency, formatPercent, locale } = useFormatters();
 
   // With a goal: under → green, exactly at the goal → warning, over → red.
   const tone =
@@ -138,11 +138,7 @@ function CategoryCardImpl({
   // One grouped label so the card announces as a single element (name · amount ·
   // goal · percentage · status) instead of the child texts one by one.
   const pctLabel =
-    !badgeLabel && data.percentage !== undefined
-      ? new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(
-          data.percentage,
-        )
-      : undefined;
+    !badgeLabel && data.percentage !== undefined ? formatPercent(data.percentage) : undefined;
   const statusLabel = isEmpty
     ? t('category.noActivity')
     : data.entryCount !== undefined && data.entryCount > 0

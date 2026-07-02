@@ -73,7 +73,7 @@ export function Overview({
 }: OverviewProps) {
   const [lens, setLens] = useState<OverviewLens>('expenses');
   const { t } = useTranslation();
-  const { formatCurrency, locale } = useFormatters();
+  const { formatCurrency, formatDate, locale } = useFormatters();
 
   const lensOptions = useMemo(
     () => [
@@ -94,15 +94,12 @@ export function Overview({
       a.getFullYear() === b.getFullYear() &&
       a.getMonth() === b.getMonth() &&
       a.getDate() === b.getDate();
-    const timePart = new Intl.DateTimeFormat(locale, {
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(updated);
+    const timePart = formatDate(updated, { hour: '2-digit', minute: '2-digit' });
     const when = sameDay(updated, new Date())
       ? timePart
-      : `${new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(updated)} ${timePart}`;
+      : `${formatDate(updated, { day: '2-digit', month: 'short' })} ${timePart}`;
     return t('overview.lastUpdate', { time: when });
-  }, [lastUpdatedAt, locale, t]);
+  }, [lastUpdatedAt, formatDate, t]);
 
   const lensTone = lens === 'net' ? (lensValue >= 0 ? 'positive' : 'negative') : 'neutral';
 

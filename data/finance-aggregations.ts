@@ -2,6 +2,7 @@ import { type CategoryCardData } from '@/components/ui/organisms/category-card';
 import { type DailyTimelinePoint } from '@/components/ui/organisms/daily-timeline';
 import { type MonthlyTimelinePoint } from '@/components/ui/organisms/monthly-timeline';
 import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter-state';
+import { monthName } from '@/utils/format';
 
 import { transactionDate, type Category, type Finance, type Transaction } from './finance-types';
 
@@ -33,11 +34,6 @@ export interface DashboardData {
   overview: DashboardOverviewData;
   categories: CategoryCardData[];
   filterItems: { id: string; label: string }[];
-}
-
-function monthFormatter(locale: string): (monthIndex: number) => string {
-  const fmt = new Intl.DateTimeFormat(locale, { month: 'long' });
-  return (monthIndex: number) => fmt.format(new Date(2024, monthIndex, 1));
 }
 
 export function txDate(t: Transaction): Date | null {
@@ -290,11 +286,10 @@ function buildMonthMode(
   yearActiveIds: Set<string>,
   usedIds: Set<string>,
 ): DashboardData {
-  const fmtMonth = monthFormatter(locale);
-  const monthLabel = `${fmtMonth(month)} ${year}`;
+  const monthLabel = `${monthName(month, locale)} ${year}`;
 
   const prev = previousMonth(year, month);
-  const prevMonthLabel = fmtMonth(prev.month);
+  const prevMonthLabel = monthName(prev.month, locale);
 
   const cur = aggregate(mock.transactions, (d) => inMonth(d, year, month));
   const prevAgg = aggregate(mock.transactions, (d) => inMonth(d, prev.year, prev.month));

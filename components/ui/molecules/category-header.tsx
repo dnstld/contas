@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { PriceText, type PriceTone } from '@/components/ui/atoms/price-text';
 import { Text } from '@/components/ui/atoms/text';
+import { formatPercent } from '@/utils/format';
 
 export interface CategoryHeaderProps {
   name: string;
@@ -28,11 +29,6 @@ export function CategoryHeader({
   badge,
   goalText,
 }: CategoryHeaderProps) {
-  const pctFormatter = new Intl.NumberFormat(locale, {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  });
-
   return (
     <View style={styles.container}>
       <View style={styles.row}>
@@ -42,7 +38,7 @@ export function CategoryHeader({
         {badge ??
           (percentage !== undefined ? (
             <Text variant="caption" tone="textMuted" weight="medium">
-              {pctFormatter.format(percentage)}
+              {formatPercent(percentage, locale)}
             </Text>
           ) : null)}
       </View>

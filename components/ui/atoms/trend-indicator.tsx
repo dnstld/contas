@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { formatCurrency, formatPercent } from '@/utils/format';
 
 export interface TrendIndicatorProps {
   delta: number;
@@ -31,30 +32,23 @@ export function TrendIndicator({
 
   const iconName = isFlat ? 'minus' : isUp ? 'arrow.up.right' : 'arrow.down.right';
 
-  const valueFormatter = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    signDisplay: 'exceptZero',
-    maximumFractionDigits: 2,
-  });
-
-  const pctFormatter = new Intl.NumberFormat(locale, {
-    style: 'percent',
-    signDisplay: 'exceptZero',
-    maximumFractionDigits: 0,
-  });
+  const valueText = formatCurrency(delta, currency, locale, { signDisplay: 'exceptZero' });
+  const pctText =
+    percentage !== undefined
+      ? formatPercent(percentage, locale, { signDisplay: 'exceptZero' })
+      : '';
 
   return (
     <View style={styles.row}>
       <Icon name={iconName} size={14} color={color} />
       {!hideValue && (
         <Text variant="caption" tone={tone} weight="semibold">
-          {valueFormatter.format(delta)}
+          {valueText}
         </Text>
       )}
       {percentage !== undefined && (
         <Text variant="caption" tone={tone} weight="medium">
-          {pctFormatter.format(percentage)}
+          {pctText}
         </Text>
       )}
     </View>

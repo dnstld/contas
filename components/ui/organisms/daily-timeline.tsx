@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
@@ -28,8 +27,7 @@ export interface DailyTimelineProps {
  */
 export function DailyTimeline({ points, currency = 'USD' }: DailyTimelineProps) {
   const { t } = useTranslation();
-  const { locale } = useFormatters();
-  const weekdayFmt = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: 'short' }), [locale]);
+  const { formatDate } = useFormatters();
 
   return (
     <ScrollView
@@ -42,7 +40,7 @@ export function DailyTimeline({ points, currency = 'USD' }: DailyTimelineProps) 
         return (
           <View key={p.date} style={styles.cell}>
             <TimelineItem
-              label={`${weekdayFmt.format(d)} ${d.getDate()}`}
+              label={`${formatDate(d, { weekday: 'short' })} ${d.getDate()}`}
               value={p.value}
               currency={currency}
               current={p.current}

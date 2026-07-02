@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { PriceText } from '@/components/ui/atoms/price-text';
 import { ProgressBar } from '@/components/ui/atoms/progress-bar';
 import { Text } from '@/components/ui/atoms/text';
+import { formatPercent } from '@/utils/format';
 
 export interface BudgetMeterProps {
   spent: number;
@@ -17,11 +18,6 @@ export function BudgetMeter({ spent, budget, currency = 'USD', locale }: BudgetM
   const overBudget = spent > budget;
   const tone = overBudget ? 'negative' : 'positive';
 
-  const pctFormatter = new Intl.NumberFormat(locale, {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  });
-
   return (
     <View style={styles.container}>
       <View style={styles.row}>
@@ -34,7 +30,7 @@ export function BudgetMeter({ spent, budget, currency = 'USD', locale }: BudgetM
           <PriceText value={budget} currency={currency} locale={locale} tone="neutral" size="md" />
         </View>
         <Text variant="caption" tone={overBudget ? 'negative' : 'textMuted'} weight="medium">
-          {pctFormatter.format(Math.min(ratio, 9.99))}
+          {formatPercent(Math.min(ratio, 9.99), locale)}
         </Text>
       </View>
       <ProgressBar value={Math.min(ratio, 1)} tone={tone} />

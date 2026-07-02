@@ -119,17 +119,15 @@ function DuplicateTransactionPreviewCard({
 }: DuplicateTransactionPreviewCardProps) {
   const { t } = useTranslation();
   const { currency } = useWallet();
-  const { locale } = useFormatters();
+  const { locale, formatDate } = useFormatters();
 
   const isIncome = transaction.type === 'income';
   const signedAmount = isIncome ? transaction.amount : -transaction.amount;
 
   const creatorName = member?.displayName ?? t('wallet.partner.unnamed');
   const dateLabel = useMemo(() => {
-    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
-      new Date(transactionDate(transaction)),
-    );
-  }, [locale, transaction]);
+    return formatDate(new Date(transactionDate(transaction)), { dateStyle: 'medium' });
+  }, [formatDate, transaction]);
 
   return (
     <Surface variant="muted" padding={14} radius={14} style={styles.card}>

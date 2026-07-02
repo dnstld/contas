@@ -1,6 +1,7 @@
 import { aggregate, inMonth, inYear } from '@/data/finance-aggregations';
 import { transactionDate, type Finance, type Transaction } from '@/data/finance-types';
 import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter-state';
+import { formatDate } from '@/utils/format';
 
 export interface TransactionsSection {
   /** Stable per-day identifier (e.g. "2026-4-30"). Same data → same key. */
@@ -98,21 +99,11 @@ export function makeSectionLabeler(now: Date, locale: string, labels: DateLabels
   const yesterdayKey = dayKey(yesterday);
   const currentYear = today.getFullYear();
 
-  const sameYearFmt = new Intl.DateTimeFormat(locale, {
-    day: 'numeric',
-    month: 'long',
-  });
-  const otherYearFmt = new Intl.DateTimeFormat(locale, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-
   return (section: Pick<TransactionsSection, 'dayKey' | 'date'>): string => {
     if (section.dayKey === todayKey) return labels.today;
     if (section.dayKey === yesterdayKey) return labels.yesterday;
     return section.date.getFullYear() === currentYear
-      ? sameYearFmt.format(section.date)
-      : otherYearFmt.format(section.date);
+      ? formatDate(section.date, locale, { day: 'numeric', month: 'long' })
+      : formatDate(section.date, locale, { day: 'numeric', month: 'long', year: 'numeric' });
   };
 }
