@@ -12,9 +12,13 @@ export interface TimelineItemProps {
   label: string;
   value: number;
   delta?: number;
+  /** Signed fraction shown next to the trend arrow, e.g. 0.12 for "+12%". */
+  percentage?: number;
   currency?: string;
   current?: boolean;
   tone?: PriceTone;
+  /** When true, a positive delta is treated as unfavorable (red) — e.g. spending. */
+  lowerIsBetter?: boolean;
   onPress?: () => void;
   /** Replaces the bottom trend row (e.g. a transaction count). Takes precedence over `delta`. */
   footer?: ReactNode;
@@ -24,9 +28,11 @@ export function TimelineItem({
   label,
   value,
   delta,
+  percentage,
   currency = 'USD',
   current = false,
   tone = 'neutral',
+  lowerIsBetter = false,
   onPress,
   footer,
 }: TimelineItemProps) {
@@ -46,7 +52,14 @@ export function TimelineItem({
       {footer !== undefined ? (
         footer
       ) : delta !== undefined ? (
-        <TrendIndicator delta={delta} hideValue currency={currency} locale={locale} />
+        <TrendIndicator
+          delta={delta}
+          percentage={percentage}
+          hideValue
+          currency={currency}
+          locale={locale}
+          lowerIsBetter={lowerIsBetter}
+        />
       ) : (
         <View style={styles.trendPlaceholder} />
       )}

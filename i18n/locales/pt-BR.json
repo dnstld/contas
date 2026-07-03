@@ -36,6 +36,11 @@
       "staleRetry": "Toque para tentar novamente"
     }
   },
+  "comparison": {
+    "moreThan": "mais que {{label}}",
+    "lessThan": "menos que {{label}}",
+    "sameAs": "igual a {{label}}"
+  },
   "feedback": {
     "transactionCreated": "Transação adicionada",
     "transactionUpdated": "Transação atualizada",
@@ -142,8 +147,8 @@
       "description": "Encerra sua sessão neste dispositivo."
     },
     "revenueVisible": {
-      "title": "Mostrar receitas",
-      "description": "Exibe receitas, despesas e saldo líquido no resumo.",
+      "title": "Mostrar saldo",
+      "description": "Exibe entradas, gastos e saldo no resumo.",
       "descriptionDisabled": "Disponível após o registro da primeira receita."
     },
     "demoMode": {
@@ -168,14 +173,11 @@
   },
   "overview": {
     "expenses": "Gastos",
-    "revenue": "Receitas",
+    "revenue": "Entradas",
     "balance": "Saldo",
-    "allMonths": "TODOS OS MESES",
-    "byDay": "POR DIA",
     "primaryPrefix": "Para",
-    "lastUpdate": "Última atualização às {{time}}",
-    "addFirstTransaction": "Adicione sua primeira transação",
-    "vsPrevious": "vs {{label}}: {{value}}"
+    "lastUpdate": "Última atualização: {{date}}",
+    "addFirstTransaction": "Adicione sua primeira transação"
   },
   "timeFilter": {
     "fullYear": "Ano todo"
@@ -358,13 +360,15 @@
       "hasTransactions_other": "Esta categoria tem {{count}} transações. Exclua ou reatribua antes de remover."
     },
     "pressAndHoldHint": "Pressione e segure para editar",
+    "filter": {
+      "all": "Todas"
+    },
     "transactionCount_one": "{{count}} transação",
     "transactionCount_other": "{{count}} transações",
     "selectedCount_one": "{{count}} selecionada",
     "selectedCount_other": "{{count}} selecionadas",
     "noActivity": "Sem atividade neste período",
     "exampleBadge": "Exemplo",
-    "vsPrevious": "vs {{label}}: {{value}}",
     "goalOf": "de {{value}}",
     "perYear": "por ano",
     "perMonth": "por mês",
@@ -401,6 +405,7 @@
     "placeholder": "Selecione uma categoria",
     "searchPlaceholder": "Nome da categoria",
     "groups": {
+      "mostUsed": "Mais usadas",
       "all": "Todas as categorias"
     },
     "createNamed": "Criar “{{name}}”",

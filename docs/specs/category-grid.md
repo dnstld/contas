@@ -63,10 +63,19 @@ And categories without a defined budget must sink to the bottom of the list
 
 ```
 Given that the category grid is rendered
+When there are zero categories for the active kind
+Then no "All" chip and no category chips are shown — only the "+ Category" create chip
+  (via key "category.create.chipLabelCategory")
+
+Given that there is exactly one category for the active kind
+Then that single chip is shown and always renders as selected
+  (there's no meaningful "deselected" state with only one option — no "All" chip is shown)
+
+Given that there are two or more categories for the active kind
 When the filter chip row is displayed
 Then the first chip must be an "All" chip with label from key "category.filter.all"
   (en: "All" / pt-BR: "Todas")
-And the remaining chips must list one chip per expense category, in their existing order
+And the remaining chips must list one chip per category, in their existing order
 And category chips must be multi-selectable
 And selecting one or more category chips must filter the grid to only those categories
   (the "All" chip becomes deselected automatically)
@@ -74,6 +83,25 @@ And the "All" chip must appear selected whenever no category chips are selected
   (so on first render — with no active filter — "All" is the selected chip)
 And tapping the "All" chip while categories are selected must clear the selection
   and restore the full category list
+```
+
+### Filter reset on category create/delete
+
+```
+Given that the category filter is scoped to a specific subset (one or more chips selected, "All" not active)
+When the user creates a new category from this screen (the "+ Category" chip or long-press-to-edit's create flow)
+Then the filter selection must be cleared back to "All" as soon as creation succeeds
+  (a brand-new category has no transactions yet, so it would otherwise be silently excluded from the
+  filtered grid — it exists in the data but never appears, which reads as "the screen didn't refresh")
+And this must not depend on remounting the screen or an app restart — the fix is a filter-state reset,
+  not a data refetch, since the underlying category data was already correct
+
+Given that the currently selected filter includes a category that is then deleted (via the edit modal)
+Then that category's id must be dropped from the filter selection
+  (deleting your only selected category must not leave the grid pinned to an empty, nonexistent filter)
+
+Both behaviors are wired via the `categoryFormBridge` "created"/"deleted" events (the same bridge
+already used to auto-select a newly created category inside the transaction form's category picker).
 ```
 
 ### Scroll reset on filter change
@@ -96,8 +124,8 @@ Then it must display the count from key "category.selectedCount" with the {{coun
   (en: "1 selected" / "<n> selected"; pt-BR: "1 selecionada" / "<n> selecionadas" — i18next applies the active language's plural rule)
 And it must display the total of the selected categories, formatted in the user-selected currency with the active language
 And when both expense and income totals are present, both must be labeled using the i18next keys "overview.expenses" and "overview.revenue"
-  (e.g. en + BRL: "2 selected · Expenses R$2,000.00 · Revenue R$5,000.00 per month")
-  (e.g. pt-BR + BRL: "2 selecionadas · Despesas R$ 2.000,00 · Receitas R$ 5.000,00 por mês")
+  (e.g. en + BRL: "2 selected · Expenses R$2,000.00 · Incoming R$5,000.00 per month")
+  (e.g. pt-BR + BRL: "2 selecionadas · Despesas R$ 2.000,00 · Entradas R$ 5.000,00 por mês")
 And the period suffix must come from i18next:
   - month mode → " " + key "category.perMonth" (en: "per month" / pt-BR: "por mês")
   - year mode  → " " + key "category.perYear"  (en: "per year"  / pt-BR: "por ano")

@@ -48,6 +48,23 @@ export function CategoryPicker({
 
   const showHint = !!onEdit && categories.length > 0;
 
+  // With exactly one category there's nothing to filter between it and
+  // "everything" — the sole chip renders as always-selected instead of an
+  // "All" chip. With 2+ categories, an "All" chip leads the row and is
+  // selected whenever no individual category is chosen.
+  const showAllChip = mode === 'multi' && categories.length > 1;
+  const forceSingleSelected = mode === 'multi' && categories.length === 1;
+  const chipSelectedIds = forceSingleSelected ? categories.map((c) => c.id) : selectedIds;
+
+  const leading = showAllChip ? (
+    <Chip
+      label={t('category.filter.all')}
+      selected={selectedIds.length === 0}
+      variant={selectedIds.length === 0 ? 'primary' : 'default'}
+      onPress={() => onChange([])}
+    />
+  ) : null;
+
   const trailing =
     onCreate || showHint ? (
       <View style={styles.trailing}>
@@ -79,13 +96,14 @@ export function CategoryPicker({
       ) : null}
       <ChipGroup
         items={categories}
-        selectedIds={selectedIds}
+        selectedIds={chipSelectedIds}
         multiSelect={mode === 'multi'}
         selectedVariant="primary"
         unselectedVariant="default"
         showCheckWhenSelected={mode === 'single'}
         onToggle={handleToggle}
         onLongPress={onEdit}
+        leading={leading}
         trailing={trailing}
         contentStyle={styles.chipRow}
       />

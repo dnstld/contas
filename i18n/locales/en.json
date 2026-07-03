@@ -36,6 +36,11 @@
       "staleRetry": "Tap to retry"
     }
   },
+  "comparison": {
+    "moreThan": "more than {{label}}",
+    "lessThan": "less than {{label}}",
+    "sameAs": "same as {{label}}"
+  },
   "feedback": {
     "transactionCreated": "Transaction added",
     "transactionUpdated": "Transaction updated",
@@ -142,8 +147,8 @@
       "description": "End your session on this device."
     },
     "revenueVisible": {
-      "title": "Show revenue",
-      "description": "Displays revenue, expenses, and net balance in the summary.",
+      "title": "Show balance",
+      "description": "Displays incoming, spending, and balance in the summary.",
       "descriptionDisabled": "Available after your first revenue entry."
     },
     "demoMode": {
@@ -168,14 +173,11 @@
   },
   "overview": {
     "expenses": "Spending",
-    "revenue": "Revenue",
+    "revenue": "Incoming",
     "balance": "Balance",
-    "allMonths": "ALL MONTHS",
-    "byDay": "BY DAY",
     "primaryPrefix": "For",
-    "lastUpdate": "Last update at {{time}}",
-    "addFirstTransaction": "Add your first transaction",
-    "vsPrevious": "vs {{label}}: {{value}}"
+    "lastUpdate": "Last update: {{date}}",
+    "addFirstTransaction": "Add your first transaction"
   },
   "timeFilter": {
     "fullYear": "Full year"
@@ -358,13 +360,15 @@
       "hasTransactions_other": "This category has {{count}} transactions. Remove or reassign them first."
     },
     "pressAndHoldHint": "Press and hold to edit",
+    "filter": {
+      "all": "All"
+    },
     "transactionCount_one": "{{count}} transaction",
     "transactionCount_other": "{{count}} transactions",
     "selectedCount_one": "{{count}} selected",
     "selectedCount_other": "{{count}} selected",
     "noActivity": "No activity in this period",
     "exampleBadge": "Example",
-    "vsPrevious": "vs {{label}}: {{value}}",
     "goalOf": "of {{value}}",
     "perYear": "per year",
     "perMonth": "per month",
@@ -401,6 +405,7 @@
     "placeholder": "Select a category",
     "searchPlaceholder": "Category name",
     "groups": {
+      "mostUsed": "Most used",
       "all": "All categories"
     },
     "createNamed": "Create “{{name}}”",

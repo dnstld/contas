@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { categorySelectHref } from '@/constants/routes';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/atoms/text';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { CategorySelect } from '@/components/ui/organisms/category-select';
 import { Fonts } from '@/constants/theme';
+import { MOST_USED_CATEGORIES_LIMIT, rankCategoriesByUsage } from '@/data/finance-aggregations';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -91,17 +92,15 @@ export function TransactionForm({
     ? (categories.find((c) => c.id === categoryId)?.name ?? null)
     : null;
 
-  // Top 5 most-used categories of the current type, for quick selection. Hidden
-  // entirely when there is no usage data (e.g. a fresh wallet).
+  // Top 5 most-used categories of the current type, for quick selection. Shares
+  // the ranking with the category picker's "Most used" group so both surfaces
+  // always agree. When there's no usage data yet for this type (fresh wallet,
+  // or this type just hasn't been used), fall back to the first 5 categories
+  // alphabetically (the "rest" list is already alpha-sorted when nothing has
+  // usage) rather than hiding the row entirely.
   const topCategories = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const tx of transactions) {
-      counts.set(tx.categoryId, (counts.get(tx.categoryId) ?? 0) + 1);
-    }
-    return categories
-      .filter((c) => c.type === type && (counts.get(c.id) ?? 0) > 0)
-      .sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0))
-      .slice(0, 5);
+    const { mostUsed, rest } = rankCategoriesByUsage(categories, transactions, type);
+    return mostUsed.length > 0 ? mostUsed : rest.slice(0, MOST_USED_CATEGORIES_LIMIT);
   }, [categories, transactions, type]);
 
   const formattedAmount = formatDecimal(amountCents / 100);
@@ -144,6 +143,9 @@ export function TransactionForm({
     setType(next);
     setCategoryId(null);
   };
+
+  const openCategorySelect = () =>
+    router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }));
 
   const busy = isSubmitting || isDeleting;
   const canSubmit = amountCents > 0 && categoryId !== null && !busy;
@@ -244,17 +246,10 @@ export function TransactionForm({
           title={type === 'income' ? t('category.section.income') : t('category.section.expenses')}
           selectedLabel={selectedCategoryName}
           placeholder={t('categorySelect.placeholder')}
-          onPress={() =>
-            router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }))
-          }
+          onPress={openCategorySelect}
         />
         {topCategories.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.chipRow}
-          >
+          <View style={styles.chipRow}>
             {topCategories.map((c) => {
               const selected = categoryId === c.id;
               return (
@@ -267,7 +262,13 @@ export function TransactionForm({
                 />
               );
             })}
-          </ScrollView>
+            <Chip
+              label={t('categorySelect.groups.all')}
+              variant="primary"
+              accent
+              onPress={openCategorySelect}
+            />
+          </View>
         ) : null}
       </View>
 
@@ -336,6 +337,7 @@ const styles = StyleSheet.create({
   },
   chipRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 8,
     paddingVertical: 4,

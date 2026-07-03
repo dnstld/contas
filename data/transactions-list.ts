@@ -1,7 +1,7 @@
 import { aggregate, inMonth, inYear } from '@/data/finance-aggregations';
 import { txDate, type Finance, type Transaction } from '@/data/finance-types';
 import { MONTHS, type TimeFilterState } from '@/hooks/use-time-filter-state';
-import { formatDate } from '@/utils/format';
+import { formatRelativeDate, type RelativeDateLabels } from '@/utils/format';
 
 export interface TransactionsSection {
   /** Stable per-day identifier (e.g. "2026-4-30"). Same data → same key. */
@@ -23,17 +23,10 @@ export interface TransactionsListResult {
   count: number;
 }
 
-export interface DateLabels {
-  today: string;
-  yesterday: string;
-}
+export type DateLabels = RelativeDateLabels;
 
 function dayKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
-function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 /**
@@ -91,19 +84,6 @@ export function buildTransactionsList(
  * sections themselves stay cached and stable.
  */
 export function makeSectionLabeler(now: Date, locale: string, labels: DateLabels) {
-  const today = startOfDay(now);
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
-  const todayKey = dayKey(today);
-  const yesterdayKey = dayKey(yesterday);
-  const currentYear = today.getFullYear();
-
-  return (section: Pick<TransactionsSection, 'dayKey' | 'date'>): string => {
-    if (section.dayKey === todayKey) return labels.today;
-    if (section.dayKey === yesterdayKey) return labels.yesterday;
-    return section.date.getFullYear() === currentYear
-      ? formatDate(section.date, locale, { day: 'numeric', month: 'long' })
-      : formatDate(section.date, locale, { day: 'numeric', month: 'long', year: 'numeric' });
-  };
+  return (section: Pick<TransactionsSection, 'dayKey' | 'date'>): string =>
+    formatRelativeDate(section.date, now, locale, labels);
 }

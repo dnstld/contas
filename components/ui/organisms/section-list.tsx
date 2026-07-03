@@ -47,10 +47,10 @@ export interface SectionListProps<T> {
   removeClippedSubviews?: boolean;
 }
 
-function FlatSectionHeader({ title }: { title?: string }) {
+function FlatSectionHeader({ title, spaced }: { title?: string; spaced?: boolean }) {
   if (!title) return null;
   return (
-    <View style={flatStyles.header}>
+    <View style={[flatStyles.header, spaced ? flatStyles.headerSpaced : null]}>
       <Text variant="caption" tone="textMuted" weight="semibold">
         {title.toUpperCase()}
       </Text>
@@ -90,7 +90,13 @@ function FlatSectionList<T>({
       contentContainerStyle={contentContainerStyle}
       style={style}
       ItemSeparatorComponent={Divider}
-      renderSectionHeader={({ section }) => <FlatSectionHeader title={section.title} />}
+      // First section keeps the default (small) top padding — it sits right
+      // below the list header/filter, which already provides spacing. Every
+      // section after that gets an extra 16pt gap so day-groups read as
+      // visually separate blocks.
+      renderSectionHeader={({ section }) => (
+        <FlatSectionHeader title={section.title} spaced={section !== sections[0]} />
+      )}
       renderItem={(info) => <>{renderItem(info)}</>}
     />
   );
@@ -170,6 +176,9 @@ const flatStyles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  headerSpaced: {
+    marginTop: 16,
   },
 });
 

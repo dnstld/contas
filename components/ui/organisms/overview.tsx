@@ -1,13 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/atoms/icon';
 import { PriceText } from '@/components/ui/atoms/price-text';
-import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
-import { TrendIndicator } from '@/components/ui/atoms/trend-indicator';
+import { ComparisonLine } from '@/components/ui/molecules/comparison-line';
 import { MetricRow } from '@/components/ui/molecules/metric-row';
 import { DailyTimeline, type DailyTimelinePoint } from '@/components/ui/organisms/daily-timeline';
 import {
@@ -16,20 +15,19 @@ import {
 } from '@/components/ui/organisms/monthly-timeline';
 import { useFormatters } from '@/hooks/use-formatters';
 import { type Month } from '@/hooks/use-time-filter';
+import { formatRelativeDate } from '@/utils/format';
 
 export type OverviewMode = 'month' | 'year' | 'all';
-export type OverviewLens = 'expenses' | 'revenue' | 'net';
 
 export interface OverviewProps {
   mode: OverviewMode;
   primaryLabel: string;
   primaryValue: number;
   comparisonLabel?: string;
-  /** Previous-period totals — used to derive per-lens deltas. */
+  /** Previous-period expenses — baseline for the comparison row. */
   previousExpenses?: number;
-  previousRevenue?: number;
   currency?: string;
-  // Revenue mode (any mode):
+  // Balance breakdown (any mode):
   revenueVisible?: boolean;
   revenue?: number;
   expenses?: number;
@@ -46,19 +44,12 @@ export interface OverviewProps {
   dailyTimeline?: readonly DailyTimelinePoint[];
 }
 
-function safePct(delta: number, base: number): number | undefined {
-  if (delta === 0) return 0;
-  if (base === 0) return undefined;
-  return delta / base;
-}
-
 export function Overview({
   mode,
   primaryLabel,
   primaryValue,
   comparisonLabel,
   previousExpenses,
-  previousRevenue,
   currency = 'USD',
   revenueVisible = false,
   revenue,
@@ -71,74 +62,24 @@ export function Overview({
   onSelectMonth,
   dailyTimeline,
 }: OverviewProps) {
-  const [lens, setLens] = useState<OverviewLens>('expenses');
   const { t } = useTranslation();
-  const { formatCurrency, formatDate, locale } = useFormatters();
-
-  const lensOptions = useMemo(
-    () => [
-      { value: 'expenses' as const, label: t('overview.expenses') },
-      { value: 'revenue' as const, label: t('overview.revenue') },
-      { value: 'net' as const, label: t('overview.balance') },
-    ],
-    [t],
-  );
-
-  const lensValue =
-    lens === 'revenue' ? (revenue ?? 0) : lens === 'net' ? (net ?? 0) : primaryValue;
+  const { formatCurrency, locale } = useFormatters();
 
   const lastUpdateLabel = useMemo(() => {
     if (!lastUpdatedAt) return t('overview.addFirstTransaction');
     const updated = new Date(lastUpdatedAt);
-    const sameDay = (a: Date, b: Date) =>
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate();
-    const timePart = formatDate(updated, { hour: '2-digit', minute: '2-digit' });
-    const when = sameDay(updated, new Date())
-      ? timePart
-      : `${formatDate(updated, { day: '2-digit', month: 'short' })} ${timePart}`;
-    return t('overview.lastUpdate', { time: when });
-  }, [lastUpdatedAt, formatDate, t]);
+    const when = formatRelativeDate(updated, new Date(), locale, {
+      today: t('transactions.today'),
+      yesterday: t('transactions.yesterday'),
+    });
+    return t('overview.lastUpdate', { date: when });
+  }, [lastUpdatedAt, locale, t]);
 
-  const lensTone = lens === 'net' ? (lensValue >= 0 ? 'positive' : 'negative') : 'neutral';
-
-  // Per-lens comparison: pick which previous-period value + delta + tone semantics to use.
-  const comparison = (() => {
-    const activeLens = revenueVisible ? lens : 'expenses';
-    if (activeLens === 'revenue') {
-      if (previousRevenue === undefined || revenue === undefined) return null;
-      const delta = revenue - previousRevenue;
-      return {
-        prev: previousRevenue,
-        delta,
-        deltaPct: safePct(delta, previousRevenue),
-        lowerIsBetter: false,
-      };
-    }
-    if (activeLens === 'net') {
-      if (previousRevenue === undefined || previousExpenses === undefined || net === undefined) {
-        return null;
-      }
-      const previousNet = previousRevenue - previousExpenses;
-      const delta = net - previousNet;
-      return {
-        prev: previousNet,
-        delta,
-        deltaPct: safePct(delta, Math.abs(previousNet)),
-        lowerIsBetter: false,
-      };
-    }
-    // expenses
-    if (previousExpenses === undefined || expenses === undefined) return null;
-    const delta = expenses - previousExpenses;
-    return {
-      prev: previousExpenses,
-      delta,
-      deltaPct: safePct(delta, previousExpenses),
-      lowerIsBetter: true,
-    };
-  })();
+  // Comparison always reflects expenses — the primary metric shown at the top of the card.
+  const comparisonDelta =
+    previousExpenses !== undefined && primaryValue !== undefined
+      ? primaryValue - previousExpenses
+      : undefined;
 
   return (
     <Surface variant="plain" bordered padding={16} style={styles.card}>
@@ -157,63 +98,50 @@ export function Overview({
         </Text>
       </View>
       <PriceText
-        value={revenueVisible ? lensValue : primaryValue}
+        value={primaryValue}
         currency={currency}
         locale={locale}
-        tone={revenueVisible ? lensTone : 'neutral'}
+        tone={primaryValue < 0 ? 'negative' : 'neutral'}
         size="xl"
       />
-      {comparison ? (
-        <View style={styles.compRow}>
-          <TrendIndicator
-            delta={comparison.delta}
-            percentage={comparison.deltaPct}
-            currency={currency}
-            locale={locale}
-            hideValue
-            lowerIsBetter={comparison.lowerIsBetter}
-          />
-          {comparisonLabel ? (
-            <Text variant="caption" tone="textMuted">
-              {t('overview.vsPrevious', {
-                label: comparisonLabel,
-                value: formatCurrency(comparison.prev, currency),
-              })}
-            </Text>
-          ) : null}
-        </View>
+      {comparisonDelta !== undefined && comparisonLabel ? (
+        <ComparisonLine
+          delta={comparisonDelta}
+          label={comparisonLabel}
+          currency={currency}
+          locale={locale}
+          lowerIsBetter
+        />
       ) : null}
 
       {revenueVisible ? (
-        <View style={styles.lens}>
-          <SegmentedControl options={lensOptions} value={lens} onChange={setLens} />
-          <View style={styles.lensRows}>
-            <MetricRow
-              label={t('overview.revenue')}
-              value={formatCurrency(revenue ?? 0, currency)}
-              valueTone={(revenue ?? 0) > 0 ? 'positive' : undefined}
-            />
-            <MetricRow
-              label={t('overview.expenses')}
-              value={formatCurrency(expenses ?? primaryValue, currency)}
-              valueTone={(expenses ?? primaryValue) > 0 ? 'negative' : undefined}
-            />
-            <MetricRow
-              label={t('overview.balance')}
-              value={formatCurrency(Math.abs(net ?? 0), currency)}
-              emphasis="strong"
-              valueTone={(net ?? 0) > 0 ? 'positive' : (net ?? 0) < 0 ? 'negative' : undefined}
-              valueLeading={
-                (net ?? 0) !== 0 ? (
-                  <Icon
-                    name={(net ?? 0) > 0 ? 'arrow.up' : 'arrow.down'}
-                    size={14}
-                    tone={(net ?? 0) > 0 ? 'positive' : 'negative'}
-                  />
-                ) : null
-              }
-            />
-          </View>
+        <View style={styles.breakdown}>
+          <MetricRow
+            label={t('overview.revenue')}
+            value={formatCurrency(revenue ?? 0, currency)}
+            valueTone={
+              (revenue ?? 0) > 0 ? 'positive' : (revenue ?? 0) < 0 ? 'negative' : undefined
+            }
+          />
+          <MetricRow
+            label={t('overview.expenses')}
+            value={formatCurrency(expenses ?? primaryValue, currency)}
+          />
+          <MetricRow
+            label={t('overview.balance')}
+            value={formatCurrency(Math.abs(net ?? 0), currency)}
+            emphasis="strong"
+            valueTone={(net ?? 0) > 0 ? 'positive' : (net ?? 0) < 0 ? 'negative' : undefined}
+            valueLeading={
+              (net ?? 0) !== 0 ? (
+                <Icon
+                  name={(net ?? 0) > 0 ? 'arrow.up' : 'arrow.down'}
+                  size={14}
+                  tone={(net ?? 0) > 0 ? 'positive' : 'negative'}
+                />
+              ) : null
+            }
+          />
         </View>
       ) : null}
 
@@ -231,9 +159,6 @@ export function Overview({
 
       {timeline && timeline.length > 0 ? (
         <View style={styles.timeline}>
-          <Text variant="caption" tone="textMuted" weight="semibold">
-            {t('overview.allMonths')}
-          </Text>
           <MonthlyTimeline
             points={timeline}
             currency={currency}
@@ -245,9 +170,6 @@ export function Overview({
 
       {dailyTimeline && dailyTimeline.length > 0 ? (
         <View style={styles.timeline}>
-          <Text variant="caption" tone="textMuted" weight="semibold">
-            {t('overview.byDay')}
-          </Text>
           <DailyTimeline points={dailyTimeline} currency={currency} />
         </View>
       ) : null}
@@ -265,13 +187,7 @@ const styles = StyleSheet.create({
   },
   headerLeft: { flexShrink: 0 },
   headerRight: { flexShrink: 1, textAlign: 'right' },
-  compRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  lens: { gap: 8, marginTop: 4 },
-  lensRows: { gap: 2 },
+  breakdown: { gap: 2, marginTop: 4 },
   yearTotals: { gap: 2, marginTop: 4 },
   timeline: { gap: 8, marginTop: 4 },
 });

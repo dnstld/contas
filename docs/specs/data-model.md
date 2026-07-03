@@ -2,7 +2,7 @@
 
 The Supabase Postgres database holds all persistent financial data behind Row-Level Security policies scoped by **wallet membership**. The model supports shared wallets (e.g. couple / family finance) from day one — every record either belongs to a wallet or to a user's profile.
 
-Migration source of truth: `supabase/migrations/*.sql` (the most recent: `20260515220050_initial_schema.sql`). Local development uses `supabase start` + `supabase db reset`; deployment to remote uses `supabase db push` after `supabase link --project-ref <ref>`.
+Migration source of truth: `supabase/migrations/*.sql`. The baseline is `20260515220050_initial_schema.sql`; the schema has since evolved through additive migrations (wallet currency + realtime, wallet management + delete handshake, per-type category uniqueness, server-side wallet resolution, per-wallet show-revenue, dropping the default category seeds, email-based invitations, the free-tier limits source, wallet-member emails, and the pre-launch security hardening — the most recent being `20260630143819_backend_security_hardening.sql`). Local development uses `supabase start` + `supabase db reset`; deployment to remote uses `supabase db push` after `supabase link --project-ref <ref>`.
 
 All amounts are stored as **integer cents** (`bigint`) — no floating-point money. The UI is responsible for the cents↔major-unit conversion at render time.
 
@@ -17,7 +17,7 @@ Then exactly these seven tables must exist:
   1. profiles            — 1:1 mirror of auth.users with display info
   2. wallets             — a financial space owned by one or more users
   3. wallet_members      — many-to-many membership: which users belong to which wallets
-  4. wallet_invitations  — single-use codes that grant membership when redeemed
+  4. wallet_invitations  — email-based invites that grant membership when accepted
   5. categories          — per-wallet category list (expense or income)
   6. transactions        — the ledger; each row belongs to a wallet and a category
   7. wallet_delete_requests — pending wallet-deletion requests requiring partner confirmation
@@ -62,14 +62,13 @@ And changing wallets.currency reformats display only — no exchange rate or amo
 ```
 Given that a row is inserted into public.wallets
 When the after-insert trigger wallets_after_insert fires
-Then it must:
-  1. Insert into wallet_members (wallet_id = NEW.id, user_id = NEW.created_by)
-     with `on conflict do nothing`
-  2. Insert two seed categories into categories:
-     - name "Bar / Café", type "expense"
-     - name "Extra",      type "income"
+Then it must insert into wallet_members (wallet_id = NEW.id, user_id = NEW.created_by)
+  with `on conflict do nothing`
+And it must NOT seed any categories — new wallets ship empty so first-run UX can prompt the user
+  to create their own (the earlier "Bar / Café" / "Extra" seeds were removed by the
+  20260607000000_drop_default_category_seeds migration; wallets created before that keep their seeds)
 And the trigger function runs SECURITY DEFINER with search_path = public
-  (so it can write to wallet_members and categories regardless of the caller's RLS scope)
+  (so it can write to wallet_members regardless of the caller's RLS scope)
 ```
 
 ### get_or_create_default_wallet RPC
@@ -94,42 +93,54 @@ And if the caller has no wallets, it must:
 And the function runs SECURITY DEFINER with search_path = public
 ```
 
-### Wallet preference resolution (client-side)
+### resolve_default_wallet RPC
 
 ```
 Given that a signed-in user may belong to more than one wallet
-  (e.g. an auto-bootstrapped personal wallet from get_or_create_default_wallet
-   AND a wallet they later joined via redeem_wallet_invitation)
-When the wallet context resolves the "active" wallet for the session
-Then the client must NOT rely solely on get_or_create_default_wallet's oldest-by-joined_at result
-  (which would lock a user to their original personal wallet and hide the shared one)
-And the client must instead read all wallet_members rows visible to the user
-  (RLS already lets a member see every co-member of every wallet they belong to)
-And the client must group those rows by wallet_id, then pick the wallet with the most members
-  (ties broken by most-recent joined_at for the current user)
-And for a couples app where any wallet has at most two members, this guarantees that a shared
-  wallet always wins over a leftover empty personal wallet
-And the chosen wallet_id must be persisted to local storage (KV store, key "wallet:selected-id:<uid>")
-  so the same wallet resumes on next launch
-And on every sign-in the cached wallet_id must be re-validated against current memberships;
-  if the user is no longer a member of the cached wallet (e.g. they left it), the resolver falls back
-  to the preference logic above, and as a last resort to get_or_create_default_wallet
-```
-
-### redeem_wallet_invitation RPC
-
-```
-Given that the client calls public.redeem_wallet_invitation(p_code text)
-When the function runs
+  (e.g. an auto-bootstrapped personal wallet AND a wallet they later joined via accept_wallet_invitation)
+When the client calls public.resolve_default_wallet(p_preferred uuid default null)
 Then it must require auth.uid() to be non-null (raise "not authenticated" otherwise)
-And it must SELECT … FOR UPDATE on the matching wallet_invitations row to prevent races
-And if the code does not match any row, raise "invitation not found"
-And if the row's expires_at is in the past, delete the row and raise "invitation expired"
-And if the row is valid:
-  1. Insert (wallet_id, auth.uid()) into wallet_members with `on conflict do nothing`
-  2. Delete the wallet_invitations row (single-use)
-  3. Return the wallet_id
+And selection follows these rules (server-side, so every client agrees on the same default):
+  1. If p_preferred is provided AND the caller is still a member of it → return p_preferred
+     (honours the user's manual selection / the persisted cache)
+  2. Otherwise return the wallet with the most members; tiebreaker: the caller's most recent joined_at
+     (for a couples app, a shared 2-member wallet always wins over a leftover empty personal wallet)
+  3. Return NULL when the caller has no memberships — the client then calls get_or_create_default_wallet
 And the function runs SECURITY DEFINER with search_path = public
+And the client (WalletProvider) passes the persisted wallet id (KV store key "wallet:selected-id:<uid>")
+  as p_preferred, adopts the RPC's answer, and re-persists it under the same per-user key
+  (see the [Authentication spec](authentication.md) → "Wallet provisioning after sign-in")
+```
+
+### Email-based wallet invitations (RPCs)
+
+```
+Given that invitations are email-based (the legacy share-a-code flow and redeem_wallet_invitation
+  were removed by the 20260626000000_email_invitations migration, which dropped the `code` column
+  and added invited_email / status / responded_at to wallet_invitations)
+When the invitation RPCs run, each requires auth.uid() to be non-null and runs SECURITY DEFINER, search_path = public:
+
+  public.invite_to_wallet(p_wallet_id uuid, p_email text) returns uuid
+    - caller must be a member of the wallet; validates email shape; rejects inviting self
+      or an email that already belongs to a member
+    - re-inviting the same email refreshes the existing row (delete + re-insert as pending)
+    - enforces the free-tier pending-invite cap (see "create_wallet RPC" / free_tier_limits)
+    - inserts a pending wallet_invitations row (invited_email, created_by = auth.uid()); returns its id
+
+  public.list_pending_invitations() returns table(id, wallet_id, wallet_name, inviter_name, created_at)
+    - returns non-expired pending invitations addressed to the caller's auth.email() for wallets they
+      are not already a member of (drives the in-app "you've been invited" banner)
+
+  public.accept_wallet_invitation(p_invitation_id uuid) returns uuid
+    - SELECT … FOR UPDATE; the invite's invited_email must equal the caller's auth.email()
+    - if expired: delete the row and raise "invitation expired"
+    - otherwise insert (wallet_id, auth.uid()) into wallet_members (on conflict do nothing),
+      delete the invitation (accepting consumes it), and return the wallet_id
+
+  public.decline_wallet_invitation(p_invitation_id uuid) returns void
+    - the invite's invited_email must equal the caller's auth.email()
+    - soft decline: set status = 'declined', responded_at = now() (the row is kept so the inviter
+      sees the outcome and can re-invite or dismiss)
 ```
 
 ### create_wallet RPC
@@ -141,12 +152,38 @@ Then it must require auth.uid() to be non-null (raise "not authenticated" otherw
 And it must validate p_name length: 1–60 chars after trim (raise on violation)
 And it must validate p_currency length: exactly 3 chars (raise on violation)
 And it must count the caller's current wallet_members rows
-And if the count is >= 2, raise "free_tier_limit" with hint "upgrade to create more wallets"
-  (free-tier cap: a user may belong to at most 2 wallets simultaneously)
-And if the count is < 2, insert into wallets (name = trim(p_name), currency = upper(p_currency), created_by = auth.uid())
-And the wallets_after_insert trigger fires automatically (adds caller as member, seeds default categories)
+And if the count is >= the free-tier cap, raise "free_tier_limit" with hint "upgrade to create more wallets"
+  (the cap is read from public.free_tier_limits() → 'max_wallets_per_user' = 3, not a literal)
+And otherwise insert into wallets (name = trim(p_name), currency = upper(p_currency), created_by = auth.uid())
+And the wallets_after_insert trigger fires automatically (adds caller as member; no category seeds)
 And the function returns the new wallet UUID
 And the function runs SECURITY DEFINER with search_path = public
+```
+
+### free_tier_limits function
+
+```
+Given that free-tier caps must live in one place (the DB and the client used to drift — DB said 2, app said 3)
+When public.free_tier_limits() is called
+Then it must return a jsonb object with:
+  - 'max_wallets_per_user'           = 3
+  - 'max_pending_invites_per_wallet' = 3
+And the enforcement RPCs (create_wallet, invite_to_wallet) read their caps from this function
+And the client is granted EXECUTE (as authenticated) and reads the same function to drive its lock UI,
+  so bumping a cap is a one-line DB change with no app release
+  (the app keeps the constants only as a pre-fetch / offline fallback)
+And the function is SECURITY INVOKER, immutable, parallel safe, search_path = public
+```
+
+### list_wallet_members function
+
+```
+Given that profiles carries only display_name + avatar_url (no email column, by design)
+When the client needs each co-member's email for the account cards
+Then it must call public.list_wallet_members(p_wallet_id uuid), which joins
+  wallet_members → profiles → auth.users and returns (user_id, joined_at, display_name, avatar_url, email)
+And the function is gated on is_wallet_member(p_wallet_id) so only members of the wallet can read it
+And it runs SECURITY DEFINER, LANGUAGE sql, search_path = public, granted to authenticated
 ```
 
 ### request_or_delete_wallet RPC
@@ -195,15 +232,21 @@ And the wallet itself is NOT deleted
 And the function runs SECURITY DEFINER with search_path = public
 ```
 
-### Invitation generation
+### wallet_invitations shape (email-based)
 
 ```
-Given that an authenticated wallet member wants to invite another user
-When they INSERT into public.wallet_invitations with wallet_id and created_by = auth.uid()
-Then the row's `code` column defaults to encode(extensions.gen_random_bytes(8), 'hex')
-  (16 hex chars, ~64 bits of entropy)
-And the row's `expires_at` defaults to now() + interval '7 days'
-And the `code` column has a UNIQUE constraint enforced at the database level
+Given that invitations are created through the invite_to_wallet RPC
+When a wallet_invitations row is written
+Then the row carries:
+  - invited_email  text        — the invitee's email (matched later against auth.email())
+  - status         text        — CHECK (status in ('pending', 'declined')), default 'pending'
+  - responded_at   timestamptz — set when the invitee declines
+  - created_by     uuid        — the inviting member
+  - expires_at     timestamptz — default now() + interval '7 days'
+And there is NO `code` column anymore (dropped by the email-invitations migration, which also
+  removed its UNIQUE constraint)
+And a partial UNIQUE index enforces one invite per (wallet_id, lower(invited_email))
+  where invited_email is not null
 ```
 
 ### is_wallet_member helper
@@ -243,9 +286,11 @@ When pg_policies is inspected for schema = 'public'
 Then RLS must be enabled on every table in the schema
 And the policy counts must be:
   - profiles                 : 2 (select, update)
-  - wallets                  : 4 (select, insert, update, delete)
+  - wallets                  : 3 (select, insert, update) — the DELETE policy was dropped by the
+    security-hardening migration so a lone member can't DELETE a wallet via REST and skip the
+    two-member handshake; deletions go only through the SECURITY DEFINER RPCs
   - wallet_members           : 2 (select, delete) — no INSERT policy by design
-  - wallet_invitations       : 3 (select, insert, delete)
+  - wallet_invitations       : 3 (select, insert, delete) — no UPDATE policy (declines happen in-RPC)
   - wallet_delete_requests   : 3 (select, insert, delete) — no UPDATE policy by design
   - categories               : 4 (select, insert, update, delete)
   - transactions             : 4 (select, insert, update, delete)
@@ -269,7 +314,9 @@ And no INSERT or DELETE policy exists — those are owned by Supabase Auth (the 
 ```
 Given that the wallets table has RLS enabled
 When wallets are accessed
-Then a member may SELECT, UPDATE, and DELETE wallets they belong to (is_wallet_member(id))
+Then a member may SELECT and UPDATE wallets they belong to (is_wallet_member(id))
+And there is NO direct DELETE policy — a wallet is deleted only through the request_or_delete_wallet /
+  confirm_wallet_deletion RPCs (SECURITY DEFINER), which enforce the single- vs two-member rules
 And any authenticated user may INSERT a wallet, but only with created_by = auth.uid()
 And after insert, the wallets_after_insert trigger immediately adds them to wallet_members
   (so subsequent operations on that wallet pass the member check)
@@ -283,7 +330,7 @@ When membership is read
 Then a row is visible if user_id = auth.uid() OR the caller is a member of the same wallet
 And a row may be deleted by either the row's user (leave the wallet) OR by another member
 And there is NO direct INSERT policy
-  (membership is granted only by the wallets_after_insert trigger or by redeem_wallet_invitation,
+  (membership is granted only by the wallets_after_insert trigger or by accept_wallet_invitation,
    both of which run SECURITY DEFINER and bypass RLS)
 ```
 
@@ -294,7 +341,9 @@ Given that the wallet_invitations table has RLS enabled
 When invitations are accessed
 Then a member of the invitation's wallet may SELECT and DELETE invitations
 And a member may INSERT an invitation provided created_by = auth.uid()
-And invitations are NEVER updatable via REST — to extend or rotate, delete and recreate
+  (the invite_to_wallet RPC is the normal path; the INSERT policy is a belt-and-suspenders guard)
+And invitations are NEVER updatable via REST — declines flip status only through the
+  decline_wallet_invitation RPC (SECURITY DEFINER); invitee-facing reads use list_pending_invitations
 ```
 
 ### wallet_delete_requests policies
@@ -320,8 +369,7 @@ Then full CRUD (select / insert / update / delete) is allowed for any member of 
 And no other access is permitted
 And uniqueness within a wallet is enforced by a unique index on (wallet_id, lower(name), type)
   (case-insensitive within a type: "Mercado" and "mercado" cannot coexist as expense in the same wallet,
-   but "Freelance" can exist as both expense and income — the seeds 'Bar / Café' (expense) and
-   'Extra' (income) coexist with any user-created same-named category of the opposite type)
+   but "Freelance" can exist as both expense and income — the same name is allowed across the two types)
 ```
 
 ### Transactions policies
@@ -336,6 +384,22 @@ And transactions reference profiles via created_by with `on delete set null`
   (deleting a profile preserves transaction history but anonymizes the author)
 ```
 
+### RPC execute grants (security hardening)
+
+```
+Given that Postgres grants EXECUTE to PUBLIC by default (so anon could call every RPC)
+When the 20260630143819_backend_security_hardening migration runs
+Then EXECUTE must be revoked from public + anon and granted only to authenticated on every callable
+  SECURITY DEFINER RPC (get_or_create_default_wallet, resolve_default_wallet, create_wallet,
+  request_or_delete_wallet, confirm_wallet_deletion, cancel_wallet_deletion, invite_to_wallet,
+  list_pending_invitations, accept_wallet_invitation, decline_wallet_invitation, list_wallet_members)
+  and on free_tier_limits — defense-in-depth on top of the in-body auth.uid()/authorization checks
+And is_wallet_member must remain executable by BOTH authenticated and anon (RLS policies call it under
+  each role; revoking anon would turn an empty result into "permission denied for function")
+And the migration also wraps direct auth.uid()/auth.email() calls in RLS policies as (select …) so they
+  evaluate once per statement (auth_rls_initplan advisor), and sets search_path = public on tg_set_updated_at
+```
+
 ### Domain enums via CHECK constraints
 
 ```
@@ -346,7 +410,7 @@ Then the following CHECK constraints must enforce the allowed values:
   - transactions.status    ∈ {'completed', 'scheduled'}
   - transactions.recurrence ∈ {'none', 'daily', 'weekly', 'monthly'}
 And these values must remain in sync with the TS unions in the application code
-  (replacing data/finance-mock.ts: Recurrence, TransactionStatus, TransactionType)
+  (data/finance-types.ts: Recurrence, TransactionStatus, TransactionType)
 ```
 
 ### Indexes
@@ -370,14 +434,17 @@ And the primary key columns (id) on every table provide their own indexes implic
 ```
 Given that the client subscribes to per-wallet finance changes via Supabase Realtime
 When the publication `supabase_realtime` is inspected
-Then it must include `public.transactions`, `public.categories`, and `public.wallet_delete_requests`
+Then it must include `public.transactions`, `public.categories`, `public.wallet_delete_requests`,
+  `public.wallet_members`, and `public.wallet_invitations`
 And for transactions and categories, the client subscribes with the filter `wallet_id=eq.<active wallet id>`
 And on any postgres_changes event for transactions/categories, the corresponding TanStack Query cache key is invalidated
   (finance:<wallet>:transactions or finance:<wallet>:categories)
 And for wallet_delete_requests, the client subscribes without a filter (RLS limits visibility to the user's wallets)
 And on any postgres_changes event for wallet_delete_requests or wallet_members, the wallets list cache key is invalidated
-  (wallets:<userId>:list — drives reactive UI updates in the Danger Zone and WalletsModal)
-And the supabase_realtime publication is extended by the wallet_management migration
+  (wallets:<userId>:list — drives reactive UI updates in the Danger Zone and the Balance screen's WalletSelect control)
+And wallet_members + wallet_invitations were added to the publication by the email-invitations migration
+  (so the inviter's pending card flips to "joined"/"declined" live), and wallet_delete_requests by the
+  wallet_management migration
 ```
 
 ### Money is integer cents

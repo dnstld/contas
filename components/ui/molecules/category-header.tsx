@@ -2,50 +2,45 @@ import { type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { PriceText, type PriceTone } from '@/components/ui/atoms/price-text';
-import { Text } from '@/components/ui/atoms/text';
-import { formatPercent } from '@/utils/format';
+import { Text, type TextTone } from '@/components/ui/atoms/text';
 
 export interface CategoryHeaderProps {
   name: string;
   total: number;
-  percentage?: number;
   currency?: string;
   /** Active locale for `Intl` formatting. Required — pass `useFormatters().locale`. */
   locale: string;
   tone?: PriceTone;
-  /** Rendered in the top-right slot in place of the percentage when provided. */
+  /** Rendered in the top-right slot, e.g. an "Example" demo badge. */
   badge?: ReactNode;
-  /** Shown next to the amount, e.g. "of 500,00", when the category has a goal. */
+  /** Shown next to the amount, e.g. "of 500,00", when the category has a goal.
+   * Colored to match `tone` (green under goal, amber at goal, red over goal). */
   goalText?: string;
 }
 
 export function CategoryHeader({
   name,
   total,
-  percentage,
   currency = 'USD',
   locale,
   tone = 'neutral',
   badge,
   goalText,
 }: CategoryHeaderProps) {
+  const goalTone: TextTone = tone === 'neutral' || tone === 'auto' ? 'textMuted' : tone;
+
   return (
     <View style={styles.container}>
       <View style={styles.row}>
         <Text variant="body" weight="semibold" numberOfLines={1} style={styles.name}>
           {name}
         </Text>
-        {badge ??
-          (percentage !== undefined ? (
-            <Text variant="caption" tone="textMuted" weight="medium">
-              {formatPercent(percentage, locale)}
-            </Text>
-          ) : null)}
+        {badge}
       </View>
       <View style={styles.amountRow}>
         <PriceText value={total} currency={currency} locale={locale} tone={tone} size="lg" />
         {goalText ? (
-          <Text variant="caption" tone="textMuted" weight="medium">
+          <Text variant="caption" tone={goalTone} weight="medium">
             {goalText}
           </Text>
         ) : null}

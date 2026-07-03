@@ -2,7 +2,7 @@
 
 The app gates all financial data behind Supabase Auth. The only sign-in method currently exposed is **Google**, using the native sign-in flow (`@react-native-google-signin/google-signin`) and passing the resulting ID token to `supabase.auth.signInWithIdToken`. The Supabase client persists sessions via `expo-sqlite/localStorage`, so a successful sign-in survives kill/relaunch.
 
-Route protection is implemented in the root layout (`app/_layout.tsx`) by an imperative `router.replace` driven by the auth context. Gating uses `useRouter` + `useSegments` to redirect when session state diverges from the current route.
+Route protection is implemented declaratively in the root layout (`app/_layout.tsx`) with `<Stack.Protected guard={…}>`: the `(tabs)` + `(modals)` screens are guarded by `!!session`, and the `authentication` screen by `!session`. When the session changes, the guards flip and the correct screen mounts — there is no imperative `router.replace` and no `useSegments` gate.
 
 All user-visible labels on the authentication and sign-out surfaces are sourced from i18next — see the [Localization spec](localization.md).
 
@@ -34,19 +34,20 @@ And no tab content, modal, or auth screen must flash before the session is known
 ```
 Given that auth context has finished loading
 And no session exists (session is null)
-When the user is on any route other than /authentication
-Then the root layout must call router.replace('/authentication')
-And the authentication screen must become the visible screen
+When the root stack renders
+Then the `<Stack.Protected guard={!session}>` branch must be active, mounting the "authentication" screen
+And the tabs/modals branch (guard={!!session}) must be inactive, so no tab content is reachable
 ```
 
 ### Authenticated → tabs
 
 ```
 Given that auth context has finished loading
-And a session exists
-When the user is currently on /authentication
-Then the root layout must call router.replace('/(tabs)/(status)')
-And the Balance tab must become the visible screen
+And a session exists (and, per the App Shell spec, wallet bootstrap has resolved)
+When the root stack renders
+Then the `<Stack.Protected guard={!!session}>` branch must be active, mounting the "(tabs)" screen
+  and registering the "(modals)" group (presentation: "modal")
+And the Overview tab must be the visible screen by default
 ```
 
 ### Session persistence across cold starts
@@ -65,16 +66,16 @@ And the session is stored via the localStorage polyfill installed by expo-sqlite
 ```
 Given that the user lands on /authentication
 When the screen renders
-Then it must use the theme's background color
-And it must display the app welcome copy from i18next:
-  - title: key "auth.welcome.title" — display text variant, bold weight
-    (en: "Welcome to CONTAS" / pt-BR: "Bem-vindo ao CONTAS")
-  - body: key "auth.welcome.body" — body text variant, muted tone
-    (en: "Sign in to keep your finances in sync across devices."
-     pt-BR: "Entre para manter suas finanças sincronizadas entre dispositivos.")
+Then it must use the theme's background color, centered vertically with the copy left-aligned
+And it must display the welcome copy from i18next, top to bottom:
+  - eyebrow: key "common.appName" — caption variant, semibold, tint tone (en: "Spendspacey")
+  - headline: key "common.appTagline" — display variant, bold, heading (en: "Everyday spending, your space")
+  - body: key "auth.welcome.body" — body variant, muted tone
+    (en: "See where your money goes, one expense at a time.")
 And below the copy must be a single Button (design-system atom) labelled from key "auth.signInWithGoogle"
   (en: "Sign in with Google" / pt-BR: "Entrar com o Google")
-And the Button must use variant="primary" and size="large"
+And the Button must use variant="primary", size="large", and systemImage="arrow.right.circle.fill"
+And there is no separate "auth.welcome.title" key — the headline is the app tagline
 ```
 
 ### Sign-in trigger
@@ -86,13 +87,19 @@ Then the button must enter a disabled/submitting state until the flow resolves
 And signInWithGoogle() must run the following sequence:
   1. await GoogleSignin.hasPlayServices()
   2. await GoogleSignin.signIn() — opens the system Google account chooser
-  3. extract response.data.idToken; throw if missing
+  3. extract res.data.idToken; throw if missing
   4. await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
-  5. throw on any returned Supabase error
-And on success, the onAuthStateChange listener in <AuthProvider> must receive a SIGNED_IN event
-And the route gate must observe the new session and redirect to /(tabs)/(status)
-And on failure, the button must return to its enabled state and the error must be logged to console.error
-  (no UI surfacing yet — error surfacing is out of scope for this iteration)
+  5. throw on any returned Supabase error, and throw if no session came back
+     (a missing session is also reported via captureMessage)
+And on success, the onAuthStateChange listener in <AuthProvider> must receive a SIGNED_IN event,
+  the guards flip, and the Overview tab becomes visible (after wallet bootstrap)
+And user-cancelled sign-in (statusCodes.SIGN_IN_CANCELLED or IN_PROGRESS) must be swallowed silently
+  (return without throwing — no error surfaced)
+And on any other failure the error is reported via captureError and rethrown, and the AuthenticationScreen
+  must surface it with an Alert: title from key "auth.errors.title", body from a mapped key —
+  "auth.errors.playServices" (PLAY_SERVICES_NOT_AVAILABLE), "auth.errors.signInRequired" (SIGN_IN_REQUIRED),
+  or "auth.errors.generic" otherwise
+And in all cases the button must return to its enabled state once the flow settles
 ```
 
 ### Google sign-in configuration
@@ -101,8 +108,10 @@ And on failure, the button must return to its enabled state and the error must b
 Given that GoogleSignin is used
 When hooks/use-auth.tsx initializes (module load)
 Then it must call GoogleSignin.configure exactly once with:
-  - webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID (required)
-  - iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID (optional)
+  - webClientId: env.googleWebClientId (required)
+  - iosClientId: env.googleIosClientId (optional)
+  (both read via the @/utils/env wrapper, which sources EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID /
+   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID)
 And the native side must also have the reversed iOS client ID registered in app.json under
   plugins["@react-native-google-signin/google-signin"].iosUrlScheme
   (format: "com.googleusercontent.apps.<id-from-google-cloud>")
@@ -196,14 +205,19 @@ Given that the auth context has finished loading and a session exists
 When the root layout mounts
 Then the WalletProvider (hooks/use-wallet.tsx) must observe the new session and resolve the user's wallet:
   1. Read the persisted wallet id from kv-store key `wallet:selected-id:<session.user.id>`
-     and apply it to context immediately if present (so the first paint reflects the last-known wallet)
-  2. Call supabase.rpc('get_or_create_default_wallet') unconditionally to reconcile
-     (returns the oldest wallet the user is a member of, or creates a new one named "Personal")
-  3. Replace the in-memory walletId with the RPC's answer and persist it under the same per-user key
-And the route gate in app/_layout.tsx must extend its splash to wait for wallet resolution:
-  `if (authLoading || (session && walletLoading)) return null`
-  (so the user never sees the tabs render before their wallet id is known — same posture
-   as the original "Initial route gate" guarantee, applied to the next step in the chain)
+     and apply it to context immediately if present (optimistic paint before the RPC resolves)
+  2. Call supabase.rpc('resolve_default_wallet', { p_preferred: <cachedId> }) — the server-side
+     heuristic honours the cached id when the caller is still a member, otherwise returns the wallet
+     with the most members (tiebreaker: the caller's most recent join), or NULL when the user has no memberships
+  3. If resolve returned a wallet id, adopt it (and persist it if it changed); then fetch that wallet's
+     currency / name / show_revenue
+  4. Only if resolve returned NULL, call supabase.rpc('get_or_create_default_wallet') to bootstrap a
+     personal wallet, adopt + persist its id, and fetch its data
+And a failed resolve settles `loading` to false and sets `error` (surfaced by the App Shell's ErrorFallback),
+  rather than hanging the boot gate forever; `refresh()` retries
+And the RootStack boot gate in app/_layout.tsx waits for wallet resolution:
+  `const booting = authLoading || (!!session && walletLoading); if (booting) return null`
+  (so the user never sees the tabs render before their wallet id is known)
 And the persisted key is per-user so signing out and back in as a different account on the same device
   finds no cached value and bootstraps a fresh wallet for the new uid; the previous account's key
   remains in storage so re-signing back into it is instant
@@ -230,13 +244,14 @@ And rotating any secret that leaked into .env.local with EXPO_PUBLIC_ requires r
 Given that the active language is one of the supported languages
 When any authentication-related surface renders
 Then every label must come from i18next under these keys:
-  - auth.welcome.title
+  - common.appName            (welcome eyebrow — also the header wordmark)
+  - common.appTagline         (welcome headline)
   - auth.welcome.body
   - auth.signInWithGoogle
   - auth.signOut
-  - settings.sections.account
-  - settings.signOutRow.title
-  - settings.signOutRow.description
+  - auth.errors.title / auth.errors.generic / auth.errors.playServices / auth.errors.signInRequired
+    (surfaced via Alert on sign-in failure)
+And there is no auth.welcome.title key anymore
 
 Given that the user changes the active language while signed out
 When the authentication screen re-renders

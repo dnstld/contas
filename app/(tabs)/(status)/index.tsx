@@ -29,6 +29,7 @@ import { useNow } from '@/hooks/use-now';
 import { toQueryView } from '@/hooks/use-query-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
+import { categoryFormBridge } from '@/utils/modal-bridge';
 
 export default function HomeScreen() {
   const background = useThemeColor({}, 'background');
@@ -68,6 +69,21 @@ export default function HomeScreen() {
     }
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [filterKey, selectedKey]);
+
+  // A newly created category has no transactions yet, so if the grid is
+  // currently filtered to a specific subset of categories, the new one would
+  // silently be excluded from `grid.sorted` (it's not in `selected`) even
+  // though it *is* in the underlying data — looking like the screen "didn't
+  // refresh". Clearing the filter (back to "All") on create guarantees it's
+  // visible immediately. Also drop a deleted category out of the filter so an
+  // edit-modal deletion doesn't leave a stale, now-nonexistent id selected.
+  const { selected: gridSelected, setSelected: setGridSelected } = grid;
+  useEffect(() => {
+    return categoryFormBridge.subscribe(bridgeId, {
+      created: () => setGridSelected([]),
+      deleted: (id) => setGridSelected(gridSelected.filter((s) => s !== id)),
+    });
+  }, [bridgeId, setGridSelected, gridSelected]);
 
   const handleCategoryPress = useCallback(
     (id: string) => {
@@ -241,7 +257,7 @@ const styles = StyleSheet.create({
     paddingBottom: 64,
   },
   headerStack: {
-    gap: 32,
+    gap: 16,
     paddingBottom: 12,
   },
   notice: {
@@ -261,7 +277,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   skeletonStack: {
-    gap: 32,
+    gap: 16,
   },
   errorWrap: {
     flex: 1,

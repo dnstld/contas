@@ -20,6 +20,7 @@ export { TrendIndicator } from './atoms/trend-indicator';
 // Molecules
 export { BudgetMeter } from './molecules/budget-meter';
 export { CategoryHeader } from './molecules/category-header';
+export { ComparisonLine } from './molecules/comparison-line';
 export { ChipGroup } from './molecules/chip-group';
 export { EmptyState } from './molecules/empty-state';
 export { ListCardRow } from './molecules/list-card-row';

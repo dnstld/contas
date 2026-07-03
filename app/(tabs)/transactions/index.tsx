@@ -235,12 +235,12 @@ const styles = StyleSheet.create({
   },
   listHeader: {
     paddingHorizontal: 16,
-    paddingTop: 32,
-    paddingBottom: 32,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
   emptyHeader: {
     paddingHorizontal: 16,
-    paddingTop: 32,
+    paddingTop: 16,
   },
   listContent: {
     paddingBottom: 64,
@@ -251,6 +251,6 @@ const styles = StyleSheet.create({
   },
   emptyBody: {
     alignItems: 'center',
-    marginTop: 32,
+    marginTop: 16,
   },
 });

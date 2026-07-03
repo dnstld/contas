@@ -4,7 +4,13 @@ import { type MonthlyTimelinePoint } from '@/components/ui/organisms/monthly-tim
 import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filter-state';
 import { monthName } from '@/utils/format';
 
-import { txDate, type Category, type Finance, type Transaction } from './finance-types';
+import {
+  txDate,
+  type Category,
+  type Finance,
+  type Transaction,
+  type TransactionType,
+} from './finance-types';
 
 export type DashboardMode = 'month' | 'year';
 
@@ -50,6 +56,53 @@ export function inMonth(d: Date, year: number, month: number): boolean {
 
 export function inYear(d: Date, year: number): boolean {
   return d.getFullYear() === year;
+}
+
+/** How many most-used categories are surfaced as quick-select shortcuts
+ * (the transaction form's chip row, and the "Most used" group in the
+ * category picker). */
+export const MOST_USED_CATEGORIES_LIMIT = 5;
+
+export interface CategoryUsageRanking {
+  /** Categories of this type with at least one transaction, ordered by usage
+   * count (most-used first, ties broken alphabetically), capped at
+   * MOST_USED_CATEGORIES_LIMIT. */
+  mostUsed: Category[];
+  /** Every other category of this type — unused, or used but past the
+   * mostUsed cut — ordered the same way (usage count desc, then alphabetical). */
+  rest: Category[];
+}
+
+/**
+ * Single source of truth for "usage order" across the transaction form's
+ * quick-select chips and the category picker's "Most used" / "All
+ * categories" groups, so both surfaces always agree on the same ranking.
+ */
+export function rankCategoriesByUsage(
+  categories: Category[],
+  transactions: Transaction[],
+  type: TransactionType,
+): CategoryUsageRanking {
+  const counts = new Map<string, number>();
+  for (const tx of transactions) {
+    counts.set(tx.categoryId, (counts.get(tx.categoryId) ?? 0) + 1);
+  }
+
+  const ranked = categories
+    .filter((c) => c.type === type)
+    .slice()
+    .sort((a, b) => {
+      const diff = (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0);
+      return diff !== 0 ? diff : a.name.localeCompare(b.name);
+    });
+
+  const mostUsed = ranked
+    .filter((c) => (counts.get(c.id) ?? 0) > 0)
+    .slice(0, MOST_USED_CATEGORIES_LIMIT);
+  const mostUsedIds = new Set(mostUsed.map((c) => c.id));
+  const rest = ranked.filter((c) => !mostUsedIds.has(c.id));
+
+  return { mostUsed, rest };
 }
 
 function isCategoryVisibleInYear(
@@ -219,7 +272,8 @@ function buildYearTimeline(mock: Finance, year: number, now: Date): MonthlyTimel
   return MONTHS.slice(0, lastMonthIdx + 1).map((monthKey, idx) => {
     const value = monthExpense[idx] ?? 0;
     const previous = prevMonthExpense[idx] ?? 0;
-    return { month: monthKey, value, delta: value - previous };
+    const delta = value - previous;
+    return { month: monthKey, value, delta, deltaPercentage: safePct(delta, previous) };
   });
 }
 

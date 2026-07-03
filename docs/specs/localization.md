@@ -120,7 +120,7 @@ And the dashboard's primaryValue, lens rows, category cards, transactions list, 
 And consistency is achieved via the wallet context update + TanStack Query cache invalidation, NOT via persisted-state broadcast
 ```
 
-> Per-wallet currency selection UI (a picker that writes `wallets.currency`) is exposed in Settings → Language & currency → Currency row. The same currency picker is also available in the WalletsModal create-wallet form, where the user sets the initial currency for a new wallet.
+> Per-wallet currency selection UI (a picker that writes `wallets.currency`) is exposed in Settings → Language & currency → Currency row. The same currency picker is also available in the create-wallet form (route: /wallets, reached from the Balance screen's WalletSelect control), where the user sets the initial currency for a new wallet.
 
 ### Translation completeness
 
@@ -155,8 +155,11 @@ When the t(...) call passes the matching named argument
 Then the placeholder must be replaced verbatim with the argument value
 And no HTML/JSX escaping must be applied (escapeValue: false)
 Currently interpolated keys:
-  - category.vsPrevious — {{label}}, {{value}} ({{value}} is pre-formatted as currency before interpolation)
-  - overview.vsPrevious — {{label}}, {{value}} ({{value}} is pre-formatted as currency before interpolation)
+  - comparison.moreThan / comparison.lessThan / comparison.sameAs — {{label}} (the comparison period label;
+    the shared namespace used by the Overview comparison line and each category card — the old
+    "overview.vsPrevious" / "category.vsPrevious" keys were replaced by this ComparisonLine keyset)
+  - category.goalOf — {{value}} (a plain formatted number, not currency)
+  - categorySelect.createNamed — {{name}}
   - dangerZone.delete.partnerDescription — {{partner}}
   - dangerZone.delete.partnerMessage — {{partner}}
   - dangerZone.delete.waitingCaption — {{partner}}
@@ -207,13 +210,13 @@ And no "settings:currency" key is written or read (the currency lives on wallets
 Given that the authentication screen and the Settings Account row are translatable surfaces
 When their labels are sourced
 Then they must come from i18next under these keys (added in the authentication feature):
-  - "auth.welcome.title"         — sign-in screen primary heading
+  - "common.appName"             — sign-in screen eyebrow (also the header wordmark)
+  - "common.appTagline"          — sign-in screen headline (there is no "auth.welcome.title" key)
   - "auth.welcome.body"          — sign-in screen subtitle
   - "auth.signInWithGoogle"      — sign-in button label
   - "auth.signOut"               — sign-out button label (used in Settings → Account)
-  - "settings.sections.account"  — Account section title in Settings
-  - "settings.signOutRow.title"  — Sign-out row title in Settings
-  - "settings.signOutRow.description" — Sign-out row description in Settings
+  - "auth.errors.title" / "auth.errors.generic" / "auth.errors.playServices" / "auth.errors.signInRequired"
+                                 — sign-in failure Alert copy
 And both en.json and pt-BR.json must define each of these keys (no missing-key fallback to en for these surfaces)
 And switching the active language while signed out must update the sign-in screen labels in place
   (no app restart, no remount)

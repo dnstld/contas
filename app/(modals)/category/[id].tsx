@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Platform, StyleSheet, View, type ListRenderItem } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
-import { CategoryDetailSkeleton, Divider, EmptyState, Text, TransactionRow } from '@/components/ui';
+import { CategoryDetailSkeleton, EmptyState, SectionList, TransactionRow } from '@/components/ui';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
+import type { SectionListSection } from '@/components/ui/organisms/section-list';
 import { editTransactionHref } from '@/constants/routes';
 import {
   generateExampleFinance,
@@ -13,11 +14,7 @@ import {
   type ExampleNames,
 } from '@/data/finance-example';
 import type { Finance, Transaction } from '@/data/finance-types';
-import {
-  buildTransactionsList,
-  makeSectionLabeler,
-  type TransactionsSection,
-} from '@/data/transactions-list';
+import { buildTransactionsList, makeSectionLabeler } from '@/data/transactions-list';
 import { useFinance } from '@/hooks/use-finance';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useModalBottomPadding } from '@/hooks/use-modal-bottom-padding';
@@ -34,10 +31,6 @@ const EMPTY_FINANCE: Finance = {
   categories: [],
   transactions: [],
 };
-
-type Row =
-  | { type: 'header'; id: string; section: TransactionsSection }
-  | { type: 'item'; id: string; transaction: Transaction; showDivider: boolean };
 
 function parseFilter(
   params: { years?: string; months?: string; all?: string },
@@ -120,18 +113,11 @@ export default function CategoryDetailModal() {
     yesterday: t('transactions.yesterday'),
   });
 
-  const rows = useMemo<Row[]>(() => {
-    const flat: Row[] = [];
-    for (let s = 0; s < sections.length; s++) {
-      const section = sections[s]!;
-      flat.push({ type: 'header', id: `header-${section.dayKey}`, section });
-      for (let i = 0; i < section.data.length; i++) {
-        const tx = section.data[i]!;
-        flat.push({ type: 'item', id: tx.id, transaction: tx, showDivider: i > 0 });
-      }
-    }
-    return flat;
-  }, [sections]);
+  const listSections: SectionListSection<Transaction>[] = sections.map((s) => ({
+    id: s.dayKey,
+    title: labelFor(s),
+    data: s.data,
+  }));
 
   const handlePressTransaction = useCallback(
     (transactionId: string) => {
@@ -144,41 +130,23 @@ export default function CategoryDetailModal() {
 
   const hasTransactions = sections.length > 0;
 
-  const renderItem = useCallback<ListRenderItem<Row>>(
-    ({ item: row }) => {
-      if (row.type === 'header') {
-        return (
-          <View style={[styles.sectionHeader, { backgroundColor: background }]}>
-            <Text variant="caption" tone="textMuted" weight="semibold">
-              {labelFor(row.section).toUpperCase()}
-            </Text>
-          </View>
-        );
-      }
-      return (
-        <>
-          {row.showDivider ? <Divider /> : null}
-          <TransactionRow
-            transaction={row.transaction}
-            currency={currency}
-            creator={resolveCreator(row.transaction.createdByUserId)}
-            onPress={isExample ? undefined : handlePressTransaction}
-          />
-        </>
-      );
-    },
-    [background, currency, handlePressTransaction, isExample, labelFor, resolveCreator],
-  );
-
   const listOrEmpty = hasTransactions ? (
-    <FlatList
-      data={rows}
-      keyExtractor={(item: Row) => item.id}
+    <SectionList<Transaction>
+      variant="flat"
+      sections={listSections}
+      keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
       initialNumToRender={20}
       windowSize={10}
       removeClippedSubviews={Platform.OS === 'android'}
-      renderItem={renderItem}
+      renderItem={({ item }) => (
+        <TransactionRow
+          transaction={item}
+          currency={currency}
+          creator={resolveCreator(item.createdByUserId)}
+          onPress={isExample ? undefined : handlePressTransaction}
+        />
+      )}
     />
   ) : (
     <View style={styles.emptyWrap}>
@@ -229,9 +197,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 32,
-  },
-  sectionHeader: {
-    paddingVertical: 8,
   },
   emptyWrap: {
     flex: 1,

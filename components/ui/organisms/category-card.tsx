@@ -1,33 +1,35 @@
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { Badge } from '@/components/ui/atoms/badge';
-import { Icon, type IconName } from '@/components/ui/atoms/icon';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
-import { TrendIndicator } from '@/components/ui/atoms/trend-indicator';
 import { CategoryHeader } from '@/components/ui/molecules/category-header';
+import { ComparisonLine } from '@/components/ui/molecules/comparison-line';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 export interface CategoryCardData {
   id: string;
   name: string;
-  icon?: IconName;
   total: number;
+  /** Share of total expenses in the period. No longer displayed on the card,
+   * kept for potential future use (e.g. a detail screen or alternate sort). */
   percentage?: number;
   budget?: number;
+  /** current − previous, drives the comparison line's arrow/tone/amount. */
   delta?: number;
+  /** No longer displayed (the comparison line shows the delta amount directly). */
   deltaPercentage?: number;
   revenue?: number;
   /** Number of completed transactions in the period — used by the grid's "most used" sort. */
   entryCount?: number;
   /** 'expense' inverts the trend tone (higher = bad). 'income' keeps the default (higher = good). */
   kind?: 'expense' | 'income';
-  /** Previous-period absolute value, shown in the comparison row (e.g. "(R$ 123,00)"). */
+  /** No longer displayed (the comparison line shows the delta amount directly, not the previous absolute value). */
   previousValue?: number;
-  /** Previous-period label, shown in the comparison row (e.g. "Abril" or "2025"). */
+  /** Previous-period label, shown in the comparison line (e.g. "Abril" or "2025"). */
   previousLabel?: string;
 }
 
@@ -35,7 +37,7 @@ export interface CategoryCardProps {
   data: CategoryCardData;
   currency?: string;
   revenueVisible?: boolean;
-  /** Shows a badge in the header (in place of the percentage), e.g. "Example". */
+  /** Shows a badge in the header's top-right corner, e.g. "Example". */
   badgeLabel?: string;
   onPress?: (id: string) => void;
   onLongPress?: (id: string) => void;
@@ -49,10 +51,9 @@ function CategoryCardImpl({
   onPress,
   onLongPress,
 }: CategoryCardProps) {
-  const iconBg = useThemeColor({}, 'surfaceMuted');
-  const iconColor = useThemeColor({}, 'icon');
+  const rippleColor = useThemeColor({}, 'surfaceMuted');
   const { t } = useTranslation();
-  const { formatNumber, formatCurrency, formatPercent, locale } = useFormatters();
+  const { formatNumber, formatCurrency, locale } = useFormatters();
 
   // With a goal: under → green, exactly at the goal → warning, over → red.
   const tone =
@@ -69,46 +70,24 @@ function CategoryCardImpl({
 
   const Body = (
     <Surface variant="plain" bordered padding={14} style={styles.card}>
-      <View style={styles.headerRow}>
-        {data.icon ? (
-          <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
-            <Icon name={data.icon} size={16} color={iconColor} />
-          </View>
-        ) : null}
-        <View style={styles.headerText}>
-          <CategoryHeader
-            name={data.name}
-            total={data.total}
-            percentage={data.percentage}
-            currency={currency}
-            locale={locale}
-            tone={tone}
-            badge={badgeLabel ? <Badge label={badgeLabel} tone="tint" /> : undefined}
-            goalText={goalText}
-          />
-        </View>
-      </View>
+      <CategoryHeader
+        name={data.name}
+        total={data.total}
+        currency={currency}
+        locale={locale}
+        tone={tone}
+        badge={badgeLabel ? <Badge label={badgeLabel} tone="tint" /> : undefined}
+        goalText={goalText}
+      />
 
-      {data.delta !== undefined &&
-      data.previousValue !== undefined &&
-      data.previousLabel &&
-      !isEmpty ? (
-        <View style={styles.compRow}>
-          <TrendIndicator
-            delta={data.delta}
-            percentage={data.deltaPercentage}
-            currency={currency}
-            locale={locale}
-            hideValue
-            lowerIsBetter={data.kind === 'expense'}
-          />
-          <Text variant="caption" tone="textMuted">
-            {t('category.vsPrevious', {
-              label: data.previousLabel,
-              value: formatNumber(data.previousValue),
-            })}
-          </Text>
-        </View>
+      {data.delta !== undefined && data.previousLabel && !isEmpty ? (
+        <ComparisonLine
+          delta={data.delta}
+          label={data.previousLabel}
+          currency={currency}
+          locale={locale}
+          lowerIsBetter={data.kind === 'expense'}
+        />
       ) : null}
 
       {data.entryCount !== undefined && data.entryCount > 0 && !isEmpty ? (
@@ -136,9 +115,7 @@ function CategoryCardImpl({
   if (!onPress && !onLongPress) return Body;
 
   // One grouped label so the card announces as a single element (name · amount ·
-  // goal · percentage · status) instead of the child texts one by one.
-  const pctLabel =
-    !badgeLabel && data.percentage !== undefined ? formatPercent(data.percentage) : undefined;
+  // goal · status) instead of the child texts one by one.
   const statusLabel = isEmpty
     ? t('category.noActivity')
     : data.entryCount !== undefined && data.entryCount > 0
@@ -149,7 +126,6 @@ function CategoryCardImpl({
     badgeLabel,
     formatCurrency(data.total, currency),
     goalText,
-    pctLabel,
     statusLabel,
   ]
     .filter(Boolean)
@@ -160,7 +136,7 @@ function CategoryCardImpl({
       onPress={onPress ? handlePress : undefined}
       onLongPress={onLongPress ? handleLongPress : undefined}
       delayLongPress={400}
-      android_ripple={{ color: iconBg }}
+      android_ripple={{ color: rippleColor }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={onPress ? t('accessibility.hints.viewTransactions') : undefined}
@@ -178,24 +154,6 @@ export const CategoryCard = memo(CategoryCardImpl);
 const styles = StyleSheet.create({
   card: {
     gap: 10,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  iconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerText: { flex: 1 },
-  compRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   pressed: { opacity: 0.85 },
 });

@@ -7,7 +7,10 @@ import { MONTHS, type Month } from '@/hooks/use-time-filter';
 export interface MonthlyTimelinePoint {
   month: Month;
   value: number;
+  /** Absolute change vs. the same month last year (value − previous). */
   delta?: number;
+  /** Signed fraction, e.g. 0.12 for +12%. Omitted when there's no previous-year baseline. */
+  deltaPercentage?: number;
 }
 
 export interface MonthlyTimelineProps {
@@ -58,18 +61,14 @@ export function MonthlyTimeline({
             label={monthName(MONTHS.indexOf(p.month), 'short')}
             value={p.value}
             delta={p.delta}
+            percentage={p.deltaPercentage}
             currency={currency}
             current={p.month === currentMonth}
             onPress={onSelectMonth ? () => onSelectMonth(p.month) : undefined}
-            tone={
-              p.value === 0
-                ? 'neutral'
-                : p.delta === undefined
-                  ? 'neutral'
-                  : p.delta >= 0
-                    ? 'positive'
-                    : 'negative'
-            }
+            // Spending: lower than the same month last year is favorable (green),
+            // higher is unfavorable (red) — matches the top comparison row.
+            lowerIsBetter
+            tone={p.value === 0 || !p.delta ? 'neutral' : p.delta < 0 ? 'positive' : 'negative'}
           />
         </View>
       ))}

@@ -11,10 +11,11 @@ import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { SectionList, type SectionListSection } from '@/components/ui/organisms/section-list';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { Fonts } from '@/constants/theme';
+import { rankCategoriesByUsage } from '@/data/finance-aggregations';
 import type { Category, TransactionType } from '@/data/finance-types';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCreateCategory } from '@/hooks/use-finance-mutations';
-import { useCategories } from '@/hooks/use-finance-queries';
+import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { categoryFormBridge } from '@/utils/modal-bridge';
@@ -39,6 +40,7 @@ export default function CategorySelectScreen() {
   const selectedId = params.selectedId ?? null;
 
   const { data: categories = [] } = useCategories();
+  const { data: transactions = [] } = useTransactions();
   const { enabled: demoMode } = useDemoMode();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
 
@@ -65,27 +67,43 @@ export default function CategorySelectScreen() {
 
   const sections = useMemo<SectionListSection<Row>[]>(() => {
     const needle = query.trim().toLowerCase();
-    const ofType = categories
-      .filter((c) => c.type === type)
-      .filter((c) => (needle ? c.name.toLowerCase().includes(needle) : true))
-      .sort((a, b) => a.name.localeCompare(b.name));
 
-    if (ofType.length > 0) {
-      return [{ id: 'all', title: t('categorySelect.groups.all'), data: ofType }];
+    // Searching collapses to a single, alphabetically-sorted results group —
+    // the most-used/all-categories split only applies to the browsing view.
+    if (needle.length > 0) {
+      const matches = categories
+        .filter((c) => c.type === type)
+        .filter((c) => c.name.toLowerCase().includes(needle))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      if (matches.length > 0) {
+        return [{ id: 'all', title: t('categorySelect.groups.all'), data: matches }];
+      }
+      // No match: the inline "+ Criar X" header row covers creation.
+      return [];
     }
 
-    // No categories of this type yet (and not searching): offer starter suggestions
-    // in their own group. Tapping one opens the in-sheet create view.
-    if (needle.length === 0) {
-      const suggestionRows: Row[] = suggestionNames.map((suggestion) => ({ suggestion }));
-      return [
-        { id: 'suggestions', title: t('categorySelect.suggestions.section'), data: suggestionRows },
-      ];
+    // Browsing (no search): split into "Most used" (same top 5 as the
+    // transaction form's quick-select chips — shared ranking, so both
+    // surfaces always agree) and "All categories" for everything else, in
+    // the same usage order.
+    const { mostUsed, rest } = rankCategoriesByUsage(categories, transactions, type);
+    const groups: SectionListSection<Row>[] = [];
+    if (mostUsed.length > 0) {
+      groups.push({ id: 'mostUsed', title: t('categorySelect.groups.mostUsed'), data: mostUsed });
     }
+    if (rest.length > 0) {
+      groups.push({ id: 'all', title: t('categorySelect.groups.all'), data: rest });
+    }
+    if (groups.length > 0) return groups;
 
-    // Searching with no match: the inline "+ Criar X" header row covers creation.
-    return [];
-  }, [categories, type, query, t, suggestionNames]);
+    // No categories of this type yet: offer starter suggestions in their own
+    // group. Tapping one opens the in-sheet create view.
+    const suggestionRows: Row[] = suggestionNames.map((suggestion) => ({ suggestion }));
+    return [
+      { id: 'suggestions', title: t('categorySelect.suggestions.section'), data: suggestionRows },
+    ];
+  }, [categories, transactions, type, query, t, suggestionNames]);
 
   // Offer "Create X" when the typed term doesn't exactly match an existing
   // category of this type (case-insensitive).

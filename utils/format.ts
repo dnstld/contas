@@ -86,3 +86,34 @@ export function formatDate(
 ): string {
   return new Intl.DateTimeFormat(locale, options).format(date);
 }
+
+export interface RelativeDateLabels {
+  today: string;
+  yesterday: string;
+}
+
+/**
+ * Single source of truth for the "Today" / "Yesterday" / "<day> <month>" /
+ * "<day> <month> <year>" relative-date label used across the app (the
+ * Transactions section headers and the Balance card's last-update line).
+ * Comparisons use the calendar day in local time, not elapsed hours.
+ */
+export function formatRelativeDate(
+  date: Date,
+  now: Date,
+  locale: string,
+  labels: RelativeDateLabels,
+): string {
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today = startOfDay(now);
+  const yesterday = startOfDay(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const target = startOfDay(date);
+
+  if (target.getTime() === today.getTime()) return labels.today;
+  if (target.getTime() === yesterday.getTime()) return labels.yesterday;
+
+  return target.getFullYear() === today.getFullYear()
+    ? formatDate(date, locale, { day: 'numeric', month: 'long' })
+    : formatDate(date, locale, { day: 'numeric', month: 'long', year: 'numeric' });
+}
