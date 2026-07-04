@@ -132,7 +132,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setError(bootstrapErr);
         return;
       }
-      if (!bootstrapped) return;
+      if (!bootstrapped) {
+        const err = new Error('get_or_create_default_wallet returned no wallet');
+        captureError(err, { tags: { context: 'wallet' } });
+        setError(err);
+        return;
+      }
       setWalletId(bootstrapped);
       if (storage) {
         try {
