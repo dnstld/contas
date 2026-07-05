@@ -12,6 +12,26 @@ export function getErrorCode(err: unknown): string | undefined {
   return undefined;
 }
 
+const NETWORK_ERROR_PATTERN = /network|fetch failed|failed to fetch/i;
+
+/**
+ * True for transient connectivity failures (device offline, request dropped
+ * mid-flight, etc). Works on real `Error` instances as well as plain
+ * Supabase/PostgREST-shaped error objects (`{ message, details, ... }`) that
+ * never get wrapped in an `Error`.
+ */
+export function isNetworkError(err: unknown): boolean {
+  if (err instanceof Error) return NETWORK_ERROR_PATTERN.test(err.message);
+  if (err && typeof err === 'object') {
+    const obj = err as Record<string, unknown>;
+    for (const key of ['message', 'details'] as const) {
+      const value = obj[key];
+      if (typeof value === 'string' && NETWORK_ERROR_PATTERN.test(value)) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Maps Supabase / Postgres errors to an i18n key under `common.errors.*`.
  * Raw `error.message` strings often leak schema details (constraint names,
@@ -35,11 +55,7 @@ export function mapSupabaseErrorKey(err: unknown): string {
     default:
       break;
   }
-  if (err instanceof Error) {
-    if (err.name === 'AbortError') return 'common.errors.cancelled';
-    if (/network|fetch failed|failed to fetch/i.test(err.message)) {
-      return 'common.errors.network';
-    }
-  }
+  if (err instanceof Error && err.name === 'AbortError') return 'common.errors.cancelled';
+  if (isNetworkError(err)) return 'common.errors.network';
   return 'common.errors.actionFailed';
 }
