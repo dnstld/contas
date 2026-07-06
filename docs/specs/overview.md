@@ -24,8 +24,8 @@ And the previous-month comparison must cross the year boundary when the selected
 And the comparison row must include a directional indicator (arrow + percentage) and the previous-period absolute value
 And a mode badge from key "overview.modes.month" must be visible in the card header
   (en: "MONTH" / pt-BR: "MÊS")
-And all monetary values must be formatted via Intl.NumberFormat using the active language as the locale and the user-selected currency
-  (e.g. pt-BR + BRL: "R$ 1.234,56"; en + USD: "$1,234.56"; en + EUR: "€1,234.56"; pt-BR + USD: "US$ 1.234,56")
+And all monetary values must be formatted via Intl.NumberFormat using the currency's home locale (currencyLocale), independent of the UI language
+  (BRL always "R$ 1.234,56"; USD always "$1,234.56"; EUR always "1.234,56 €")
 ```
 
 ### Daily spend-intensity tint

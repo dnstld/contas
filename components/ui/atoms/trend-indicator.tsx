@@ -2,14 +2,13 @@ import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
+import { currencyLocale } from '@/data/currency';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { formatCurrency, formatPercent } from '@/utils/format';
 
 export interface TrendIndicatorProps {
   delta: number;
   percentage?: number;
-  /** Active locale for `Intl` formatting. Required — pass `useFormatters().locale`. */
-  locale: string;
   currency?: string;
   hideValue?: boolean;
   /** When true, a positive delta is treated as bad (red/down) — e.g. for expenses. */
@@ -19,11 +18,11 @@ export interface TrendIndicatorProps {
 export function TrendIndicator({
   delta,
   percentage,
-  locale,
   currency = 'USD',
   hideValue = false,
   lowerIsBetter = false,
 }: TrendIndicatorProps) {
+  const locale = currencyLocale(currency);
   const isFlat = delta === 0;
   const isUp = delta > 0;
   const isPositiveOutcome = lowerIsBetter ? !isUp : isUp;

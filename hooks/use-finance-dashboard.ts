@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { buildDashboard, type DashboardData } from '@/data/finance-aggregations';
 import type { Finance } from '@/data/finance-types';
+import { formattingLocale } from '@/i18n';
 import { useFinance } from '@/hooks/use-finance';
 import { type TimeFilterState } from '@/hooks/use-time-filter';
 
@@ -26,9 +27,10 @@ export interface UseFinanceDashboardResult extends DashboardData {
 export function useFinanceDashboard(filter: TimeFilterState, now: Date): UseFinanceDashboardResult {
   const { data, isLoading, isError, error, isDemo, currency, refetch } = useFinance();
   const { i18n } = useTranslation();
+  const locale = formattingLocale(i18n.language);
   const dashboard = useMemo(
-    () => buildDashboard(data ?? EMPTY_FINANCE, filter, now, i18n.language),
-    [data, filter, now, i18n.language],
+    () => buildDashboard(data ?? EMPTY_FINANCE, filter, now, locale),
+    [data, filter, now, locale],
   );
 
   return { data, currency, isLoading, isError, error, isDemo, refetch, ...dashboard };

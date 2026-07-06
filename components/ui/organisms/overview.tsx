@@ -100,7 +100,6 @@ export function Overview({
       <PriceText
         value={primaryValue}
         currency={currency}
-        locale={locale}
         tone={primaryValue < 0 ? 'negative' : 'neutral'}
         size="xl"
       />
@@ -109,7 +108,6 @@ export function Overview({
           delta={comparisonDelta}
           label={comparisonLabel}
           currency={currency}
-          locale={locale}
           lowerIsBetter
         />
       ) : null}

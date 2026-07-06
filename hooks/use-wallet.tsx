@@ -26,7 +26,6 @@ type WalletContextValue = {
   error: Error | null;
   switchWallet: (id: string) => void;
   refresh: () => Promise<void>;
-  setCurrency: (next: SupportedCurrency) => Promise<void>;
   setShowRevenue: (next: boolean) => Promise<void>;
 };
 
@@ -164,24 +163,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     resolve(userId);
   }, [userId, resolve]);
 
-  const setCurrency = useCallback(
-    async (next: SupportedCurrency) => {
-      if (!walletId) return;
-      const previous = currency;
-      setCurrencyState(next);
-      const { error } = await supabase
-        .from('wallets')
-        .update({ currency: next })
-        .eq('id', walletId);
-      if (error) {
-        captureError(error, { tags: { context: 'wallet' } });
-        setCurrencyState(previous);
-        throw error;
-      }
-      if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
-    },
-    [walletId, currency, userId, qc],
-  );
+  // A wallet's currency is fixed at creation and cannot be changed afterwards
+  // (amounts are stored as integer cents with no FX conversion, so re-labelling
+  // the currency would silently reinterpret every stored amount). The choice is
+  // made once in the create-wallet form; the DB also rejects currency updates.
 
   const setShowRevenue = useCallback(
     async (next: boolean) => {
@@ -232,7 +217,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           .catch((err) => captureError(err, { tags: { context: 'wallet' } }));
         fetchWalletData(id, reqId);
       },
-      setCurrency,
       setShowRevenue,
     }),
     [
@@ -244,7 +228,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       error,
       userId,
       resolve,
-      setCurrency,
       setShowRevenue,
       fetchWalletData,
       qc,

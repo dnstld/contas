@@ -120,7 +120,7 @@
     "title": "Conta",
     "sections": {
       "display": "Exibição",
-      "regional": "Idioma e moeda",
+      "regional": "Idioma",
       "account": "Conta",
       "wallets": "Carteiras"
     },
@@ -168,7 +168,7 @@
     },
     "currencies": {
       "BRL": "Real (R$)",
-      "USD": "Dólar (US$)",
+      "USD": "Dólar ($)",
       "EUR": "Euro (€)"
     }
   },
@@ -190,9 +190,9 @@
       "expense": "Despesa",
       "income": "Receita"
     },
-    "amountPlaceholder": "Valor",
-    "dateLabel": "Data",
-    "descriptionLabel": "Descrição",
+    "amountPlaceholder": "Quanto",
+    "dateLabel": "Quando",
+    "descriptionLabel": "Para quê",
     "descriptionPlaceholder": "ex: Passagem aérea",
     "descriptionCaption": "Aparece nas transações",
     "descriptionCounter": "{{count}}/100",

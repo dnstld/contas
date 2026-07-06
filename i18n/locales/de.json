@@ -120,7 +120,7 @@
     "title": "Konto",
     "sections": {
       "display": "Anzeige",
-      "regional": "Sprache & Währung",
+      "regional": "Sprache",
       "account": "Konto",
       "wallets": "Wallets"
     },
@@ -190,9 +190,9 @@
       "expense": "Ausgabe",
       "income": "Einnahme"
     },
-    "amountPlaceholder": "Betrag",
-    "dateLabel": "Datum",
-    "descriptionLabel": "Beschreibung",
+    "amountPlaceholder": "Wie viel",
+    "dateLabel": "Wann",
+    "descriptionLabel": "Wofür",
     "descriptionPlaceholder": "z. B. Flugticket",
     "descriptionCaption": "Erscheint in den Transaktionen",
     "descriptionCounter": "{{count}}/100",

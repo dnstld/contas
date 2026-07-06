@@ -119,25 +119,13 @@ export default function TransactionsScreen() {
           <Text variant="caption" tone="textMuted">
             {t(filterApi.state.all ? 'transactions.spentYear' : 'transactions.spentMonth')}
           </Text>
-          <PriceText
-            value={totals.expenses}
-            currency={currency}
-            locale={locale}
-            tone="neutral"
-            size="lg"
-          />
+          <PriceText value={totals.expenses} currency={currency} tone="neutral" size="lg" />
         </Surface>
         <Surface variant="muted" padding={12} style={styles.tile}>
           <Text variant="caption" tone="textMuted">
             {t('transactions.incoming')}
           </Text>
-          <PriceText
-            value={totals.income}
-            currency={currency}
-            locale={locale}
-            tone="positive"
-            size="lg"
-          />
+          <PriceText value={totals.income} currency={currency} tone="positive" size="lg" />
         </Surface>
       </View>
     </Surface>

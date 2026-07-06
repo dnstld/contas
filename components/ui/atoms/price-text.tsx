@@ -1,4 +1,5 @@
 import { Text, type TextProps } from '@/components/ui/atoms/text';
+import { currencyLocale } from '@/data/currency';
 import { formatCurrency } from '@/utils/format';
 
 export type PriceTone = 'neutral' | 'positive' | 'negative' | 'warning' | 'auto';
@@ -13,9 +14,10 @@ const SIZE_TO_VARIANT: Record<PriceSize, TextProps['variant']> = {
 
 export interface PriceTextProps {
   value: number;
-  currency?: string;
-  /** Active locale for `Intl` formatting. Required — pass `useFormatters().locale`. */
-  locale: string;
+  /** Wallet currency code. Required — never defaulted, so a missing currency is
+   * a compile error rather than a silent fallback to another currency. Drives
+   * both the symbol and the formatting locale (via `currencyLocale`). */
+  currency: string;
   tone?: PriceTone;
   size?: PriceSize;
   showSign?: boolean;
@@ -24,13 +26,13 @@ export interface PriceTextProps {
 
 export function PriceText({
   value,
-  currency = 'USD',
-  locale,
+  currency,
   tone = 'neutral',
   size = 'md',
   showSign = false,
   fractionDigits = 2,
 }: PriceTextProps) {
+  const locale = currencyLocale(currency);
   const resolvedTone =
     tone === 'auto'
       ? value > 0

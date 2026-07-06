@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { categorySelectHref } from '@/constants/routes';
+import { nextAmountCents } from '@/utils/amount-input';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { Chip } from '@/components/ui/atoms/chip';
+import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/segmented-control';
@@ -56,7 +58,7 @@ export function TransactionForm({
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
   const { currency } = useWallet();
-  const { formatDecimal } = useFormatters();
+  const { formatAmount } = useFormatters();
   // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
   // access during render) and gives us a one-time value identical to a ref.
   const [bridgeId] = useState(() => makeBridgeId());
@@ -103,40 +105,10 @@ export function TransactionForm({
     return mostUsed.length > 0 ? mostUsed : rest.slice(0, MOST_USED_CATEGORIES_LIMIT);
   }, [categories, transactions, type]);
 
-  const formattedAmount = formatDecimal(amountCents / 100);
+  const formattedAmount = formatAmount(amountCents / 100, currency);
 
   const handleAmountChange = (text: string) => {
-    // Treat the field like a calculator: each new digit shifts cents left,
-    // regardless of cursor position. Without this, typing at the start of
-    // "0,00" would turn the mask's trailing zeros into entered digits
-    // (e.g. typing "5" at index 0 yields "50,00" → 5000 cents instead of 5).
-    const newDigits = text.replace(/\D/g, '');
-    const prevDigits = formattedAmount.replace(/\D/g, '');
-    if (newDigits === prevDigits) return;
-
-    if (newDigits.length > prevDigits.length) {
-      let diffIdx = 0;
-      while (diffIdx < prevDigits.length && prevDigits[diffIdx] === newDigits[diffIdx]) {
-        diffIdx += 1;
-      }
-      const addedCount = newDigits.length - prevDigits.length;
-      const addedChars = newDigits.slice(diffIdx, diffIdx + addedCount);
-      let next = amountCents;
-      for (const ch of addedChars) {
-        next = next * 10 + Number(ch);
-      }
-      setAmountCents(next);
-    } else if (newDigits.length < prevDigits.length) {
-      const removedCount = prevDigits.length - newDigits.length;
-      let next = amountCents;
-      for (let i = 0; i < removedCount; i += 1) {
-        next = Math.floor(next / 10);
-      }
-      setAmountCents(next);
-    } else {
-      const parsed = Number.parseInt(newDigits, 10);
-      setAmountCents(Number.isFinite(parsed) ? parsed : 0);
-    }
+    setAmountCents(nextAmountCents(amountCents, formattedAmount, text));
   };
 
   const handleTypeChange = (next: TransactionType) => {
@@ -213,32 +185,29 @@ export function TransactionForm({
         />
       </View>
 
-      <View style={styles.amountSection}>
-        <Text style={[styles.amountSymbol, { color: mutedColor, fontFamily: Fonts.rounded }]}>
-          {currency}
+      <View style={styles.field}>
+        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+          {t('create.dateLabel').toUpperCase()}
         </Text>
-        <TextInput
+        <DatePicker value={date} onValueChange={setDate} />
+      </View>
+
+      <View style={styles.field}>
+        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+          {t('create.amountPlaceholder').toUpperCase()}
+        </Text>
+        <CurrencyInput
+          currency={currency}
+          symbolColor={mutedColor}
           value={formattedAmount}
           onChangeText={handleAmountChange}
           keyboardType="number-pad"
           inputMode="numeric"
           accessibilityLabel={t('create.amountPlaceholder')}
           selectionColor={textColor}
-          style={[
-            styles.amountInput,
-            {
-              color: amountCents > 0 ? textColor : mutedColor,
-              fontFamily: Fonts.rounded,
-            },
-          ]}
+          containerStyle={{ backgroundColor: surfaceMutedColor }}
+          inputStyle={{ color: amountCents > 0 ? textColor : mutedColor, fontFamily: Fonts.sans }}
         />
-      </View>
-
-      <View style={styles.field}>
-        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-          {t('create.dateLabel').toUpperCase()}
-        </Text>
-        <DatePicker value={date} onValueChange={setDate} />
       </View>
 
       <View style={styles.field}>
@@ -313,23 +282,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   typeSelector: {
-    alignSelf: 'stretch',
-  },
-  amountSection: {
-    alignItems: 'center',
-    gap: 2,
-  },
-  amountSymbol: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontWeight: '600',
-  },
-  amountInput: {
-    fontSize: 56,
-    lineHeight: 64,
-    fontWeight: '700',
-    textAlign: 'center',
-    padding: 0,
     alignSelf: 'stretch',
   },
   field: {

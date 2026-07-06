@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  currencyAffix,
   currencySymbol,
   formatCurrency,
   formatDate,
@@ -18,6 +19,12 @@ describe('formatCurrency', () => {
   it('is locale-aware (pt-BR groups/decimals differently)', () => {
     // BRL in pt-BR: "R$ 1.234,50" (NBSP after R$).
     expect(formatCurrency(1234.5, 'BRL', 'pt-BR')).toMatch(/^R\$\s1\.234,50$/);
+  });
+
+  it('uses the narrow symbol so USD is "$" even in pt-BR (not "US$")', () => {
+    expect(formatCurrency(1234.5, 'USD', 'pt-BR')).toMatch(/^\$\s1\.234,50$/);
+    // BRL keeps R$ (its narrow symbol is unchanged).
+    expect(formatCurrency(1234.5, 'BRL', 'pt-BR')).toMatch(/^R\$/);
   });
 
   it('honors fractionDigits and signDisplay', () => {
@@ -50,6 +57,26 @@ describe('currencySymbol', () => {
     expect(currencySymbol('USD', 'en')).toBe('$');
     expect(currencySymbol('EUR', 'en')).toBe('€');
     expect(currencySymbol('BRL', 'pt-BR')).toBe('R$');
+  });
+});
+
+describe('currencyAffix', () => {
+  it('en: symbol is a prefix with no space', () => {
+    expect(currencyAffix('USD', 'en')).toEqual({ symbol: '$', position: 'prefix', spaced: false });
+  });
+
+  it('pt-BR: symbol is a prefix with a space', () => {
+    expect(currencyAffix('BRL', 'pt-BR')).toEqual({
+      symbol: 'R$',
+      position: 'prefix',
+      spaced: true,
+    });
+  });
+
+  it('de: symbol trails the amount with a space', () => {
+    const affix = currencyAffix('BRL', 'de');
+    expect(affix.position).toBe('suffix');
+    expect(affix.spaced).toBe(true);
   });
 });
 

@@ -9,7 +9,6 @@ import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { AccountCards } from '@/components/settings/account-cards';
 import { DangerZone } from '@/components/settings/danger-zone';
 import { useAuth } from '@/hooks/use-auth';
-import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useLanguage } from '@/hooks/use-language';
 import { useTransactions } from '@/hooks/use-finance-queries';
@@ -45,7 +44,6 @@ export default function SettingsScreen() {
   const revenueToggleDisabled = !hasRevenue;
 
   const { language, setLanguage, supported } = useLanguage();
-  const { currency, setCurrency } = useWallet();
   const { enabled: demoMode, set: setDemoMode } = useDemoMode();
 
   const { members, refetch: refetchMembers } = useWalletMembers();
@@ -65,15 +63,6 @@ export default function SettingsScreen() {
         label: t(`settings.languages.${code}`),
       })),
     [supported, t],
-  );
-
-  const currencyOptions = useMemo(
-    () =>
-      SUPPORTED_CURRENCIES.map((code) => ({
-        value: code,
-        label: t(`settings.currencies.${code}`),
-      })),
-    [t],
   );
 
   const displayRows: Row[] = [
@@ -103,7 +92,7 @@ export default function SettingsScreen() {
     },
   ];
 
-  const regionalRows: Row[] = [
+  const languageRows: Row[] = [
     {
       id: 'language',
       title: t('settings.languageRow.title'),
@@ -112,17 +101,6 @@ export default function SettingsScreen() {
           options={languageOptions}
           value={language}
           onChange={setLanguage}
-        />
-      ),
-    },
-    {
-      id: 'currency',
-      title: t('settings.currencyRow.title'),
-      trailing: (
-        <SortMenu<SupportedCurrency>
-          options={currencyOptions}
-          value={currency}
-          onChange={setCurrency}
         />
       ),
     },
@@ -153,9 +131,9 @@ export default function SettingsScreen() {
         renderItem={renderRow}
         sections={[
           {
-            id: 'regional',
+            id: 'language',
             title: t('settings.sections.regional'),
-            data: regionalRows,
+            data: languageRows,
           },
         ]}
       />

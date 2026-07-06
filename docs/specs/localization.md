@@ -2,7 +2,7 @@
 
 The app has one localization preference managed at the device level:
 
-- **Language** — drives every translatable label, plural form, and locale-aware date/number formatting. Supported values: `en` (default) and `pt-BR`.
+- **Language** — drives every translatable label, plural form, and locale-aware date/number formatting. Supported values: `en` (default), `pt-BR`, and `de`.
 
 Currency is _not_ a device preference — it belongs to the wallet. See the "Currency formatting" section below.
 
@@ -23,6 +23,7 @@ When the language preference is read or set
 Then the only accepted values must be:
   - "en" (English, default)
   - "pt-BR" (Brazilian Portuguese)
+  - "de" (German)
 And any unsupported or malformed stored value must be ignored and replaced by the resolved default
 ```
 
@@ -73,17 +74,36 @@ And there must be no visible flash of the previous or default language
 
 Currency is per-wallet (`wallets.currency` column). The active wallet's currency code flows to consumers via `useWallet().currency` (and the legacy `useCurrency()` wrapper that re-exports it). All members of a wallet see amounts formatted in that wallet's currency.
 
+**Monetary formatting follows the currency, not the UI language.** An amount always looks native to its money — symbol, symbol position, and grouping/decimal separators all come from the currency's home locale (`currencyLocale()` in `data/currency.ts`), regardless of the app language. Only non-monetary text (dates, month names, counts, percentages that aren't tied to a money value) follows the UI language.
+
 ### Supported currency codes
 
 ```
 Given that a wallet's currency code is read or set
-Then the only accepted values must be:
-  - "BRL" (Brazilian Real, formatted as R$ 1.234,56 in pt-BR / R$1,234.56 in en)
-  - "USD" (US Dollar, formatted as $1,234.56 in en / US$ 1.234,56 in pt-BR)
-  - "EUR" (Euro, formatted as €1,234.56 in en / € 1.234,56 in pt-BR)
+Then the only accepted values must be, each formatted in its own home locale regardless of UI language:
+  - "BRL" (Brazilian Real, always "R$ 1.234,56"  — via pt-BR)
+  - "USD" (US Dollar,       always "$1,234.56"    — via en-US, narrow symbol "$", not "US$")
+  - "EUR" (Euro,            always "1.234,56 €"    — via de-DE, symbol trailing)
 And the wallet's currency column defaults to "BRL" at insert time
-And the displayed grouping/decimal separators must follow the active language, not the currency
-  (Intl.NumberFormat is invoked with the active language as the locale and the chosen currency code)
+And the amount's symbol, symbol position, and grouping/decimal separators must all come from the
+  currency's home locale via currencyLocale() (BRL → pt-BR, USD → en-US, EUR → de-DE), NOT from the
+  active UI language — so a BRL wallet reads "R$ 1.234,56" whether the app is in en, pt-BR, or de
+And USD uses the narrow symbol "$" (Intl currencyDisplay: 'narrowSymbol'), never "US$"
+```
+
+### Symbol position is derived from the currency, never hardcoded
+
+```
+Given that any surface renders a currency amount — including editable amount inputs that show the
+  symbol beside a separate number field (the monthly-goal and transaction-amount fields)
+When the symbol is placed relative to the number
+Then its position (prefix/suffix) and whether a space separates it must come from utils/format.ts
+  using the currency's home locale (formatCurrency for read-only text; the CurrencyInput atom —
+  backed by currencyAffix — for editable amount fields), never from a hardcoded layout gap
+And leaf atoms (PriceText, CurrencyInput) take only `currency` and derive their locale via
+  currencyLocale(); they do NOT take a `locale` prop
+And no component may call Intl.NumberFormat directly or concatenate symbol+number by hand
+  (utils/format.ts is the single source of truth)
 ```
 
 ### Language and currency are independent
@@ -93,21 +113,27 @@ Given that the user has a wallet with a currency and an active language
 When either changes
 Then changing the language must NOT alter the wallet's currency
 And changing the wallet's currency must NOT alter the language
-And the currency symbol always reflects the wallet's currency
-And the number-formatting separators always reflect the user's language choice
-  (e.g. language="en" + wallet.currency="BRL" → "R$1,234.56")
-  (e.g. language="pt-BR" + wallet.currency="USD" → "US$ 1.234,56")
+And a monetary amount's formatting is unaffected by the UI language — it follows the currency
+  (e.g. wallet.currency="BRL" → "R$ 1.234,56" whether language is en, pt-BR, or de)
+  (e.g. wallet.currency="USD" → "$1,234.56" whether language is en, pt-BR, or de)
+And only non-monetary text (dates, month names, counts) reflects the active language
 ```
 
-### Currency does not convert amounts
+### Currency is locked after wallet creation
 
 ```
-Given that a wallet's currency is changed
-When the dashboard re-renders
-Then the underlying numeric amounts (stored as integer cents) must remain unchanged
-And only the currency symbol and number-formatting rules must change
-And no exchange-rate lookup, conversion, or rounding adjustment must occur
-  (e.g. an amount stored as 10000 cents will render as R$ 100,00 or $100.00 or €100.00 depending on the wallet's currency)
+Given that a wallet has been created with a currency
+When any client or user attempts to change wallets.currency
+Then the change must be rejected
+And the currency is chosen exactly once, in the create-wallet form (smart-defaulted from the
+  device region via defaultCurrencyForRegion, but the user may pick any supported currency)
+And the wallet context exposes no setCurrency mutation
+And Settings shows no currency row at all (currency is not editable, so it isn't surfaced there)
+And the database enforces this independently of the client:
+  - create_wallet() rejects any currency outside the supported set (BRL, USD, EUR)
+  - a BEFORE UPDATE trigger on wallets rejects any change to the currency column
+Rationale: amounts are stored as integer cents with no FX conversion, so re-labelling a wallet's
+  currency would silently reinterpret every stored amount.
 ```
 
 ### Cross-screen consistency
@@ -120,7 +146,7 @@ And the dashboard's primaryValue, lens rows, category cards, transactions list, 
 And consistency is achieved via the wallet context update + TanStack Query cache invalidation, NOT via persisted-state broadcast
 ```
 
-> Per-wallet currency selection UI (a picker that writes `wallets.currency`) is exposed in Settings → Language & currency → Currency row. The same currency picker is also available in the create-wallet form (route: /wallets, reached from the Balance screen's WalletSelect control), where the user sets the initial currency for a new wallet.
+> Per-wallet currency selection UI (a picker that writes `wallets.currency`) lives **only** in the create-wallet form (route: /wallets, reached from the Balance screen's WalletSelect control), where the user sets the initial currency for a new wallet. It is smart-defaulted from the device region but freely overridable at that point. After creation the currency is locked and is not shown in Settings at all — the Settings "Language" section contains only the language picker.
 
 ### Translation completeness
 

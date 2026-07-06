@@ -120,7 +120,7 @@
     "title": "Account",
     "sections": {
       "display": "Display",
-      "regional": "Language & Currency",
+      "regional": "Language",
       "account": "Account",
       "wallets": "Wallets"
     },
@@ -190,9 +190,9 @@
       "expense": "Expense",
       "income": "Income"
     },
-    "amountPlaceholder": "Amount",
-    "dateLabel": "Date",
-    "descriptionLabel": "Description",
+    "amountPlaceholder": "How much",
+    "dateLabel": "When",
+    "descriptionLabel": "What for",
     "descriptionPlaceholder": "ex: Airfare",
     "descriptionCaption": "Appears in transactions",
     "descriptionCounter": "{{count}}/100",

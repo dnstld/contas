@@ -5,7 +5,6 @@ import { Avatar } from '@/components/ui/atoms/avatar';
 import { PriceText } from '@/components/ui/atoms/price-text';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import type { Transaction } from '@/data/finance-types';
-import { useFormatters } from '@/hooks/use-formatters';
 
 export type TransactionRowCreator = {
   displayName: string | null;
@@ -39,7 +38,6 @@ function resolveCreatorLabel(
 }
 
 function TransactionRowImpl({ transaction, currency, creator, onPress }: TransactionRowProps) {
-  const { locale } = useFormatters();
   const { t } = useTranslation();
   const isIncome = transaction.type === 'income';
 
@@ -72,7 +70,6 @@ function TransactionRowImpl({ transaction, currency, creator, onPress }: Transac
         <PriceText
           value={transaction.amount}
           currency={currency}
-          locale={locale}
           tone={isIncome ? 'positive' : 'neutral'}
           size="md"
         />

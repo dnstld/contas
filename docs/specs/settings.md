@@ -6,7 +6,7 @@ The Account tab is the project's user-identity and preferences surface. It expos
    the active wallet, and any outgoing invitations (pending or declined), followed by an "Add account" tile
    that opens the invite-by-email screen. Tapping your own card opens the edit-name screen.
 2. **Display** (pt-BR: "Exibição") — two persisted toggles that affect what the Status screen renders.
-3. **Language & currency** (pt-BR: "Idioma e moeda") — language picker and currency picker.
+3. **Language** (pt-BR: "Idioma") — language picker only (currency is set at wallet creation and not editable here).
 4. **Danger Zone** (label from key "dangerZone.title", en: "Advanced") — sign out, leave wallet (shared
    wallets only, when the user has another wallet to fall back to), and delete wallet (with a two-step
    confirmation flow when the wallet has two members).
@@ -37,7 +37,7 @@ When its sections are displayed top-to-bottom
 Then the order must be:
   1. Account section (the SquareCard carousel, key "settings.sections.account")
   2. Display (key: "settings.sections.display")
-  3. Language & currency (key: "settings.sections.regional")
+  3. Language (key: "settings.sections.regional")
   4. Danger Zone
 And the page-level vertical gap between elements must be 16 points
   (matching the section spacing used on the Balance and Transactions screens)
@@ -185,40 +185,30 @@ And the trailing slot must contain a Toggle bound to the persisted-state key "se
 And the default value (when no persisted state exists) must be false
 ```
 
-### "Language & currency" section structure
+### "Language" section structure
 
 ```
 Given that the Account screen is rendered
-When the Language & currency section is displayed
-Then it must use the shared `SectionList` organism (variant="card") with a section title from key "settings.sections.regional"
-And the section must contain the Language row and the Currency row
+When the Language section is displayed
+Then it must use the shared `SectionList` organism (variant="card") with a section title from key
+  "settings.sections.regional" (en: "Language" / pt-BR: "Idioma" / de: "Sprache")
+And the section must contain only the Language row
+And there must be NO Currency row — currency is fixed at wallet creation and is not editable, so it is
+  not surfaced in Settings (it is chosen only in the create-wallet form; see the Localization spec,
+  "Currency is locked after wallet creation"). The wallet context exposes no setCurrency mutation.
 ```
 
 ### "Language" row
 
 ```
-Given that the Language & currency section is rendered
+Given that the Language section is rendered
 When the language row is displayed
 Then the title must come from key "settings.languageRow.title" (en: "Language" / pt-BR: "Idioma")
 And the trailing slot must contain a SortMenu picker with options:
   1. "English" — value "en"
   2. "Portuguese (Brazil)" — value "pt-BR"
+  3. "German" — value "de"
 And selecting an option must call i18n.changeLanguage(value) and persist under "settings:language"
-```
-
-### "Currency" row
-
-```
-Given that the Language & currency section is rendered
-When the currency row is displayed
-Then the title must come from key "settings.currencyRow.title" (en: "Currency" / pt-BR: "Moeda")
-And the trailing slot must contain a SortMenu picker:
-  1. value "BRL" — en: "Brazilian Real (R$)" / pt-BR: "Real (R$)"
-  2. value "USD" — en: "US Dollar ($)" / pt-BR: "Dólar (US$)"
-  3. value "EUR" — en: "Euro (€)" / pt-BR: "Euro (€)"
-And selecting an option must update the active wallet's currency column (wallets.currency) via Supabase
-And NO value must be written to a "settings:currency" persisted-state key (currency is wallet-scoped)
-And on success every monetary amount on screen must reformat (via the wallet context update + TanStack Query cache)
 ```
 
 ### Danger Zone — placement and structure
@@ -226,7 +216,7 @@ And on success every monetary amount on screen must reformat (via the wallet con
 ```
 Given that the Account screen is rendered
 When the bottom of the scroll content is reached
-Then a Danger Zone block must be rendered below the Language & currency section
+Then a Danger Zone block must be rendered below the Language section
 And the block must consist of:
   - a section label (key: "dangerZone.title" uppercased, caption variant, semibold, red/negative color)
     (en: "Advanced")

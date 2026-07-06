@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text, type TextTone } from '@/components/ui/atoms/text';
+import { currencyLocale } from '@/data/currency';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { formatCurrency } from '@/utils/format';
 
@@ -12,8 +13,6 @@ export interface ComparisonLineProps {
   /** The previous-period label, e.g. a month name or a 4-digit year. */
   label: string;
   currency?: string;
-  /** Active locale for `Intl` formatting. Required — pass `useFormatters().locale`. */
-  locale: string;
   /** When true, a positive delta is unfavorable (red) — e.g. expenses. Default false (income-like: higher is favorable). */
   lowerIsBetter?: boolean;
 }
@@ -28,9 +27,9 @@ export function ComparisonLine({
   delta,
   label,
   currency = 'USD',
-  locale,
   lowerIsBetter = false,
 }: ComparisonLineProps) {
+  const locale = currencyLocale(currency);
   const { t } = useTranslation();
   const isFlat = delta === 0;
   const isUp = delta > 0;

@@ -4,6 +4,7 @@ export { AvatarBadge } from './atoms/avatar-badge';
 export { Badge } from './atoms/badge';
 export { Button } from './atoms/button';
 export { Chip } from './atoms/chip';
+export { CurrencyInput } from './atoms/currency-input';
 export { DatePicker } from './atoms/date-picker';
 export { Divider } from './atoms/divider';
 export { Icon } from './atoms/icon';

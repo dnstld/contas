@@ -53,7 +53,7 @@ function CategoryCardImpl({
 }: CategoryCardProps) {
   const rippleColor = useThemeColor({}, 'surfaceMuted');
   const { t } = useTranslation();
-  const { formatNumber, formatCurrency, locale } = useFormatters();
+  const { formatNumber, formatCurrency } = useFormatters();
 
   // With a goal: under → green, exactly at the goal → warning, over → red.
   const tone =
@@ -74,7 +74,6 @@ function CategoryCardImpl({
         name={data.name}
         total={data.total}
         currency={currency}
-        locale={locale}
         tone={tone}
         badge={badgeLabel ? <Badge label={badgeLabel} tone="tint" /> : undefined}
         goalText={goalText}
@@ -85,7 +84,6 @@ function CategoryCardImpl({
           delta={data.delta}
           label={data.previousLabel}
           currency={currency}
-          locale={locale}
           lowerIsBetter={data.kind === 'expense'}
         />
       ) : null}

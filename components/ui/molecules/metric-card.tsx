@@ -4,7 +4,6 @@ import { PriceText, type PriceTone } from '@/components/ui/atoms/price-text';
 import { Surface, type SurfaceVariant } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
 import { TrendIndicator } from '@/components/ui/atoms/trend-indicator';
-import { useFormatters } from '@/hooks/use-formatters';
 
 export interface MetricCardProps {
   label: string;
@@ -27,23 +26,17 @@ export function MetricCard({
   variant = 'plain',
   caption,
 }: MetricCardProps) {
-  const { locale } = useFormatters();
   return (
     <Surface variant={variant} padding={16} style={styles.card}>
       <Text variant="caption" tone="textMuted" weight="medium">
         {label.toUpperCase()}
       </Text>
       <View style={styles.valueRow}>
-        <PriceText value={value} currency={currency} locale={locale} tone={tone} size="xl" />
+        <PriceText value={value} currency={currency} tone={tone} size="xl" />
       </View>
       <View style={styles.footer}>
         {delta !== undefined ? (
-          <TrendIndicator
-            delta={delta}
-            percentage={deltaPercentage}
-            currency={currency}
-            locale={locale}
-          />
+          <TrendIndicator delta={delta} percentage={deltaPercentage} currency={currency} />
         ) : null}
         {caption ? (
           <Text variant="caption" tone="textMuted">

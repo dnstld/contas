@@ -1,14 +1,16 @@
 import { type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text as RNText, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { Chip } from '@/components/ui/atoms/chip';
+import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { Text } from '@/components/ui/atoms/text';
 import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
 import { Fonts } from '@/constants/theme';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useWallet } from '@/hooks/use-wallet';
+import { nextAmountCents } from '@/utils/amount-input';
 
 export interface CategoryFieldsProps {
   name: string;
@@ -42,20 +44,13 @@ export function CategoryFields({
 }: CategoryFieldsProps) {
   const { t } = useTranslation();
   const { currency } = useWallet();
-  const { formatDecimal, currencySymbol } = useFormatters();
+  const { formatAmount } = useFormatters();
   const { text: textColor, textMuted: mutedColor, inputBackground } = useModalChrome();
 
-  const symbol = currencySymbol(currency);
-  const formattedBudget = formatDecimal(budgetCents / 100);
+  const formattedBudget = formatAmount(budgetCents / 100, currency);
 
   const handleBudgetChange = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length === 0) {
-      onBudgetChange(0);
-      return;
-    }
-    const parsed = Number.parseInt(digits, 10);
-    if (Number.isFinite(parsed)) onBudgetChange(parsed);
+    onBudgetChange(nextAmountCents(budgetCents, formattedBudget, value));
   };
 
   return (
@@ -101,24 +96,19 @@ export function CategoryFields({
         <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
           {t('category.create.budgetLabel').toUpperCase()}
         </Text>
-        <View style={[styles.budgetRow, { backgroundColor: inputBackground }]}>
-          <RNText style={[styles.budgetSymbol, { color: mutedColor, fontFamily: Fonts.sans }]}>
-            {symbol}
-          </RNText>
-          <TextInput
-            value={formattedBudget}
-            onChangeText={handleBudgetChange}
-            keyboardType="number-pad"
-            inputMode="numeric"
-            returnKeyType="done"
-            onSubmitEditing={onSubmitBudget}
-            accessibilityLabel={t('category.create.budgetLabel')}
-            style={[
-              styles.budgetInput,
-              { color: budgetCents > 0 ? textColor : mutedColor, fontFamily: Fonts.sans },
-            ]}
-          />
-        </View>
+        <CurrencyInput
+          currency={currency}
+          symbolColor={mutedColor}
+          value={formattedBudget}
+          onChangeText={handleBudgetChange}
+          keyboardType="number-pad"
+          inputMode="numeric"
+          returnKeyType="done"
+          onSubmitEditing={onSubmitBudget}
+          accessibilityLabel={t('category.create.budgetLabel')}
+          containerStyle={{ backgroundColor: inputBackground }}
+          inputStyle={{ color: budgetCents > 0 ? textColor : mutedColor, fontFamily: Fonts.sans }}
+        />
         <Text variant="caption" tone="textMuted">
           {t('category.create.budgetCaption')}
         </Text>
@@ -142,24 +132,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 10,
-  },
-  budgetRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 4,
-  },
-  budgetSymbol: {
-    fontSize: 15,
-    includeFontPadding: false,
-  },
-  budgetInput: {
-    flex: 1,
-    fontSize: 15,
-    padding: 0,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
   },
 });

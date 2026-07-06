@@ -119,7 +119,7 @@ function DuplicateTransactionPreviewCard({
 }: DuplicateTransactionPreviewCardProps) {
   const { t } = useTranslation();
   const { currency } = useWallet();
-  const { locale, formatDate } = useFormatters();
+  const { formatDate } = useFormatters();
 
   const isIncome = transaction.type === 'income';
   const signedAmount = isIncome ? transaction.amount : -transaction.amount;
@@ -161,7 +161,6 @@ function DuplicateTransactionPreviewCard({
         <PriceText
           value={signedAmount}
           currency={currency}
-          locale={locale}
           tone={isIncome ? 'positive' : 'neutral'}
           size="md"
           showSign

@@ -9,7 +9,12 @@ import { SortMenu } from '@/components/ui/molecules/sort-menu';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { ROUTES } from '@/constants/routes';
 import { Fonts } from '@/constants/theme';
-import { SUPPORTED_CURRENCIES, type SupportedCurrency } from '@/data/currency';
+import {
+  SUPPORTED_CURRENCIES,
+  defaultCurrencyForRegion,
+  type SupportedCurrency,
+} from '@/data/currency';
+import { getDeviceRegionCode } from '@/i18n';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useWallet } from '@/hooks/use-wallet';
 import { useCreateWallet } from '@/hooks/use-wallet-mutations';
@@ -21,7 +26,12 @@ export default function WalletsScreen() {
   const createWallet = useCreateWallet();
 
   const [newName, setNewName] = useState('');
-  const [newCurrency, setNewCurrency] = useState<SupportedCurrency>('BRL');
+  // Smart default from the device region (e.g. BR → BRL, DE → EUR); the user
+  // can still pick any supported currency. Currency is locked once the wallet
+  // is created, so this initial choice is the only time it can be set.
+  const [newCurrency, setNewCurrency] = useState<SupportedCurrency>(() =>
+    defaultCurrencyForRegion(getDeviceRegionCode()),
+  );
   const nameInputRef = useRef<TextInput>(null);
 
   useEffect(() => {

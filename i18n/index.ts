@@ -22,9 +22,41 @@ export function getDeviceLanguageTag(): string | null {
   }
 }
 
+/**
+ * The device's region code (ISO 3166-1 alpha-2, e.g. "BR", "DE"), or null when
+ * the native module isn't available. Same defensive registry probe as
+ * `getDeviceLanguageTag` — used to pick a smart-default wallet currency.
+ */
+export function getDeviceRegionCode(): string | null {
+  const registry = (globalThis as { expo?: { modules?: Record<string, unknown> } }).expo?.modules;
+  if (!registry || !registry['ExpoLocalization']) return null;
+  try {
+    const Localization = require('expo-localization') as typeof import('expo-localization');
+    return Localization.getLocales()[0]?.regionCode ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export const SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'de'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
+
+/**
+ * Canonical BCP-47 locale used for `Intl` number/date/currency formatting per
+ * language. We pin a region so formatting is deterministic regardless of the
+ * device's region — e.g. a bare `"en"` resolves to the device region and
+ * renders USD as `US$` on a non-US English device, whereas `en-US` renders `$`.
+ */
+const FORMATTING_LOCALE: Record<SupportedLanguage, string> = {
+  en: 'en-US',
+  'pt-BR': 'pt-BR',
+  de: 'de-DE',
+};
+
+export function formattingLocale(language: string | null | undefined): string {
+  return FORMATTING_LOCALE[language as SupportedLanguage] ?? FORMATTING_LOCALE[DEFAULT_LANGUAGE];
+}
 export const LANGUAGE_STORAGE_KEY = 'settings:language';
 
 const resources = {

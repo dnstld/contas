@@ -24,6 +24,7 @@ export function formatCurrency(
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
+    currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
     signDisplay: options?.signDisplay ?? 'auto',
@@ -56,18 +57,61 @@ export function formatDecimal(
 }
 
 /**
- * The currency's symbol (e.g. `R$`, `$`, `€`). Hermes' `Intl` doesn't ship
- * `formatToParts`, so derive it by formatting 0 with no fraction digits and
- * stripping digits + whitespace (incl. non-breaking).
+ * The currency's symbol (e.g. `R$`, `$`, `€`). Uses the narrow symbol so USD is
+ * `$` (not `US$`) even in locales like pt-BR that disambiguate by default.
+ * Hermes' `Intl` doesn't ship `formatToParts`, so derive it by formatting 0 with
+ * no fraction digits and stripping digits + whitespace (incl. non-breaking).
  */
 export function currencySymbol(currency: string, locale: string): string {
   const formatted = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
+    currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(0);
   return formatted.replace(/[\s\d]/g, '').trim();
+}
+
+export interface CurrencyAffix {
+  /** The currency symbol, e.g. `R$`, `$`, `€`. */
+  symbol: string;
+  /** Where the symbol sits relative to the number for this locale+currency. */
+  position: 'prefix' | 'suffix';
+  /** Whether the locale separates symbol and number with a space. */
+  spaced: boolean;
+}
+
+/**
+ * Describes how the symbol attaches to the number for a given currency+locale,
+ * derived from `Intl` (not hardcoded) so an editable amount field can render
+ * the symbol in the same position/spacing the read-only `formatCurrency` output
+ * uses. This keeps `utils/format` the single source of truth: e.g. en `$` is a
+ * prefix with no space, pt-BR `R$` a prefix with a space, de `R$`/`$` a suffix
+ * with a space (`4,00 R$`). Hermes lacks `formatToParts`, so we inspect the
+ * formatted string directly.
+ */
+export function currencyAffix(currency: string, locale: string): CurrencyAffix {
+  const symbol = currencySymbol(currency, locale);
+  const formatted = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(0);
+  const symbolIndex = formatted.indexOf(symbol);
+  const digitIndex = formatted.search(/\d/);
+  const position: CurrencyAffix['position'] =
+    symbolIndex >= 0 && symbolIndex < digitIndex ? 'prefix' : 'suffix';
+  // A space (regular or non-breaking) separates symbol and number when the
+  // gap between them isn't empty after removing the symbol and digits.
+  const between =
+    position === 'prefix'
+      ? formatted.slice(symbolIndex + symbol.length, digitIndex)
+      : formatted.slice(digitIndex + 1, symbolIndex);
+  const spaced = /\s/.test(between);
+  return { symbol, position, spaced };
 }
 
 export function monthName(
