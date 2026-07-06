@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useDemoMode } from '@/hooks/use-demo-mode';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useAuth } from '@/hooks/use-auth';
-import { walletKeys } from '@/hooks/use-wallet-list';
+import { useWalletList, walletKeys } from '@/hooks/use-wallet-list';
 import { walletMemberKeys } from '@/hooks/use-wallet-members';
 import { outgoingInvitationKeys } from '@/hooks/use-wallet-invitation';
 import { useWallet } from '@/hooks/use-wallet';
@@ -103,4 +103,28 @@ export function useWalletRealtime() {
       supabase.removeChannel(channel);
     };
   }, [userId, walletId, qc]);
+}
+
+/**
+ * Keeps the active wallet valid. When the wallet the user is currently on
+ * disappears from their membership list — e.g. a partner approved its deletion,
+ * or they were removed from another device — the stored `walletId` would
+ * otherwise dangle: the switcher falls back to another wallet's name while the
+ * screen content stays bound to the dead id. Re-resolving fixes both, and
+ * (because the previous wallet is gone) announces where the user lands.
+ *
+ * Only acts on *settled* list data so a stale cache mid-refetch (e.g. right
+ * after accepting an invite) doesn't trigger a spurious re-resolve. Even if it
+ * did, `resolve_default_wallet` honours the still-valid preferred wallet, so the
+ * re-resolve is a no-op with no announcement.
+ */
+export function useActiveWalletReconciler() {
+  const { walletId, refresh } = useWallet();
+  const { data: wallets, isSuccess, isFetching } = useWalletList();
+
+  useEffect(() => {
+    if (!isSuccess || isFetching || !walletId || !wallets) return;
+    if (wallets.some((w) => w.id === walletId)) return; // still a member — nothing to do
+    void refresh({ announce: true });
+  }, [isSuccess, isFetching, wallets, walletId, refresh]);
 }

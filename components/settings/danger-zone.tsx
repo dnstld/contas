@@ -11,7 +11,6 @@ import { useWalletList } from '@/hooks/use-wallet-list';
 import { useLeaveWallet } from '@/hooks/use-leave-wallet';
 import {
   useCancelWalletDeletion,
-  useConfirmWalletDeletion,
   useRequestOrDeleteWallet,
 } from '@/hooks/use-wallet-mutations';
 
@@ -32,17 +31,13 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
   const isLastWallet = wallets.length <= 1;
   const pending = currentWallet?.pendingDeleteRequest ?? null;
   const iAmRequester = pending?.requestedByUserId === currentUserId;
-  const partnerIsRequester = !!pending && !iAmRequester;
 
   const leaveWallet = useLeaveWallet();
   const requestOrDelete = useRequestOrDeleteWallet();
-  const confirmDeletion = useConfirmWalletDeletion();
   const cancelDeletion = useCancelWalletDeletion();
 
   const dangerColor = useThemeColor({}, 'negative');
   const mutedColor = useThemeColor({}, 'textMuted');
-  const surfaceMuted = useThemeColor({}, 'surfaceMuted');
-  const onPrimary = useThemeColor({}, 'onPrimary');
 
   const displayPartner = partnerName ?? t('wallet.partner.unnamed');
 
@@ -100,18 +95,6 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
         ],
       );
     }
-  }
-
-  function handleApprove() {
-    if (!walletId) return;
-    Alert.alert(t('dangerZone.delete.approveTitle'), t('dangerZone.delete.approveMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('dangerZone.delete.approveAction'),
-        style: 'destructive',
-        onPress: () => confirmDeletion.mutate(walletId),
-      },
-    ]);
   }
 
   function handleCancel() {
@@ -297,77 +280,6 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
             </Pressable>
           </View>
         )}
-
-        {/* State: partner requested deletion — awaiting current user's approval */}
-        {partnerIsRequester && (
-          <View style={[styles.approveBlock, { backgroundColor: withAlpha(dangerColor, 0.05) }]}>
-            <Text
-              variant="body"
-              weight="semibold"
-              accessibilityLiveRegion="polite"
-              style={{ color: dangerColor }}
-            >
-              {t('dangerZone.delete.partnerRequestedTitle', { partner: displayPartner })}
-            </Text>
-            <Text variant="caption" tone="textMuted" style={styles.pendingCaption}>
-              {t('dangerZone.delete.partnerRequestedCaption')}
-            </Text>
-
-            <View style={styles.approveActions}>
-              <Pressable
-                onPress={handleApprove}
-                disabled={confirmDeletion.isPending || cancelDeletion.isPending}
-                accessibilityRole="button"
-                accessibilityLabel={t('dangerZone.delete.approveAction')}
-                accessibilityState={{
-                  disabled: confirmDeletion.isPending || cancelDeletion.isPending,
-                  busy: confirmDeletion.isPending,
-                }}
-                style={({ pressed }) => [
-                  styles.approveBtn,
-                  {
-                    backgroundColor: dangerColor,
-                    opacity: pressed || confirmDeletion.isPending ? 0.6 : 1,
-                  },
-                ]}
-              >
-                {confirmDeletion.isPending ? (
-                  <ActivityIndicator size="small" color={onPrimary} />
-                ) : (
-                  <Text variant="body" weight="semibold" style={{ color: onPrimary }}>
-                    {t('dangerZone.delete.approveAction')}
-                  </Text>
-                )}
-              </Pressable>
-
-              <Pressable
-                onPress={handleCancel}
-                disabled={cancelDeletion.isPending || confirmDeletion.isPending}
-                accessibilityRole="button"
-                accessibilityLabel={t('dangerZone.delete.cancelRequest')}
-                accessibilityState={{
-                  disabled: cancelDeletion.isPending || confirmDeletion.isPending,
-                  busy: cancelDeletion.isPending,
-                }}
-                style={({ pressed }) => [
-                  styles.cancelBtn,
-                  {
-                    backgroundColor: surfaceMuted,
-                    opacity: pressed || cancelDeletion.isPending ? 0.6 : 1,
-                  },
-                ]}
-              >
-                {cancelDeletion.isPending ? (
-                  <ActivityIndicator size="small" color={mutedColor} />
-                ) : (
-                  <Text variant="body" weight="medium" style={{ color: mutedColor }}>
-                    {t('dangerZone.delete.cancelRequest')}
-                  </Text>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -420,27 +332,5 @@ const styles = StyleSheet.create({
   },
   pendingCaption: {
     lineHeight: 18,
-  },
-  approveBlock: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 8,
-  },
-  approveActions: {
-    gap: 8,
-    marginTop: 4,
-  },
-  approveBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 13,
-    borderRadius: 12,
-  },
-  cancelBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 13,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
   },
 });

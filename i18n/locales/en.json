@@ -247,6 +247,17 @@
       "declinedToast": "Invitation declined",
       "error": "Something went wrong. Give it another try."
     },
+    "switchedToast": "You are now in \"{{wallet}}\"",
+    "deleteBanner": {
+      "title": "Deletion requested",
+      "body": "{{partner}} wants to delete \"{{wallet}}\". Approving erases all its data for both of you and can't be undone.",
+      "bodyNoPartner": "Someone requested deleting \"{{wallet}}\". Approving erases all its data for both of you and can't be undone.",
+      "approve": "Approve",
+      "dismiss": "Cancel",
+      "approvedToast": "\"{{wallet}}\" deleted",
+      "cancelledToast": "Deletion cancelled",
+      "error": "Something went wrong. Give it another try."
+    },
     "leave": {
       "button": "Leave wallet",
       "disabledCaption": "You are the only member of this wallet.",

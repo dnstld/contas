@@ -247,6 +247,17 @@
       "declinedToast": "Convite recusado",
       "error": "Algo deu errado. Tente de novo."
     },
+    "switchedToast": "Você está agora em \"{{wallet}}\"",
+    "deleteBanner": {
+      "title": "Exclusão solicitada",
+      "body": "{{partner}} quer excluir \"{{wallet}}\". Ao aprovar, todos os dados serão apagados para vocês dois e isso não pode ser desfeito.",
+      "bodyNoPartner": "Alguém solicitou a exclusão de \"{{wallet}}\". Ao aprovar, todos os dados serão apagados para vocês dois e isso não pode ser desfeito.",
+      "approve": "Aprovar",
+      "dismiss": "Cancelar",
+      "approvedToast": "\"{{wallet}}\" excluída",
+      "cancelledToast": "Exclusão cancelada",
+      "error": "Algo deu errado. Tente de novo."
+    },
     "leave": {
       "button": "Sair da carteira",
       "disabledCaption": "Você é o único membro desta carteira.",

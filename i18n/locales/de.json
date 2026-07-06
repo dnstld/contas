@@ -247,6 +247,17 @@
       "declinedToast": "Einladung abgelehnt",
       "error": "Etwas ist schiefgelaufen. Versuch's noch mal."
     },
+    "switchedToast": "Du bist jetzt in \"{{wallet}}\"",
+    "deleteBanner": {
+      "title": "Löschung angefragt",
+      "body": "{{partner}} möchte \"{{wallet}}\" löschen. Wenn du zustimmst, werden alle Daten für euch beide unwiderruflich gelöscht.",
+      "bodyNoPartner": "Jemand hat die Löschung von \"{{wallet}}\" angefragt. Wenn du zustimmst, werden alle Daten für euch beide unwiderruflich gelöscht.",
+      "approve": "Zustimmen",
+      "dismiss": "Abbrechen",
+      "approvedToast": "\"{{wallet}}\" gelöscht",
+      "cancelledToast": "Löschung abgebrochen",
+      "error": "Etwas ist schiefgelaufen. Versuch's noch mal."
+    },
     "leave": {
       "button": "Wallet verlassen",
       "disabledCaption": "Du bist das einzige Mitglied dieses Wallets.",

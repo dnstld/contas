@@ -9,7 +9,11 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ErrorFallback } from '@/components/error-fallback';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useFinanceRealtime, useWalletRealtime } from '@/hooks/use-finance-realtime';
+import {
+  useActiveWalletReconciler,
+  useFinanceRealtime,
+  useWalletRealtime,
+} from '@/hooks/use-finance-realtime';
 import {
   FinanceQueryProvider,
   useAppStateInvalidate,
@@ -31,6 +35,7 @@ function RootStack() {
 
   useFinanceRealtime();
   useWalletRealtime();
+  useActiveWalletReconciler();
   useAppStateInvalidate();
   useClearCacheOnSignOut();
 

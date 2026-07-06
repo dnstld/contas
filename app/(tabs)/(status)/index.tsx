@@ -3,6 +3,7 @@ import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
+import { DeleteRequestBanner } from '@/components/delete-request-banner';
 import { PendingInviteBanner } from '@/components/pending-invite-banner';
 import { WalletSelect } from '@/components/settings/wallet-select';
 import {
@@ -111,6 +112,8 @@ export default function HomeScreen() {
   const header = (
     <View style={styles.headerStack}>
       <PendingInviteBanner />
+
+      <DeleteRequestBanner />
 
       <WalletSelect />
 

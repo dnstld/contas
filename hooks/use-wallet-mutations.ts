@@ -69,7 +69,7 @@ export function useRequestOrDeleteWallet() {
     onSuccess: async (result, targetWalletId) => {
       if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
       if (result === 'deleted' && walletId === targetWalletId) {
-        await refresh();
+        await refresh({ announce: true });
       }
     },
   });
@@ -91,7 +91,7 @@ export function useConfirmWalletDeletion() {
     onSuccess: async (_result, targetWalletId) => {
       if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
       if (walletId === targetWalletId) {
-        await refresh();
+        await refresh({ announce: true });
       }
     },
   });

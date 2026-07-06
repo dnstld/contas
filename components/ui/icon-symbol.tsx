@@ -58,6 +58,7 @@ const MAPPING = {
   eye: 'visibility',
   'eye.slash': 'visibility-off',
   'exclamationmark.triangle.fill': 'warning',
+  trash: 'delete',
   hourglass: 'hourglass-empty',
   'arrow.clockwise': 'refresh',
   'hand.tap': 'touch-app',

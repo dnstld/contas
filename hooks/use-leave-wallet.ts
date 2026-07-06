@@ -26,7 +26,7 @@ export function useLeaveWallet() {
     onSuccess: async () => {
       const userId = session?.user.id;
       if (userId) qc.invalidateQueries({ queryKey: walletKeys.list(userId) });
-      await refresh();
+      await refresh({ announce: true });
     },
   });
 }
