@@ -1,0 +1,420 @@
+{
+  "accessibility": {
+    "state": {
+      "selected": "ausgewählt",
+      "notSelected": "nicht ausgewählt"
+    },
+    "hints": {
+      "viewTransactions": "Öffnet die Transaktionen dieser Kategorie",
+      "filterByMonth": "Filtert nach diesem Monat"
+    },
+    "sort": "Sortieren",
+    "logo": "Spendspacey-Logo"
+  },
+  "common": {
+    "appName": "Spendspacey",
+    "appTagline": "Alltagsausgaben, dein Raum",
+    "add": "Hinzufügen",
+    "cancel": "Abbrechen",
+    "manage": "Verwalten",
+    "back": "Zurück",
+    "done": "Fertig",
+    "loading": "Wird geladen…",
+    "saving": "Wird gespeichert…",
+    "create": "Erstellen",
+    "close": "Schließen",
+    "errors": {
+      "actionFailed": "Ups! Das hat nicht geklappt",
+      "duplicate": "Das gibt es schon.",
+      "relatedDataExists": "Andere Daten hängen davon ab. Entferne sie zuerst.",
+      "missingRequired": "Sieht so aus, als würde etwas fehlen.",
+      "notAllowed": "Dafür hast du keine Berechtigung.",
+      "notFound": "Hm, das konnten wir nicht finden.",
+      "network": "Keine Verbindung! Prüfe dein WLAN und versuch's noch mal.",
+      "cancelled": "Aktion abgebrochen.",
+      "staleTitle": "Zuletzt geladene Daten werden angezeigt",
+      "staleRetry": "Zum erneuten Versuch tippen"
+    }
+  },
+  "comparison": {
+    "moreThan": "mehr als {{label}}",
+    "lessThan": "weniger als {{label}}",
+    "sameAs": "gleich wie {{label}}"
+  },
+  "feedback": {
+    "transactionCreated": "Transaktion hinzugefügt!",
+    "transactionUpdated": "Transaktion aktualisiert",
+    "transactionDeleted": "Transaktion gelöscht.",
+    "categoryCreated": "Kategorie erstellt!",
+    "categoryUpdated": "Kategorie aktualisiert",
+    "categoryDeleted": "Kategorie gelöscht."
+  },
+  "tabs": {
+    "balance": "Übersicht",
+    "transactions": "Transaktionen",
+    "settings": "Dein Konto"
+  },
+  "errorFallback": {
+    "title": "Ups! Da ist etwas schiefgelaufen",
+    "body": "Das sollte nicht passieren. Nochmal versuchen?",
+    "retry": "Nochmal versuchen"
+  },
+  "notFound": {
+    "title": "Diese Seite ist ins All geflogen",
+    "body": "Diesen Bildschirm gibt es hier nicht.",
+    "home": "Zur Startseite"
+  },
+  "balance": {
+    "demoBadge": {
+      "title": "Demo-Modus aktiv",
+      "body": "Angezeigte Werte sind Beispieldaten. Deaktiviere ihn in Dein Konto."
+    },
+    "welcome": {
+      "title": "Willkommen an Bord!",
+      "body": "Behalte dein Geld an einem Ort im Blick und verschaffe dir einen vollständigen Überblick über deine Finanzen."
+    }
+  },
+  "transactions": {
+    "title": "Transaktionen",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "spentMonth": "Ausgegeben diesen Monat",
+    "spentYear": "Ausgegeben dieses Jahr",
+    "incoming": "Eingänge",
+    "countShort_one": "{{count}} Transaktion",
+    "countShort_other": "{{count}} Transaktionen",
+    "createdByYou": "Du",
+    "empty": {
+      "title": "Leer wie das All",
+      "body": "Noch keine Transaktionen in diesem Zeitraum."
+    }
+  },
+  "auth": {
+    "welcome": {
+      "body": "Sieh, wohin dein Geld geht — eine Ausgabe nach der anderen."
+    },
+    "signInWithGoogle": "Mit Google anmelden",
+    "signOut": "Abmelden",
+    "errors": {
+      "title": "Ups! Anmeldung hat nicht geklappt",
+      "generic": "Versuch's gleich noch mal?",
+      "playServices": "Google Play Services ist auf diesem Gerät nicht verfügbar.",
+      "signInRequired": "Bitte melde dich erneut an, um fortzufahren."
+    }
+  },
+  "profile": {
+    "actions": {
+      "editName": "Bearbeiten",
+      "signOut": "Abmelden"
+    },
+    "editName": {
+      "title": "Namen bearbeiten",
+      "nameLabel": "Name",
+      "namePlaceholder": "Dein Name",
+      "save": "Speichern",
+      "saving": "Wird gespeichert…",
+      "cancel": "Abbrechen"
+    }
+  },
+  "settings": {
+    "title": "Konto",
+    "sections": {
+      "display": "Anzeige",
+      "regional": "Sprache & Währung",
+      "account": "Konto",
+      "wallets": "Wallets"
+    },
+    "walletsRow": {
+      "title": "Meine Wallets"
+    },
+    "accountCards": {
+      "add": "Konto hinzufügen",
+      "invitePending": "Ausstehend",
+      "inviteDeclined": "Abgelehnt",
+      "pendingPrompt": "Diese Einladung wartet noch darauf, angenommen zu werden.",
+      "declinedPrompt": "Die Person hat diese Einladung abgelehnt.",
+      "checkStatus": "Status prüfen",
+      "cancelInvite": "Einladung zurückziehen",
+      "reInvite": "Erneut einladen",
+      "dismiss": "Verwerfen",
+      "stillPending": "Wartet noch darauf, dass die Person beitritt."
+    },
+    "walletCards": {
+      "add": "Wallet hinzufügen"
+    },
+    "signOutRow": {
+      "title": "Abmelden",
+      "description": "Beendet deine Sitzung auf diesem Gerät."
+    },
+    "revenueVisible": {
+      "title": "Saldo anzeigen",
+      "description": "Zeigt Eingänge, Ausgaben und Saldo in der Übersicht an.",
+      "descriptionDisabled": "Verfügbar, sobald du deinen ersten Eingang erfasst hast."
+    },
+    "demoMode": {
+      "title": "Demo-Modus",
+      "description": "Ersetzt alle echten Werte durch Beispieldaten."
+    },
+    "languageRow": {
+      "title": "Sprache"
+    },
+    "languages": {
+      "en": "Englisch",
+      "pt-BR": "Portugiesisch (Brasilien)",
+      "de": "Deutsch"
+    },
+    "currencyRow": {
+      "title": "Währung"
+    },
+    "currencies": {
+      "BRL": "Brasilianischer Real (R$)",
+      "USD": "US-Dollar ($)",
+      "EUR": "Euro (€)"
+    }
+  },
+  "overview": {
+    "expenses": "Ausgaben",
+    "revenue": "Eingänge",
+    "balance": "Saldo",
+    "primaryPrefix": "Für",
+    "lastUpdate": "Letzte Aktualisierung: {{date}}",
+    "addFirstTransaction": "Meine erste Transaktion hinzufügen"
+  },
+  "timeFilter": {
+    "fullYear": "Ganzes Jahr"
+  },
+  "create": {
+    "title": "Neue Transaktion",
+    "close": "Schließen",
+    "types": {
+      "expense": "Ausgabe",
+      "income": "Einnahme"
+    },
+    "amountPlaceholder": "Betrag",
+    "dateLabel": "Datum",
+    "descriptionLabel": "Beschreibung",
+    "descriptionPlaceholder": "z. B. Flugticket",
+    "descriptionCaption": "Erscheint in den Transaktionen",
+    "descriptionCounter": "{{count}}/100",
+    "save": "Speichern",
+    "error": "Ups! Das hat nicht gespeichert. Nochmal versuchen?",
+    "duplicateWarning": {
+      "title": "Mögliches Duplikat",
+      "body_one": "Du hast bereits eine Transaktion mit demselben Datum, Betrag und derselben Kategorie.",
+      "body_other": "Du hast bereits {{count}} Transaktionen mit demselben Datum, Betrag und derselben Kategorie.",
+      "saveAnyway": "Trotzdem speichern",
+      "cancel": "Abbrechen"
+    }
+  },
+  "edit": {
+    "title": "Transaktion bearbeiten",
+    "save": "Änderungen speichern",
+    "delete": "Löschen",
+    "updateError": "Ups! Das ließ sich nicht aktualisieren. Nochmal versuchen?",
+    "deleteError": "Ups! Das ließ sich nicht entfernen. Nochmal versuchen?",
+    "demoReadOnly": "Der Demo-Modus ist nur zum Reinschnuppern. Deaktiviere ihn in Dein Konto, um echte Änderungen vorzunehmen.",
+    "deleteConfirmTitle": "Diese Transaktion löschen?",
+    "deleteConfirmMessage": "Sie wird aus deinen Aufzeichnungen entfernt. Das kann nicht rückgängig gemacht werden.",
+    "deleteConfirmAction": "Löschen",
+    "deleteConfirmCancel": "Abbrechen"
+  },
+  "wallet": {
+    "partner": {
+      "unnamed": "Geteilt mit"
+    },
+    "invitation": {
+      "sectionTitle": "Mit jemandem teilen",
+      "description": "Lade jemanden per E-Mail ein. Wenn die Person {{app}} das nächste Mal öffnet, sieht sie deine Einladung und kann diesem Wallet beitreten.",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "E-Mail-Adresse der Person",
+      "sendButton": "Einladung senden",
+      "sending": "Wird gesendet…",
+      "sentToast": "Einladung an {{email}} gesendet!",
+      "errorInvalidEmail": "Das sieht nicht nach einer E-Mail-Adresse aus. Versuch's noch mal.",
+      "errorSelf": "Das ist deine eigene E-Mail-Adresse — lade jemand anderen ein.",
+      "errorAlreadyMember": "Diese Person ist bereits in diesem Wallet.",
+      "errorLimit": "Du hast das Limit von {{count}} Einladungen für dieses Wallet erreicht.",
+      "error": "Die Einladung konnte nicht gesendet werden. Versuch's noch mal.",
+      "freeTierLimit": "Du hast das Limit von {{count}} Einladungen erreicht"
+    },
+    "inviteBanner": {
+      "title": "Du wurdest eingeladen",
+      "body": "{{inviter}} hat dich eingeladen, \"{{wallet}}\" zu teilen.",
+      "bodyNoInviter": "Du wurdest eingeladen, \"{{wallet}}\" zu teilen.",
+      "accept": "Beitreten",
+      "decline": "Ablehnen",
+      "acceptedToast": "Du bist {{wallet}} beigetreten!",
+      "declinedToast": "Einladung abgelehnt",
+      "error": "Etwas ist schiefgelaufen. Versuch's noch mal."
+    },
+    "leave": {
+      "button": "Wallet verlassen",
+      "disabledCaption": "Du bist das einzige Mitglied dieses Wallets.",
+      "confirmTitle": "Wallet verlassen?",
+      "confirmBody": "Die andere Person behält den Zugriff. Du bekommst ein neues, persönliches Wallet.",
+      "confirmLeave": "Verlassen",
+      "confirmCancel": "Abbrechen",
+      "errorToast": "Etwas ist schiefgelaufen. Versuch's noch mal."
+    }
+  },
+  "dangerZone": {
+    "title": "Erweitert",
+    "leave": {
+      "title": "Wallet verlassen",
+      "description": "Entfernt dich. Die andere Person behält alle Daten.",
+      "soloCaption": "Nur verfügbar, wenn du dieses Wallet teilst.",
+      "button": "Verlassen"
+    },
+    "delete": {
+      "title": "Wallet löschen",
+      "soloDescription": "Löscht alle Daten des Wallets dauerhaft.",
+      "partnerDescription": "Benötigt die Zustimmung von {{partner}}, bevor es gelöscht wird.",
+      "lastWalletDescription": "Mindestens 1 Wallet ist erforderlich. Erstelle zuerst ein weiteres, um dieses hier löschen zu können.",
+      "button": "Löschen",
+      "soloTitle": "Wallet löschen?",
+      "soloMessage": "Dadurch werden das Wallet und alle seine Daten dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+      "partnerTitle": "Löschung anfragen?",
+      "partnerMessage": "{{partner}} erhält eine Löschanfrage und muss zustimmen, bevor irgendetwas gelöscht wird.",
+      "confirmAction": "Löschen",
+      "requestAction": "Anfrage senden",
+      "waitingBadge": "Ausstehend",
+      "waitingCaption": "Wartet auf die Zustimmung von {{partner}}. Du kannst jederzeit abbrechen.",
+      "cancelRequest": "Anfrage abbrechen",
+      "partnerRequestedTitle": "{{partner}} möchte dieses Wallet löschen",
+      "partnerRequestedCaption": "Sobald du zustimmst, werden alle Daten dauerhaft gelöscht und können nicht wiederhergestellt werden.",
+      "approveTitle": "Löschung bestätigen?",
+      "approveMessage": "Dadurch werden das Wallet und alle Daten für euch beide dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+      "approveAction": "Ja, Wallet löschen"
+    }
+  },
+  "wallets": {
+    "modalTitle": "Meine Wallets",
+    "createTitle": "Wallet erstellen",
+    "editTitle": "Wallet bearbeiten",
+    "saveButton": "Speichern",
+    "actions": {
+      "edit": "Namen bearbeiten",
+      "leave": "Wallet verlassen",
+      "delete": "Wallet löschen"
+    },
+    "addCard": {
+      "sectionTitle": "Wallet hinzufügen",
+      "description": "Erstelle ein eigenes Wallet oder tritt über eine Einladung einem geteilten bei.",
+      "createButton": "Erstellen",
+      "redeemButton": "Ich habe eine Einladung erhalten"
+    },
+    "nameLabel": "Name",
+    "namePlaceholder": "Name des Wallets",
+    "freeTierLimit": "Du hast das Limit von {{count}} Wallets erreicht",
+    "activeLabel": "Aktiv",
+    "switchButton": "Wechseln",
+    "members_one": "{{count}} Mitglied",
+    "members_other": "{{count}} Mitglieder",
+    "pendingDeleteOwner": "Wartet darauf, dass die andere Person die Löschung bestätigt.",
+    "pendingDeleteOther": "Die andere Person möchte dieses Wallet löschen.",
+    "confirmDeleteButton": "Bestätigen",
+    "cancelDeleteButton": "Abbrechen",
+    "deleteConfirmTitle": "Wallet löschen",
+    "deleteConfirmMessage": "Dadurch werden das Wallet und alle seine Daten dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+    "deleteConfirmAction": "Löschen",
+    "deleteRequestTitle": "Löschung anfragen",
+    "deleteRequestMessage": "Die andere Person muss zustimmen, bevor das Wallet gelöscht wird.",
+    "deleteRequestAction": "Anfrage senden"
+  },
+  "category": {
+    "create": {
+      "chipLabel": "+ Hinzufügen",
+      "chipLabelCategory": "+ Kategorie",
+      "title": "Neue Kategorie",
+      "nameLabel": "Name",
+      "namePlaceholder": "Name der Kategorie eingeben",
+      "budgetLabel": "Monatliches Ziel",
+      "budgetCaption": "Lege ein monatliches Ziel fest, damit du immer weißt, wie viel Spielraum dir noch bleibt.",
+      "createButton": "Erstellen",
+      "creating": "Wird erstellt…",
+      "cancel": "Abbrechen",
+      "suggestions": {
+        "expense": {
+          "groceries": "Lebensmittel",
+          "rent": "Miete",
+          "pharmacy": "Apotheke",
+          "transport": "Transport"
+        },
+        "income": {
+          "salary": "Gehalt",
+          "freelance": "Freelance",
+          "investments": "Investitionen"
+        }
+      }
+    },
+    "edit": {
+      "title": "Kategorie bearbeiten",
+      "saveButton": "Speichern",
+      "saving": "Wird gespeichert…",
+      "delete": "Löschen",
+      "deleting": "Wird gelöscht…",
+      "deleteConfirmTitle": "Diese Kategorie löschen?",
+      "deleteConfirmMessage": "Das kann nicht rückgängig gemacht werden.",
+      "deleteConfirmAction": "Löschen",
+      "deleteConfirmCancel": "Abbrechen",
+      "hasTransactions_one": "Diese Kategorie hat {{count}} Transaktion. Entferne oder ordne sie zuerst neu zu.",
+      "hasTransactions_other": "Diese Kategorie hat {{count}} Transaktionen. Entferne oder ordne sie zuerst neu zu."
+    },
+    "pressAndHoldHint": "Zum Bearbeiten gedrückt halten",
+    "filter": {
+      "all": "Alle"
+    },
+    "transactionCount_one": "{{count}} Transaktion",
+    "transactionCount_other": "{{count}} Transaktionen",
+    "selectedCount_one": "{{count}} ausgewählt",
+    "selectedCount_other": "{{count}} ausgewählt",
+    "noActivity": "Keine Aktivität in diesem Zeitraum",
+    "exampleBadge": "Beispiel",
+    "goalOf": "von {{value}}",
+    "perYear": "pro Jahr",
+    "perMonth": "pro Monat",
+    "detail": {
+      "empty": {
+        "title": "Noch nichts hier",
+        "body": "Keine Transaktionen in dieser Kategorie für den ausgewählten Zeitraum."
+      }
+    },
+    "section": {
+      "expenses": "Wohin es geht",
+      "expensesEmpty": "Wohin dein Geld geht",
+      "income": "Woher es kommt"
+    },
+    "sort": {
+      "label": "Sortieren nach",
+      "highestExpense": "Höchste Ausgabe",
+      "mostUsed": "Am häufigsten genutzt",
+      "income": "Höchste Einnahme"
+    },
+    "gridEmpty": {
+      "expense": {
+        "title": "Noch keine Ausgabenkategorien",
+        "body": "Erstelle deine erste und beginne, deine Ausgaben zu organisieren."
+      },
+      "income": {
+        "title": "Noch keine Einnahmenkategorien",
+        "body": "Erstelle deine erste und sieh, woher dein Geld kommt."
+      }
+    }
+  },
+  "categorySelect": {
+    "title": "Kategorie auswählen",
+    "placeholder": "Kategorie auswählen",
+    "searchPlaceholder": "Name der Kategorie",
+    "groups": {
+      "mostUsed": "Am häufigsten genutzt",
+      "all": "Alle Kategorien"
+    },
+    "createNamed": "„{{name}}“ erstellen",
+    "createAndSelect": "Erstellen & auswählen",
+    "suggestions": {
+      "section": "Vorschläge",
+      "expense": "Lebensmittel, Apotheke, Miete",
+      "income": "Gehalt, Investitionen, Freelance"
+    }
+  }
+}

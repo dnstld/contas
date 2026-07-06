@@ -24,13 +24,13 @@
     "create": "Criar",
     "close": "Fechar",
     "errors": {
-      "actionFailed": "Algo não deu certo",
+      "actionFailed": "Ops! Algo não deu certo",
       "duplicate": "Isso já existe.",
       "relatedDataExists": "Outros dados dependem disso. Remova-os antes.",
-      "missingRequired": "Faltam informações obrigatórias.",
+      "missingRequired": "Faltou preencher algo aqui.",
       "notAllowed": "Você não tem permissão para isso.",
-      "notFound": "Não encontramos o que você procurava.",
-      "network": "Problema de conexão. Verifique sua internet e tente de novo.",
+      "notFound": "Hmm, não encontramos isso.",
+      "network": "Sem conexão! Dá uma olhada no seu Wi-Fi e tenta de novo.",
       "cancelled": "Ação cancelada.",
       "staleTitle": "Mostrando os últimos dados carregados",
       "staleRetry": "Toque para tentar novamente"
@@ -42,26 +42,26 @@
     "sameAs": "igual a {{label}}"
   },
   "feedback": {
-    "transactionCreated": "Transação adicionada",
+    "transactionCreated": "Transação lançada!",
     "transactionUpdated": "Transação atualizada",
-    "transactionDeleted": "Transação removida",
-    "categoryCreated": "Categoria criada",
+    "transactionDeleted": "Transação removida.",
+    "categoryCreated": "Categoria criada!",
     "categoryUpdated": "Categoria atualizada",
-    "categoryDeleted": "Categoria removida"
+    "categoryDeleted": "Categoria removida."
   },
   "tabs": {
-    "balance": "Balanço",
+    "balance": "Resumo",
     "transactions": "Transações",
     "settings": "Sua conta"
   },
   "errorFallback": {
-    "title": "Algo deu errado",
-    "body": "Algo inesperado aconteceu. Tente novamente.",
-    "retry": "Tentar novamente"
+    "title": "Ops! Algo deu errado",
+    "body": "Isso não era pra acontecer. Vamos tentar de novo?",
+    "retry": "Tentar de novo"
   },
   "notFound": {
-    "title": "Página não encontrada",
-    "body": "Esta tela não existe.",
+    "title": "Essa página foi pro espaço",
+    "body": "Não existe essa tela por aqui.",
     "home": "Ir para o início"
   },
   "balance": {
@@ -70,7 +70,7 @@
       "body": "Os valores exibidos são dados de exemplo. Desative em Sua conta."
     },
     "welcome": {
-      "title": "Boas-vindas! 👋",
+      "title": "Bem-vindo a bordo!",
       "body": "Acompanhe seu dinheiro em um só lugar e tenha uma visão completa das suas finanças."
     }
   },
@@ -85,21 +85,21 @@
     "countShort_other": "{{count}} transações",
     "createdByYou": "Você",
     "empty": {
-      "title": "Nada aqui",
-      "body": "Nenhum registro neste período."
+      "title": "Vazio como o espaço",
+      "body": "Nenhuma transação neste período — ainda."
     }
   },
   "auth": {
     "welcome": {
-      "body": "Veja para onde seu dinheiro vai, um gasto de cada vez."
+      "body": "Veja para onde seu dinheiro vai — um gasto de cada vez."
     },
     "signInWithGoogle": "Entrar com o Google",
     "signOut": "Sair",
     "errors": {
-      "title": "Falha ao entrar",
-      "generic": "Não foi possível entrar. Tente novamente.",
+      "title": "Ops! Não deu para entrar",
+      "generic": "Tenta de novo em instantes?",
       "playServices": "O Google Play Services não está disponível neste dispositivo.",
-      "signInRequired": "Entre novamente para continuar."
+      "signInRequired": "Entre de novo para continuar."
     }
   },
   "profile": {
@@ -160,7 +160,8 @@
     },
     "languages": {
       "en": "Inglês",
-      "pt-BR": "Português (Brasil)"
+      "pt-BR": "Português (Brasil)",
+      "de": "Alemão"
     },
     "currencyRow": {
       "title": "Moeda"
@@ -177,7 +178,7 @@
     "balance": "Saldo",
     "primaryPrefix": "Para",
     "lastUpdate": "Última atualização: {{date}}",
-    "addFirstTransaction": "Adicione sua primeira transação"
+    "addFirstTransaction": "Registrar minha primeira transação"
   },
   "timeFilter": {
     "fullYear": "Ano todo"
@@ -196,7 +197,7 @@
     "descriptionCaption": "Aparece nas transações",
     "descriptionCounter": "{{count}}/100",
     "save": "Salvar",
-    "error": "Algo não salvou. Tente de novo.",
+    "error": "Ops! Isso não salvou. Tenta de novo?",
     "duplicateWarning": {
       "title": "Possível duplicata",
       "body_one": "Você já tem uma transação com a mesma data, valor e categoria.",
@@ -209,9 +210,9 @@
     "title": "Editar transação",
     "save": "Salvar alterações",
     "delete": "Excluir",
-    "updateError": "Não foi possível atualizar. Tente de novo.",
-    "deleteError": "Não foi possível remover. Tente de novo.",
-    "demoReadOnly": "O modo demo é somente leitura. Desative em Sua conta para fazer alterações.",
+    "updateError": "Ops! Não foi possível atualizar. Tenta de novo?",
+    "deleteError": "Ops! Não foi possível remover. Tenta de novo?",
+    "demoReadOnly": "O modo demo é só para espiar. Desative em Sua conta para fazer alterações de verdade.",
     "deleteConfirmTitle": "Excluir esta transação?",
     "deleteConfirmMessage": "Ela vai sair dos seus registros. Não dá pra desfazer.",
     "deleteConfirmAction": "Excluir",
@@ -228,7 +229,7 @@
       "emailPlaceholder": "E-mail da pessoa",
       "sendButton": "Enviar convite",
       "sending": "Enviando…",
-      "sentToast": "Convite enviado para {{email}}",
+      "sentToast": "Convite enviado para {{email}}!",
       "errorInvalidEmail": "Isso não parece um e-mail. Tente de novo.",
       "errorSelf": "Esse é o seu próprio e-mail — convide outra pessoa.",
       "errorAlreadyMember": "Essa pessoa já está nesta carteira.",
@@ -242,7 +243,7 @@
       "bodyNoInviter": "Você foi convidado para dividir \"{{wallet}}\".",
       "accept": "Entrar",
       "decline": "Recusar",
-      "acceptedToast": "Você entrou em {{wallet}}",
+      "acceptedToast": "Você entrou em {{wallet}}!",
       "declinedToast": "Convite recusado",
       "error": "Algo deu errado. Tente de novo."
     },
@@ -374,7 +375,7 @@
     "perMonth": "por mês",
     "detail": {
       "empty": {
-        "title": "Nenhuma transação",
+        "title": "Nada por aqui... ainda",
         "body": "Sem transações nesta categoria no período selecionado."
       }
     },
@@ -391,12 +392,12 @@
     },
     "gridEmpty": {
       "expense": {
-        "title": "Nenhuma categoria de despesa",
-        "body": "Crie uma categoria para começar a organizar seus gastos."
+        "title": "Ainda sem categorias de despesa",
+        "body": "Crie a primeira e comece a organizar seus gastos."
       },
       "income": {
-        "title": "Nenhuma categoria de receita",
-        "body": "Crie uma categoria de receita para acompanhar o que entra."
+        "title": "Ainda sem categorias de receita",
+        "body": "Crie a primeira e veja de onde vem seu dinheiro."
       }
     }
   },

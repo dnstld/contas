@@ -3,6 +3,7 @@ import { initReactI18next } from 'react-i18next';
 
 import { getKVStore } from '@/utils/kv-store';
 
+import de from './locales/de.json';
 import en from './locales/en.json';
 import ptBR from './locales/pt-BR.json';
 
@@ -21,7 +22,7 @@ export function getDeviceLanguageTag(): string | null {
   }
 }
 
-export const SUPPORTED_LANGUAGES = ['en', 'pt-BR'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'pt-BR', 'de'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
 export const LANGUAGE_STORAGE_KEY = 'settings:language';
@@ -29,6 +30,7 @@ export const LANGUAGE_STORAGE_KEY = 'settings:language';
 const resources = {
   en: { translation: en },
   'pt-BR': { translation: ptBR },
+  de: { translation: de },
 } as const;
 
 export function isSupportedLanguage(tag: string | null | undefined): tag is SupportedLanguage {

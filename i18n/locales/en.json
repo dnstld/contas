@@ -24,13 +24,13 @@
     "create": "Create",
     "close": "Close",
     "errors": {
-      "actionFailed": "Something didn't go through",
+      "actionFailed": "Oops! Something didn't go through",
       "duplicate": "That already exists.",
       "relatedDataExists": "Other data depends on this. Remove it first.",
-      "missingRequired": "Some required information is missing.",
+      "missingRequired": "Looks like something's missing.",
       "notAllowed": "You don't have permission to do that.",
-      "notFound": "We couldn't find what you were looking for.",
-      "network": "Connection problem. Check your internet and try again.",
+      "notFound": "Hmm, we couldn't find that.",
+      "network": "No connection! Check your Wi-Fi and try again.",
       "cancelled": "Action cancelled.",
       "staleTitle": "Showing last loaded data",
       "staleRetry": "Tap to retry"
@@ -42,12 +42,12 @@
     "sameAs": "same as {{label}}"
   },
   "feedback": {
-    "transactionCreated": "Transaction added",
+    "transactionCreated": "Transaction added!",
     "transactionUpdated": "Transaction updated",
-    "transactionDeleted": "Transaction deleted",
-    "categoryCreated": "Category created",
+    "transactionDeleted": "Transaction deleted.",
+    "categoryCreated": "Category created!",
     "categoryUpdated": "Category updated",
-    "categoryDeleted": "Category deleted"
+    "categoryDeleted": "Category deleted."
   },
   "tabs": {
     "balance": "Overview",
@@ -55,13 +55,13 @@
     "settings": "Your account"
   },
   "errorFallback": {
-    "title": "Something went wrong",
-    "body": "Something unexpected happened. Try again.",
+    "title": "Oops! Something went wrong",
+    "body": "That wasn't supposed to happen. Want to try again?",
     "retry": "Try again"
   },
   "notFound": {
-    "title": "Page not found",
-    "body": "This screen doesn't exist.",
+    "title": "This page flew into space",
+    "body": "There's no screen here.",
     "home": "Go to home"
   },
   "balance": {
@@ -70,7 +70,7 @@
       "body": "Displayed values are sample data. Disable in Your account."
     },
     "welcome": {
-      "title": "Welcome! 👋",
+      "title": "Welcome aboard!",
       "body": "Track your money in one place and get a complete overview of your finances."
     }
   },
@@ -85,19 +85,19 @@
     "countShort_other": "{{count}} transactions",
     "createdByYou": "You",
     "empty": {
-      "title": "Nothing here",
-      "body": "Nothing logged in this period."
+      "title": "Empty as space",
+      "body": "No transactions in this period — yet."
     }
   },
   "auth": {
     "welcome": {
-      "body": "See where your money goes, one expense at a time."
+      "body": "See where your money goes — one expense at a time."
     },
     "signInWithGoogle": "Sign in with Google",
     "signOut": "Sign out",
     "errors": {
-      "title": "Sign-in failed",
-      "generic": "Could not sign in. Please try again.",
+      "title": "Oops! Couldn't sign you in",
+      "generic": "Mind trying again in a bit?",
       "playServices": "Google Play Services is unavailable on this device.",
       "signInRequired": "Please sign in again to continue."
     }
@@ -160,7 +160,8 @@
     },
     "languages": {
       "en": "English",
-      "pt-BR": "Portuguese (Brazil)"
+      "pt-BR": "Portuguese (Brazil)",
+      "de": "German"
     },
     "currencyRow": {
       "title": "Currency"
@@ -177,7 +178,7 @@
     "balance": "Balance",
     "primaryPrefix": "For",
     "lastUpdate": "Last update: {{date}}",
-    "addFirstTransaction": "Add your first transaction"
+    "addFirstTransaction": "Add my first transaction"
   },
   "timeFilter": {
     "fullYear": "Full year"
@@ -196,7 +197,7 @@
     "descriptionCaption": "Appears in transactions",
     "descriptionCounter": "{{count}}/100",
     "save": "Save",
-    "error": "Something didn't save. Give it another try.",
+    "error": "Oops! That didn't save. Want to try again?",
     "duplicateWarning": {
       "title": "Possible duplicate",
       "body_one": "You already have a transaction with the same date, amount, and category.",
@@ -209,9 +210,9 @@
     "title": "Edit Transaction",
     "save": "Save changes",
     "delete": "Delete",
-    "updateError": "Couldn't update this. Give it another try.",
-    "deleteError": "Couldn't remove this. Give it another try.",
-    "demoReadOnly": "Demo mode is read-only. Turn it off in Your account to make changes.",
+    "updateError": "Oops! Couldn't update that. Want to try again?",
+    "deleteError": "Oops! Couldn't remove that. Want to try again?",
+    "demoReadOnly": "Demo mode is just for peeking. Turn it off in Your account to make real changes.",
     "deleteConfirmTitle": "Delete this transaction?",
     "deleteConfirmMessage": "It'll be removed from your records. This can't be undone.",
     "deleteConfirmAction": "Delete",
@@ -228,7 +229,7 @@
       "emailPlaceholder": "Their email address",
       "sendButton": "Send invite",
       "sending": "Sending…",
-      "sentToast": "Invitation sent to {{email}}",
+      "sentToast": "Invitation sent to {{email}}!",
       "errorInvalidEmail": "That doesn't look like an email. Give it another try.",
       "errorSelf": "That's your own email — invite someone else.",
       "errorAlreadyMember": "They're already in this wallet.",
@@ -242,7 +243,7 @@
       "bodyNoInviter": "You've been invited to share \"{{wallet}}\".",
       "accept": "Join",
       "decline": "Decline",
-      "acceptedToast": "You joined {{wallet}}",
+      "acceptedToast": "You joined {{wallet}}!",
       "declinedToast": "Invitation declined",
       "error": "Something went wrong. Give it another try."
     },
@@ -374,7 +375,7 @@
     "perMonth": "per month",
     "detail": {
       "empty": {
-        "title": "No transactions",
+        "title": "Nothing here... yet",
         "body": "No transactions in this category for the selected period."
       }
     },
@@ -391,12 +392,12 @@
     },
     "gridEmpty": {
       "expense": {
-        "title": "No expense categories",
-        "body": "Create a category to start organizing your spending."
+        "title": "No expense categories yet",
+        "body": "Create your first one and start organizing your spending."
       },
       "income": {
-        "title": "No income categories",
-        "body": "Create an income category to track what comes in."
+        "title": "No income categories yet",
+        "body": "Create your first one and see where your money comes from."
       }
     }
   },
