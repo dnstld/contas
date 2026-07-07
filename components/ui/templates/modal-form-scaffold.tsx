@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
@@ -15,12 +16,21 @@ export interface ModalFormScaffoldProps {
 }
 
 /**
+ * Breathing room kept between the focused field and the top of the footer.
+ * Sized to clear the field plus any helper row beneath it (e.g. the description
+ * character counter), so both stay visible while typing.
+ */
+const FOCUS_GAP = 48;
+
+/**
  * Shared layout for every text-input modal: a keyboard-aware scrolling body
  * with a sticky footer that keeps the CTA(s) above the keyboard.
  *
- * `KeyboardAwareScrollView` scrolls the focused field into view, so screens no
- * longer need the manual `useHeaderHeight()` / `keyboardVerticalOffset` dance
- * the old `KeyboardAvoidingView` required.
+ * `KeyboardAwareScrollView` scrolls the focused field to `bottomOffset` above the
+ * keyboard. Because the footer floats over the keyboard (a separate
+ * `KeyboardStickyView`), the offset has to include the footer's height — otherwise
+ * a focused field lands behind the CTA. We measure the footer and feed its overlap
+ * into `bottomOffset` so the field always clears both the footer and the keyboard.
  */
 export function ModalFormScaffold({
   children,
@@ -28,6 +38,7 @@ export function ModalFormScaffold({
   contentContainerStyle,
 }: ModalFormScaffoldProps) {
   const backgroundColor = useThemeColor({}, 'modalBackground');
+  const [footerOverlap, setFooterOverlap] = useState(0);
 
   return (
     <View style={[styles.root, { backgroundColor }]}>
@@ -36,11 +47,11 @@ export function ModalFormScaffold({
         contentContainerStyle={[styles.content, contentContainerStyle]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        bottomOffset={24}
+        bottomOffset={footerOverlap + FOCUS_GAP}
       >
         {children}
       </KeyboardAwareScrollView>
-      <StickyFooter>{footer}</StickyFooter>
+      <StickyFooter onOverlapChange={setFooterOverlap}>{footer}</StickyFooter>
     </View>
   );
 }

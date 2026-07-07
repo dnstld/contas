@@ -73,7 +73,7 @@ Row only renders when: has a partner **and** you have another wallet
 - [ ] B: **lands on the Overview screen** with top notification **"You are now in {WalletName}"** (see gap note under flow 8 — same limitation applies here).
 - [ ] A (realtime): B disappears from members; wallet is solo again.
 - [ ] On error: toast **"Something went wrong. Give it another try."**
-- [ ] **Negative:** solo wallet → no Leave row. Shared wallet that is your *only* wallet → no Leave row.
+- [ ] **Negative:** solo wallet → no Leave row. Shared wallet that is your _only_ wallet → no Leave row.
 
 ---
 
@@ -96,7 +96,7 @@ Subtitle **"Permanently deletes all wallet data."**
 > (`wallet.switchedToast`). Expect this on the **acting** device.
 >
 > ✅ **Also covered — the other device (realtime):** when one member approves a
-> deletion, the *other* member's device is moved off the deleted wallet by
+> deletion, the _other_ member's device is moved off the deleted wallet by
 > `useActiveWalletReconciler`: once the wallet drops out of the settled
 > membership list, it re-resolves to a valid wallet, navigates to Overview, and
 > shows the **"You are now in "{WalletName}""** toast. This fixes the stale-content

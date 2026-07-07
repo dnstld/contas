@@ -11,11 +11,7 @@ import { Skeleton } from '@/components/ui/atoms/skeleton';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import { txDate } from '@/data/finance-types';
-import {
-  isDemoModeReadOnlyError,
-  useDeleteTransaction,
-  useUpdateTransaction,
-} from '@/hooks/use-finance-mutations';
+import { useDeleteTransaction, useUpdateTransaction } from '@/hooks/use-finance-mutations';
 import { useTransaction } from '@/hooks/use-finance-queries';
 import { toQueryView } from '@/hooks/use-query-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -99,13 +95,9 @@ export default function EditScreen() {
             toast.success(t('feedback.transactionUpdated'));
             router.back();
           } catch (e) {
-            if (isDemoModeReadOnlyError(e)) {
-              setErrorMessage(t('edit.demoReadOnly'));
-            } else {
-              // Use the localized Supabase-error key, not raw error.message —
-              // raw messages leak schema details and are always English.
-              setErrorMessage(t(mapSupabaseErrorKey(e)));
-            }
+            // Use the localized Supabase-error key, not raw error.message —
+            // raw messages leak schema details and are always English.
+            setErrorMessage(t(mapSupabaseErrorKey(e)));
           }
         }}
         onDelete={() => {
@@ -121,11 +113,7 @@ export default function EditScreen() {
                   toast.success(t('feedback.transactionDeleted'));
                   router.back();
                 } catch (e) {
-                  if (isDemoModeReadOnlyError(e)) {
-                    setErrorMessage(t('edit.demoReadOnly'));
-                  } else {
-                    setErrorMessage(t(mapSupabaseErrorKey(e)));
-                  }
+                  setErrorMessage(t(mapSupabaseErrorKey(e)));
                 }
               },
             },

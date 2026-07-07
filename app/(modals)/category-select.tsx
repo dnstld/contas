@@ -13,7 +13,6 @@ import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold
 import { Fonts } from '@/constants/theme';
 import { rankCategoriesByUsage } from '@/data/finance-aggregations';
 import type { Category, TransactionType } from '@/data/finance-types';
-import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCreateCategory } from '@/hooks/use-finance-mutations';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
@@ -41,7 +40,6 @@ export default function CategorySelectScreen() {
 
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
-  const { enabled: demoMode } = useDemoMode();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
 
   const [mode, setMode] = useState<'list' | 'create'>('list');
@@ -126,7 +124,7 @@ export default function CategorySelectScreen() {
 
   const handleCreate = () => {
     const trimmed = name.trim();
-    if (!trimmed || isCreating || demoMode) return;
+    if (!trimmed || isCreating) return;
     createCategory(
       {
         name: trimmed,
@@ -144,7 +142,7 @@ export default function CategorySelectScreen() {
   };
 
   if (mode === 'create') {
-    const canCreate = name.trim().length > 0 && !isCreating && !demoMode;
+    const canCreate = name.trim().length > 0 && !isCreating;
     return (
       <>
         <Stack.Screen
@@ -193,7 +191,7 @@ export default function CategorySelectScreen() {
       <Stack.Screen options={{ headerTitle: t('categorySelect.title') }} />
       <View style={styles.listHeader}>
         <View style={[styles.search, { backgroundColor: inputBackground }]}>
-          <Icon name="magnifyingglass" size={16} tone="textMuted" />
+          <Icon name="plus" size={16} tone="textMuted" />
           <TextInput
             value={query}
             onChangeText={setQuery}

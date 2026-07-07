@@ -7,7 +7,7 @@
 // in the app via `useFreeTierLimits()`. Keeping a copy here would let them
 // drift out of sync.
 
-export const TRANSACTION_DESCRIPTION_MAX_LENGTH = 100;
+export const TRANSACTION_DESCRIPTION_MAX_LENGTH = 50;
 
 export const CATEGORY_NAME_MAX_LENGTH = 50;
 

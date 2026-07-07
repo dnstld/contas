@@ -10,6 +10,9 @@ function getBurnt(): Burnt | null {
     return null;
   }
   try {
+    // Lazy require after the native-module probe above; a static import would
+    // load the module unconditionally and throw when it isn't installed.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     cached = require('burnt') as Burnt;
   } catch {
     cached = null;

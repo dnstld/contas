@@ -20,12 +20,11 @@ export interface UseFinanceDashboardResult extends DashboardData {
   isLoading: boolean;
   isError: boolean;
   error: unknown;
-  isDemo: boolean;
   refetch: () => Promise<void>;
 }
 
 export function useFinanceDashboard(filter: TimeFilterState, now: Date): UseFinanceDashboardResult {
-  const { data, isLoading, isError, error, isDemo, currency, refetch } = useFinance();
+  const { data, isLoading, isError, error, currency, refetch } = useFinance();
   const { i18n } = useTranslation();
   const locale = formattingLocale(i18n.language);
   const dashboard = useMemo(
@@ -33,5 +32,5 @@ export function useFinanceDashboard(filter: TimeFilterState, now: Date): UseFina
     [data, filter, now, locale],
   );
 
-  return { data, currency, isLoading, isError, error, isDemo, refetch, ...dashboard };
+  return { data, currency, isLoading, isError, error, refetch, ...dashboard };
 }

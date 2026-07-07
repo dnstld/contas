@@ -186,12 +186,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!userId) {
+      // On sign-out, synchronously clear wallet state so no stale wallet leaks
+      // into the next session. This reset-on-dependency-change is the intended
+      // use of a synchronous setState in an effect.
+      /* eslint-disable react-hooks/set-state-in-effect */
       requestRef.current++;
       setWalletId(null);
       setName(null);
       setCurrencyState(DEFAULT_CURRENCY);
       setShowRevenueState(null);
       setError(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
       return;
     }
     resolve(userId);

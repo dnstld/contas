@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Badge } from '@/components/ui/atoms/badge';
 import { Chip } from '@/components/ui/atoms/chip';
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
@@ -22,6 +23,11 @@ export interface CategoryPickerProps {
   createLabel?: string;
   /** Long-press handler. When provided, a "press and hold to edit" hint is shown. */
   onEdit?: (id: string) => void;
+  /**
+   * Compact summary of the current selection (e.g. "2 selected · R$X in July"),
+   * shown as a pill beside the title. Only rendered in multi mode.
+   */
+  summaryLabel?: string | null;
 }
 
 export function CategoryPicker({
@@ -33,6 +39,7 @@ export function CategoryPicker({
   onCreate,
   createLabel,
   onEdit,
+  summaryLabel,
 }: CategoryPickerProps) {
   const { t } = useTranslation();
 
@@ -49,21 +56,14 @@ export function CategoryPicker({
   const showHint = !!onEdit && categories.length > 0;
 
   // With exactly one category there's nothing to filter between it and
-  // "everything" — the sole chip renders as always-selected instead of an
-  // "All" chip. With 2+ categories, an "All" chip leads the row and is
-  // selected whenever no individual category is chosen.
-  const showAllChip = mode === 'multi' && categories.length > 1;
+  // "everything" — the sole chip renders as always-selected.
   const forceSingleSelected = mode === 'multi' && categories.length === 1;
   const chipSelectedIds = forceSingleSelected ? categories.map((c) => c.id) : selectedIds;
 
-  const leading = showAllChip ? (
-    <Chip
-      label={t('category.filter.all')}
-      selected={selectedIds.length === 0}
-      variant={selectedIds.length === 0 ? 'primary' : 'default'}
-      onPress={() => onChange([])}
-    />
-  ) : null;
+  // Clearing is offered in multi mode whenever a real (non-forced) selection is
+  // active. It replaces the old leading "All" chip, and stays visible in the
+  // header regardless of how far the chip row is scrolled.
+  const showClear = mode === 'multi' && !forceSingleSelected && selectedIds.length > 0;
 
   const trailing =
     onCreate || showHint ? (
@@ -89,10 +89,32 @@ export function CategoryPicker({
 
   return (
     <View style={styles.container}>
-      {title ? (
-        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-          {title.toUpperCase()}
-        </Text>
+      {title || summaryLabel || showClear ? (
+        <View style={styles.header}>
+          <View style={styles.titleGroup}>
+            {title ? (
+              <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+                {title.toUpperCase()}
+              </Text>
+            ) : null}
+            {mode === 'multi' && summaryLabel ? (
+              <Badge label={summaryLabel} tone="tint" variant="soft" />
+            ) : null}
+          </View>
+          {showClear ? (
+            <Pressable
+              onPress={() => onChange([])}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('category.clear')}
+              style={styles.clear}
+            >
+              <Text variant="caption" tone="textMuted" weight="medium">
+                {`${t('category.clear')} (${selectedIds.length})`}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
       ) : null}
       <ChipGroup
         items={categories}
@@ -100,10 +122,9 @@ export function CategoryPicker({
         multiSelect={mode === 'multi'}
         selectedVariant="primary"
         unselectedVariant="default"
-        showCheckWhenSelected={mode === 'single'}
+        showCheckWhenSelected
         onToggle={handleToggle}
         onLongPress={onEdit}
-        leading={leading}
         trailing={trailing}
         contentStyle={styles.chipRow}
       />
@@ -113,7 +134,24 @@ export function CategoryPicker({
 
 const styles = StyleSheet.create({
   container: { gap: 8 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  titleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 1,
+  },
   label: { letterSpacing: 0.8 },
+  clear: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
   chipRow: { paddingHorizontal: 0 },
   trailing: {
     flexDirection: 'row',

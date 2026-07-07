@@ -54,6 +54,10 @@ export function usePersistedState<T>(
   defaultValue: T,
 ): [T, (next: T | ((prev: T) => T)) => void, { hydrated: boolean }] {
   const defaultValueRef = useRef(defaultValue);
+  // Intentional latest-ref updated during render: `getSnapshot` reads it
+  // synchronously to seed a cell exactly once, so it must be current within the
+  // same render (an effect would lag a render behind).
+  // eslint-disable-next-line react-hooks/refs
   defaultValueRef.current = defaultValue;
 
   const subscribe = useCallback(

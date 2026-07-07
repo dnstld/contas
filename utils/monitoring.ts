@@ -1,3 +1,6 @@
+// This module IS the sanctioned Sentry wrapper the lint rule points everyone to,
+// so it's the one place allowed to import Sentry directly.
+// eslint-disable-next-line no-restricted-imports
 import * as Sentry from '@sentry/react-native';
 
 import { env } from '@/utils/env';

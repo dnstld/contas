@@ -65,10 +65,6 @@
     "home": "Go to home"
   },
   "balance": {
-    "demoBadge": {
-      "title": "Demo mode on",
-      "body": "Displayed values are sample data. Disable in Your account."
-    },
     "welcome": {
       "title": "Welcome aboard!",
       "body": "Track your money in one place and get a complete overview of your finances."
@@ -151,10 +147,6 @@
       "description": "Displays incoming, spending, and balance in the summary.",
       "descriptionDisabled": "Available after your first revenue entry."
     },
-    "demoMode": {
-      "title": "Demo mode",
-      "description": "Replace all real values with sample data."
-    },
     "languageRow": {
       "title": "Language"
     },
@@ -177,7 +169,7 @@
     "revenue": "Incoming",
     "balance": "Balance",
     "primaryPrefix": "For",
-    "lastUpdate": "Last update: {{date}}",
+    "lastTransaction": "Last transaction: {{date}}",
     "addFirstTransaction": "Add my first transaction"
   },
   "timeFilter": {
@@ -194,8 +186,7 @@
     "dateLabel": "When",
     "descriptionLabel": "What for",
     "descriptionPlaceholder": "ex: Airfare",
-    "descriptionCaption": "Appears in transactions",
-    "descriptionCounter": "{{count}}/100",
+    "descriptionCounter": "{{count}}/50",
     "save": "Save",
     "error": "Oops! That didn't save. Want to try again?",
     "duplicateWarning": {
@@ -212,7 +203,6 @@
     "delete": "Delete",
     "updateError": "Oops! Couldn't update that. Want to try again?",
     "deleteError": "Oops! Couldn't remove that. Want to try again?",
-    "demoReadOnly": "Demo mode is just for peeking. Turn it off in Your account to make real changes.",
     "deleteConfirmTitle": "Delete this transaction?",
     "deleteConfirmMessage": "It'll be removed from your records. This can't be undone.",
     "deleteConfirmAction": "Delete",
@@ -379,6 +369,7 @@
     "transactionCount_other": "{{count}} transactions",
     "selectedCount_one": "{{count}} selected",
     "selectedCount_other": "{{count}} selected",
+    "clear": "Clear",
     "noActivity": "No activity in this period",
     "exampleBadge": "Example",
     "goalOf": "of {{value}}",
@@ -415,7 +406,7 @@
   "categorySelect": {
     "title": "Select category",
     "placeholder": "Select a category",
-    "searchPlaceholder": "Category name",
+    "searchPlaceholder": "Search or create a category",
     "groups": {
       "mostUsed": "Most used",
       "all": "All categories"

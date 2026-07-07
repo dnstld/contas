@@ -15,6 +15,9 @@ export function getDeviceLanguageTag(): string | null {
   const registry = (globalThis as { expo?: { modules?: Record<string, unknown> } }).expo?.modules;
   if (!registry || !registry['ExpoLocalization']) return null;
   try {
+    // Lazy require after the native-module probe above; a static import would
+    // load the module unconditionally and throw when it isn't installed.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Localization = require('expo-localization') as typeof import('expo-localization');
     return Localization.getLocales()[0]?.languageTag ?? null;
   } catch {
@@ -31,6 +34,8 @@ export function getDeviceRegionCode(): string | null {
   const registry = (globalThis as { expo?: { modules?: Record<string, unknown> } }).expo?.modules;
   if (!registry || !registry['ExpoLocalization']) return null;
   try {
+    // Lazy require after the native-module probe above (see getDeviceLanguageTag).
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Localization = require('expo-localization') as typeof import('expo-localization');
     return Localization.getLocales()[0]?.regionCode ?? null;
   } catch {
@@ -97,6 +102,9 @@ export function initI18n(): Promise<void> {
   initPromise = (async () => {
     const stored = await readStoredLanguage();
     const initialLanguage = resolveInitialLanguage(stored);
+    // `i18n` is the configured i18next instance (default export); calling its
+    // `.use`/`.init` methods is correct despite the same-named named exports.
+    // eslint-disable-next-line import/no-named-as-default-member
     await i18n.use(initReactI18next).init({
       resources,
       lng: initialLanguage,
@@ -110,6 +118,7 @@ export function initI18n(): Promise<void> {
 }
 
 export function changeLanguage(lng: SupportedLanguage): Promise<unknown> {
+  // eslint-disable-next-line import/no-named-as-default-member
   return i18n.changeLanguage(lng);
 }
 

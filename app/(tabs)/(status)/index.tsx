@@ -12,11 +12,9 @@ import {
   CategoryGridSkeleton,
   EmptyState,
   FinanceTimeFilter,
-  Icon,
   Overview,
   OverviewSkeleton,
   Surface,
-  Text,
 } from '@/components/ui';
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
@@ -44,16 +42,13 @@ export default function HomeScreen() {
   const bridgeId = useId();
   const filterApi = useFinanceTimeFilter(now);
   const dashboard = useFinanceDashboard(filterApi.state, now);
-  const demoMode = dashboard.isDemo;
 
-  const noTransactions =
-    !demoMode && !dashboard.isLoading && (dashboard.data?.transactions.length ?? 0) === 0;
+  const noTransactions = !dashboard.isLoading && (dashboard.data?.transactions.length ?? 0) === 0;
 
   const grid = useCategoryGrid({
     categories: dashboard.categories,
     filterItems: dashboard.filterItems,
     currency,
-    period: dashboard.mode,
   });
 
   type DisplayItem = { id: string; data: (typeof grid.sorted)[number] };
@@ -121,24 +116,11 @@ export default function HomeScreen() {
 
       <Overview
         {...dashboard.overview}
+        now={now}
         currency={currency}
         revenueVisible={revenueVisible}
         onSelectMonth={filterApi.toggleMonth}
       />
-
-      {demoMode ? (
-        <Surface variant="muted" padding={12} bordered style={styles.notice}>
-          <Icon name="sparkles" size={18} tone="tint" />
-          <View style={styles.noticeText}>
-            <Text variant="body" weight="semibold">
-              {t('balance.demoBadge.title')}
-            </Text>
-            <Text variant="caption" tone="textMuted">
-              {t('balance.demoBadge.body')}
-            </Text>
-          </View>
-        </Surface>
-      ) : null}
 
       <CategoryGridControls
         sortOptions={grid.sortOptions}
@@ -262,15 +244,6 @@ const styles = StyleSheet.create({
   headerStack: {
     gap: 16,
     paddingBottom: 12,
-  },
-  notice: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  noticeText: {
-    flex: 1,
-    gap: 2,
   },
   cell: {
     flex: 1,

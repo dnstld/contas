@@ -65,10 +65,6 @@
     "home": "Ir para o início"
   },
   "balance": {
-    "demoBadge": {
-      "title": "Modo demo ativado",
-      "body": "Os valores exibidos são dados de exemplo. Desative em Sua conta."
-    },
     "welcome": {
       "title": "Bem-vindo a bordo!",
       "body": "Acompanhe seu dinheiro em um só lugar e tenha uma visão completa das suas finanças."
@@ -151,10 +147,6 @@
       "description": "Exibe entradas, gastos e saldo no resumo.",
       "descriptionDisabled": "Disponível após o registro da primeira receita."
     },
-    "demoMode": {
-      "title": "Modo demo",
-      "description": "Substitui todos os valores reais por dados de exemplo."
-    },
     "languageRow": {
       "title": "Idioma"
     },
@@ -177,7 +169,7 @@
     "revenue": "Entradas",
     "balance": "Saldo",
     "primaryPrefix": "Para",
-    "lastUpdate": "Última atualização: {{date}}",
+    "lastTransaction": "Última transação: {{date}}",
     "addFirstTransaction": "Registrar minha primeira transação"
   },
   "timeFilter": {
@@ -194,8 +186,7 @@
     "dateLabel": "Quando",
     "descriptionLabel": "Para quê",
     "descriptionPlaceholder": "ex: Passagem aérea",
-    "descriptionCaption": "Aparece nas transações",
-    "descriptionCounter": "{{count}}/100",
+    "descriptionCounter": "{{count}}/50",
     "save": "Salvar",
     "error": "Ops! Isso não salvou. Tenta de novo?",
     "duplicateWarning": {
@@ -212,7 +203,6 @@
     "delete": "Excluir",
     "updateError": "Ops! Não foi possível atualizar. Tenta de novo?",
     "deleteError": "Ops! Não foi possível remover. Tenta de novo?",
-    "demoReadOnly": "O modo demo é só para espiar. Desative em Sua conta para fazer alterações de verdade.",
     "deleteConfirmTitle": "Excluir esta transação?",
     "deleteConfirmMessage": "Ela vai sair dos seus registros. Não dá pra desfazer.",
     "deleteConfirmAction": "Excluir",
@@ -379,6 +369,7 @@
     "transactionCount_other": "{{count}} transações",
     "selectedCount_one": "{{count}} selecionada",
     "selectedCount_other": "{{count}} selecionadas",
+    "clear": "Limpar",
     "noActivity": "Sem atividade neste período",
     "exampleBadge": "Exemplo",
     "goalOf": "de {{value}}",
@@ -415,7 +406,7 @@
   "categorySelect": {
     "title": "Selecionar categoria",
     "placeholder": "Selecione uma categoria",
-    "searchPlaceholder": "Nome da categoria",
+    "searchPlaceholder": "Buscar ou criar uma categoria",
     "groups": {
       "mostUsed": "Mais usadas",
       "all": "Todas as categorias"

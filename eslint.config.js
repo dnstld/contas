@@ -7,7 +7,9 @@ module.exports = defineConfig([
   expoConfig,
   prettierConfig,
   {
-    ignores: ['dist/*'],
+    // Build output, Expo caches, and throwaway git worktrees (e.g. under
+    // `.claude/worktrees/`) are not project source — never lint them.
+    ignores: ['dist/*', '.expo/**', '.claude/**', 'android/**', 'ios/**'],
   },
   // ------------------------------------------------------------------
   // Atomic-design layering: an `atoms/` file must not depend on anything

@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-import { useDemoMode } from '@/hooks/use-demo-mode';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { useAuth } from '@/hooks/use-auth';
 import { useWalletList, walletKeys } from '@/hooks/use-wallet-list';
@@ -20,11 +19,10 @@ function extractRowId(value: unknown): string | undefined {
 
 export function useFinanceRealtime() {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   useEffect(() => {
-    if (!walletId || demoMode) return;
+    if (!walletId) return;
 
     const channel = supabase
       .channel(`finance:${walletId}`)
@@ -66,7 +64,7 @@ export function useFinanceRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [walletId, demoMode, qc]);
+  }, [walletId, qc]);
 }
 
 export function useWalletRealtime() {

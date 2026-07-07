@@ -2,7 +2,6 @@ import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet } from 'react-native';
 
-import { Badge } from '@/components/ui/atoms/badge';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
 import { CategoryHeader } from '@/components/ui/molecules/category-header';
@@ -37,8 +36,6 @@ export interface CategoryCardProps {
   data: CategoryCardData;
   currency?: string;
   revenueVisible?: boolean;
-  /** Shows a badge in the header's top-right corner, e.g. "Example". */
-  badgeLabel?: string;
   onPress?: (id: string) => void;
   onLongPress?: (id: string) => void;
 }
@@ -47,7 +44,6 @@ function CategoryCardImpl({
   data,
   currency = 'USD',
   revenueVisible = false,
-  badgeLabel,
   onPress,
   onLongPress,
 }: CategoryCardProps) {
@@ -75,7 +71,6 @@ function CategoryCardImpl({
         total={data.total}
         currency={currency}
         tone={tone}
-        badge={badgeLabel ? <Badge label={badgeLabel} tone="tint" /> : undefined}
         goalText={goalText}
       />
 
@@ -121,7 +116,6 @@ function CategoryCardImpl({
       : undefined;
   const accessibilityLabel = [
     data.name,
-    badgeLabel,
     formatCurrency(data.total, currency),
     goalText,
     statusLabel,

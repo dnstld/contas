@@ -1,9 +1,7 @@
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 
-import { generateDemoFinance } from '@/data/finance-demo';
 import type { Category, Transaction } from '@/data/finance-types';
 import { RecurrenceSchema, TransactionStatusSchema, TransactionTypeSchema } from '@/data/schemas';
-import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
 import type { Tables } from '@/types/database.types';
@@ -85,7 +83,10 @@ async function fetchTransactionRows(walletId: string): Promise<TransactionRow[]>
         'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, updated_at',
       )
       .eq('wallet_id', walletId)
+      // occurred_at is a date (no time), so tiebreak same-day rows by entry time
+      // for a stable, deterministic feed (newest first).
       .order('occurred_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .range(from, to);
     if (error) throw error;
     const page = data ?? [];
@@ -97,45 +98,27 @@ async function fetchTransactionRows(walletId: string): Promise<TransactionRow[]>
 
 export function useCategories(): UseQueryResult<Category[]> {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
 
   return useQuery({
     queryKey: walletId ? financeKeys.categories(walletId) : ['finance', 'unbound', 'categories'],
-    enabled: !!walletId && !demoMode,
+    enabled: !!walletId,
     queryFn: () => fetchCategories(walletId!),
   });
 }
 
 export function useTransaction(transactionId: string | null): UseQueryResult<Transaction | null> {
-  const { walletId, currency } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
+  const { walletId } = useWallet();
   const queryClient = useQueryClient();
 
   return useQuery({
-    // Unlike `useCategories`/`useTransactions` (which are `enabled: !demoMode`),
-    // this query runs in *both* modes, so the key carries a `demo`/`live` suffix
-    // to keep demo data from bleeding into the live cache for the same id.
-    // Mutation/realtime invalidations use the unsuffixed base key and still match
-    // via TanStack's prefix matching — don't switch those to `exact: true`.
     queryKey:
       walletId && transactionId
-        ? [...financeKeys.transaction(walletId, transactionId), demoMode ? 'demo' : 'live']
-        : [
-            'finance',
-            'unbound',
-            'transaction',
-            transactionId ?? 'null',
-            demoMode ? 'demo' : 'live',
-          ],
+        ? financeKeys.transaction(walletId, transactionId)
+        : ['finance', 'unbound', 'transaction', transactionId ?? 'null'],
     enabled: !!walletId && !!transactionId,
     queryFn: async () => {
       const wid = walletId!;
       const tid = transactionId!;
-
-      if (demoMode) {
-        const demo = generateDemoFinance(currency);
-        return demo.transactions.find((t) => t.id === tid) ?? null;
-      }
 
       const { data, error } = await supabase
         .from('transactions')
@@ -165,14 +148,13 @@ export function useTransaction(transactionId: string | null): UseQueryResult<Tra
 
 export function useTransactions(): UseQueryResult<Transaction[]> {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: walletId
       ? financeKeys.transactions(walletId)
       : ['finance', 'unbound', 'transactions'],
-    enabled: !!walletId && !demoMode,
+    enabled: !!walletId,
     queryFn: async () => {
       const wid = walletId!;
       // Prefer the cached categories list to avoid a duplicate fetch. Fall back to

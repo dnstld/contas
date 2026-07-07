@@ -9,10 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletList } from '@/hooks/use-wallet-list';
 import { useLeaveWallet } from '@/hooks/use-leave-wallet';
-import {
-  useCancelWalletDeletion,
-  useRequestOrDeleteWallet,
-} from '@/hooks/use-wallet-mutations';
+import { useCancelWalletDeletion, useRequestOrDeleteWallet } from '@/hooks/use-wallet-mutations';
 
 interface DangerZoneProps {
   currentUserId: string;

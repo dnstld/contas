@@ -24,9 +24,9 @@ import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useNow } from '@/hooks/use-now';
+import { usePeriodLabel } from '@/hooks/use-period-label';
 import { toQueryView } from '@/hooks/use-query-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { MONTHS } from '@/hooks/use-time-filter';
 import { useTransactionCreators } from '@/hooks/use-transaction-creators';
 import { useWallet } from '@/hooks/use-wallet';
 
@@ -42,7 +42,7 @@ export default function TransactionsScreen() {
   const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const { currency } = useWallet();
-  const { locale, monthName } = useFormatters();
+  const { locale } = useFormatters();
 
   const now = useNow();
   const filterApi = useFinanceTimeFilter(now);
@@ -97,12 +97,7 @@ export default function TransactionsScreen() {
     listRef.current?.getScrollResponder()?.scrollTo({ y: 0, animated: true });
   }, [filterKey]);
 
-  const periodLabel = useMemo(() => {
-    const year = filterApi.state.years[0] ?? now.getFullYear();
-    if (filterApi.state.all) return String(year);
-    const monthKey = filterApi.state.months[0] ?? MONTHS[now.getMonth()]!;
-    return monthName(MONTHS.indexOf(monthKey), 'long');
-  }, [filterApi.state, now, monthName]);
+  const periodLabel = usePeriodLabel(filterApi.state, now);
 
   const totalCard = (
     <Surface variant="plain" bordered padding={16} style={styles.totalCard}>

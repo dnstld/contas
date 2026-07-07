@@ -4,25 +4,16 @@ import type {
   TransactionFormValues,
   TransactionType,
 } from '@/components/transactions/transaction-form';
-import { transactionDate, type Category, type Transaction } from '@/data/finance-types';
+import {
+  toDayString,
+  transactionDate,
+  type Category,
+  type Transaction,
+} from '@/data/finance-types';
 import { useAuth } from '@/hooks/use-auth';
-import { useDemoMode } from '@/hooks/use-demo-mode';
 import { adaptTransaction, financeKeys } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
-
-export class DemoModeReadOnlyError extends Error {
-  readonly code = 'demo_mode_read_only' as const;
-
-  constructor() {
-    super('Demo mode is read-only');
-    this.name = 'DemoModeReadOnlyError';
-  }
-}
-
-export function isDemoModeReadOnlyError(e: unknown): e is DemoModeReadOnlyError {
-  return e instanceof DemoModeReadOnlyError;
-}
 
 function ensureCategoryId(values: TransactionFormValues): string {
   if (!values.categoryId) throw new Error('categoryId is required');
@@ -30,15 +21,18 @@ function ensureCategoryId(values: TransactionFormValues): string {
 }
 
 // Keep the cached transaction list ordered like `fetchTransactionRows`
-// (`occurred_at` descending). `transactionDate` returns the ISO `occurred_at`,
-// so a lexical string compare matches the server ordering.
+// (`occurred_at` day descending, then `created_at` descending as the intra-day
+// tiebreak — both are ISO-comparable strings, so a lexical compare matches the
+// server ordering).
 function sortTransactionsByDateDesc(list: Transaction[]): Transaction[] {
-  return [...list].sort((a, b) => transactionDate(b).localeCompare(transactionDate(a)));
+  return [...list].sort((a, b) => {
+    const byDay = transactionDate(b).localeCompare(transactionDate(a));
+    return byDay !== 0 ? byDay : b.createdAt.localeCompare(a.createdAt);
+  });
 }
 
 export function useCreateTransaction() {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const { session } = useAuth();
   const qc = useQueryClient();
 
@@ -47,7 +41,6 @@ export function useCreateTransaction() {
     // suppress the global toast to avoid double-surfacing the same failure.
     meta: { silent: true },
     mutationFn: async (values: TransactionFormValues) => {
-      if (demoMode) throw new DemoModeReadOnlyError();
       if (!walletId) throw new Error('no wallet');
       if (!session) throw new Error('no session');
       const { data, error } = await supabase
@@ -57,7 +50,7 @@ export function useCreateTransaction() {
           category_id: ensureCategoryId(values),
           amount_cents: values.amountCents,
           description: values.description,
-          occurred_at: values.date.toISOString(),
+          occurred_at: toDayString(values.date),
           status: 'completed',
           recurrence: 'none',
           created_by: session.user.id,
@@ -93,20 +86,18 @@ export type UpdateTransactionInput = {
 
 export function useUpdateTransaction() {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     meta: { silent: true },
     mutationFn: async ({ id, values }: UpdateTransactionInput) => {
-      if (demoMode) throw new DemoModeReadOnlyError();
       const { data, error } = await supabase
         .from('transactions')
         .update({
           category_id: ensureCategoryId(values),
           amount_cents: values.amountCents,
           description: values.description,
-          occurred_at: values.date.toISOString(),
+          occurred_at: toDayString(values.date),
         })
         .eq('id', id)
         .select()
@@ -127,9 +118,7 @@ export function useUpdateTransaction() {
         );
       }
       qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
-      // The detail query key carries a `demo|live` suffix and `setQueryData` is
-      // exact-match, so we can't patch it directly here — invalidate (prefix-match)
-      // refetches the single row, which is fast.
+      // Invalidate the single-row detail query so it refetches the updated row.
       qc.invalidateQueries({ queryKey: financeKeys.transaction(walletId, id) });
     },
   });
@@ -137,7 +126,6 @@ export function useUpdateTransaction() {
 
 export function useCreateCategory() {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
@@ -146,7 +134,6 @@ export function useCreateCategory() {
       type: TransactionType;
       monthlyBudgetCents?: number;
     }) => {
-      if (demoMode) throw new DemoModeReadOnlyError();
       if (!walletId) throw new Error('no wallet');
       const { data, error } = await supabase
         .from('categories')
@@ -201,12 +188,10 @@ export function isCategoryHasTransactionsError(e: unknown): e is CategoryHasTran
 
 export function useUpdateCategory() {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (values: { id: string; name: string; monthlyBudgetCents?: number }) => {
-      if (demoMode) throw new DemoModeReadOnlyError();
       const { data, error } = await supabase
         .from('categories')
         .update({
@@ -246,12 +231,10 @@ export function useUpdateCategory() {
 
 export function useDeleteCategory() {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (demoMode) throw new DemoModeReadOnlyError();
       const { count, error: countError } = await supabase
         .from('transactions')
         .select('id', { count: 'exact', head: true })
@@ -278,13 +261,11 @@ export function useDeleteCategory() {
 
 export function useDeleteTransaction() {
   const { walletId } = useWallet();
-  const { enabled: demoMode } = useDemoMode();
   const qc = useQueryClient();
 
   return useMutation({
     meta: { silent: true },
     mutationFn: async (id: string) => {
-      if (demoMode) throw new DemoModeReadOnlyError();
       const { error } = await supabase.from('transactions').delete().eq('id', id);
       if (error) throw error;
       return id;

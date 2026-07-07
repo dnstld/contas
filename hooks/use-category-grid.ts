@@ -17,7 +17,6 @@ export interface UseCategoryGridOptions {
   categories: readonly CategoryCardData[];
   filterItems?: readonly CategoryPickerItem[];
   currency?: string;
-  period?: 'month' | 'year';
 }
 
 export interface UseCategoryGridResult {
@@ -36,7 +35,6 @@ export function useCategoryGrid({
   categories,
   filterItems,
   currency = 'USD',
-  period,
 }: UseCategoryGridOptions): UseCategoryGridResult {
   const { t } = useTranslation();
   const { formatCurrency } = useFormatters();
@@ -80,33 +78,15 @@ export function useCategoryGrid({
     return byKind.filter((c) => selected.includes(c.id));
   }, [byKind, selected]);
 
+  // Compact selection summary shown as a pill beside the section title: the
+  // combined total of the selected categories (e.g. "R$ 2,520"). Selection is
+  // always scoped to a single kind (switching sort clears it), so one total
+  // suffices. The count is surfaced separately on the Clear control.
   const summary = useMemo(() => {
     if (selected.length === 0) return null;
-    let expenseSum = 0;
-    let revenueSum = 0;
-    for (const c of filtered) {
-      if (c.kind === 'income') revenueSum += c.total;
-      else expenseSum += c.total;
-    }
-    const count = selected.length;
-    const parts = [t('category.selectedCount', { count })];
-    if (expenseSum > 0 && revenueSum > 0) {
-      parts.push(`${t('overview.expenses')} ${formatCurrency(expenseSum, currency)}`);
-      parts.push(`${t('overview.revenue')} ${formatCurrency(revenueSum, currency)}`);
-    } else if (expenseSum > 0) {
-      parts.push(formatCurrency(expenseSum, currency));
-    } else if (revenueSum > 0) {
-      parts.push(formatCurrency(revenueSum, currency));
-    }
-    const base = parts.join(' · ');
-    const suffix =
-      period === 'year'
-        ? ` ${t('category.perYear')}`
-        : period === 'month'
-          ? ` ${t('category.perMonth')}`
-          : '';
-    return parts.length > 1 ? `${base}${suffix}` : base;
-  }, [filtered, selected, currency, period, t, formatCurrency]);
+    const total = filtered.reduce((sum, c) => sum + c.total, 0);
+    return formatCurrency(total, currency);
+  }, [filtered, selected, currency, formatCurrency]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];

@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/components/ui/atoms/text';
 import { CategoryPicker, type CategoryPickerItem } from '@/components/ui/organisms/category-picker';
 import { SortMenu, type SortOption } from '@/components/ui/molecules/sort-menu';
 import type { CategorySortMode } from '@/hooks/use-category-grid';
@@ -58,6 +57,7 @@ export function CategoryGridControls({
           onCreate={onCreateCategory}
           createLabel={createLabel}
           onEdit={onEditCategory}
+          summaryLabel={summary}
         />
       ) : null}
       {sortVisible ? (
@@ -69,11 +69,6 @@ export function CategoryGridControls({
             onChange={onSortChange}
           />
         </View>
-      ) : null}
-      {summary ? (
-        <Text variant="caption" tone="textMuted" weight="medium">
-          {summary}
-        </Text>
       ) : null}
     </View>
   );

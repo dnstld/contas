@@ -16,7 +16,12 @@ import { AppState } from 'react-native';
  */
 export function useAppForeground(onForeground: () => void): void {
   const callbackRef = useRef(onForeground);
-  callbackRef.current = onForeground;
+  // Keep the ref current without re-subscribing the listener. Updated in an
+  // effect (not during render) so it satisfies the rules-of-hooks ref checks;
+  // the listener only reads it on an async AppState change, always post-commit.
+  useEffect(() => {
+    callbackRef.current = onForeground;
+  }, [onForeground]);
   const wasBackgroundedRef = useRef(false);
 
   useEffect(() => {

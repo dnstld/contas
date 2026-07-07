@@ -9,7 +9,7 @@ import {
   type TransactionFormValues,
 } from '@/components/transactions/transaction-form';
 import type { Transaction } from '@/data/finance-types';
-import { isDemoModeReadOnlyError, useCreateTransaction } from '@/hooks/use-finance-mutations';
+import { useCreateTransaction } from '@/hooks/use-finance-mutations';
 import { useTransactions } from '@/hooks/use-finance-queries';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
 import { mapSupabaseErrorKey } from '@/utils/error';
@@ -32,13 +32,9 @@ export default function CreateScreen() {
       toast.success(t('feedback.transactionCreated'));
       router.back();
     } catch (e) {
-      if (isDemoModeReadOnlyError(e)) {
-        setErrorMessage(t('edit.demoReadOnly'));
-      } else {
-        // Use the localized Supabase-error key; raw error.message leaks
-        // schema details and is always English.
-        setErrorMessage(t(mapSupabaseErrorKey(e)));
-      }
+      // Use the localized Supabase-error key; raw error.message leaks
+      // schema details and is always English.
+      setErrorMessage(t(mapSupabaseErrorKey(e)));
     }
   };
 

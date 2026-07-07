@@ -8,11 +8,6 @@ import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import type { SectionListSection } from '@/components/ui/organisms/section-list';
 import { editTransactionHref } from '@/constants/routes';
-import {
-  generateExampleFinance,
-  isExampleCategoryId,
-  type ExampleNames,
-} from '@/data/finance-example';
 import type { Finance, Transaction } from '@/data/finance-types';
 import { buildTransactionsList, makeSectionLabeler } from '@/data/transactions-list';
 import { useFinance } from '@/hooks/use-finance';
@@ -69,29 +64,13 @@ export default function CategoryDetailModal() {
   const now = useNow();
   const filter = useMemo(() => parseFilter(params, now), [params, now]);
 
-  // Onboarding example categories are read-only and backed by generated sample
-  // data rather than the wallet's real (empty) finance.
-  const isExample = isExampleCategoryId(params.id);
-  const exampleNames = useMemo<ExampleNames>(
-    () => ({
-      groceries: t('category.create.suggestions.expense.groceries'),
-      pharmacy: t('category.create.suggestions.expense.pharmacy'),
-      transport: t('category.create.suggestions.expense.transport'),
-    }),
-    [t],
-  );
-  const exampleFinance = useMemo(
-    () => (isExample ? generateExampleFinance(currency, now, exampleNames) : null),
-    [isExample, currency, now, exampleNames],
-  );
-
   const financeQuery = useFinance();
   // Wallet-level empty. Category-level empty (this category has no
   // transactions in the chosen period) is handled by `hasTransactions` below.
   const view = toQueryView(financeQuery, {
     isEmpty: (d) => d.transactions.length === 0,
   });
-  const finance = exampleFinance ?? financeQuery.data ?? EMPTY_FINANCE;
+  const finance = financeQuery.data ?? EMPTY_FINANCE;
 
   const filteredFinance = useMemo<Finance>(
     () => ({
@@ -144,7 +123,7 @@ export default function CategoryDetailModal() {
           transaction={item}
           currency={currency}
           creator={resolveCreator(item.createdByUserId)}
-          onPress={isExample ? undefined : handlePressTransaction}
+          onPress={handlePressTransaction}
         />
       )}
     />
@@ -160,31 +139,29 @@ export default function CategoryDetailModal() {
 
   return (
     <View style={[styles.root, { backgroundColor: background, paddingBottom: bottomPadding }]}>
-      {isExample
-        ? listOrEmpty
-        : (() => {
-            switch (view.kind) {
-              case 'loading':
-                return <CategoryDetailSkeleton />;
-              case 'error':
-                return (
-                  <View style={styles.emptyWrap}>
-                    <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
-                  </View>
-                );
-              case 'empty':
-              case 'stale':
-              case 'ready':
-                return (
-                  <>
-                    {view.kind === 'stale' ? (
-                      <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
-                    ) : null}
-                    {listOrEmpty}
-                  </>
-                );
-            }
-          })()}
+      {(() => {
+        switch (view.kind) {
+          case 'loading':
+            return <CategoryDetailSkeleton />;
+          case 'error':
+            return (
+              <View style={styles.emptyWrap}>
+                <ErrorEmptyState messageKey={view.errorKey} onRetry={view.retry} />
+              </View>
+            );
+          case 'empty':
+          case 'stale':
+          case 'ready':
+            return (
+              <>
+                {view.kind === 'stale' ? (
+                  <StaleDataBanner messageKey={view.errorKey} onRetry={view.retry} />
+                ) : null}
+                {listOrEmpty}
+              </>
+            );
+        }
+      })()}
     </View>
   );
 }

@@ -32,8 +32,19 @@ export interface OverviewProps {
   revenue?: number;
   expenses?: number;
   net?: number;
-  /** ISO timestamp of the most recent transaction update; undefined when no transactions exist. */
-  lastUpdatedAt?: string;
+  /**
+   * ISO date of the most recent transaction (its `occurred_at`), shown in the
+   * "Last update" line. Undefined when no transactions exist. This is the date
+   * the user recorded activity, not the DB write timestamp.
+   */
+  lastActivityAt?: string;
+  /**
+   * "Now" reference for the relative last-update label. Passed in (from `useNow()`)
+   * rather than read via `new Date()` here so the label stays correct when the app
+   * is foregrounded on a later day — otherwise a value memoized yesterday keeps
+   * reporting "Today". Defaults to the current time for callers/tests that omit it.
+   */
+  now?: Date;
   // All mode:
   yearTotals?: { year: number; value: number }[];
   timeline?: readonly MonthlyTimelinePoint[];
@@ -55,7 +66,8 @@ export function Overview({
   revenue,
   expenses,
   net,
-  lastUpdatedAt,
+  lastActivityAt,
+  now,
   yearTotals,
   timeline,
   currentMonth,
@@ -65,15 +77,19 @@ export function Overview({
   const { t } = useTranslation();
   const { formatCurrency, locale } = useFormatters();
 
+  // Stable millisecond key so the memo recomputes when `now` advances to a new
+  // day (e.g. after the app is foregrounded), keeping "Today"/"Yesterday" honest.
+  const nowMs = now?.getTime();
   const lastUpdateLabel = useMemo(() => {
-    if (!lastUpdatedAt) return t('overview.addFirstTransaction');
-    const updated = new Date(lastUpdatedAt);
-    const when = formatRelativeDate(updated, new Date(), locale, {
+    if (!lastActivityAt) return t('overview.addFirstTransaction');
+    const updated = new Date(lastActivityAt);
+    const reference = nowMs !== undefined ? new Date(nowMs) : new Date();
+    const when = formatRelativeDate(updated, reference, locale, {
       today: t('transactions.today'),
       yesterday: t('transactions.yesterday'),
     });
-    return t('overview.lastUpdate', { date: when });
-  }, [lastUpdatedAt, locale, t]);
+    return t('overview.lastTransaction', { date: when });
+  }, [lastActivityAt, nowMs, locale, t]);
 
   // Comparison always reflects expenses — the primary metric shown at the top of the card.
   const comparisonDelta =

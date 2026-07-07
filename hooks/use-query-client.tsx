@@ -11,10 +11,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 
 import { useAppForeground } from '@/hooks/use-app-foreground';
 import { useAuth } from '@/hooks/use-auth';
-import {
-  isCategoryHasTransactionsError,
-  isDemoModeReadOnlyError,
-} from '@/hooks/use-finance-mutations';
+import { isCategoryHasTransactionsError } from '@/hooks/use-finance-mutations';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { myProfileKey } from '@/hooks/use-my-profile';
 import { useWallet } from '@/hooks/use-wallet';
@@ -71,10 +68,6 @@ export const queryClient = new QueryClient({
     onError: (err, _vars, _ctx, mutation) => {
       // Known business errors: handled by callers, never toasted, never sent
       // to Sentry (they're expected).
-      if (isDemoModeReadOnlyError(err)) {
-        if (!mutation.meta?.['silent']) toast.info(i18n.t('edit.demoReadOnly'));
-        return;
-      }
       if (isCategoryHasTransactionsError(err)) return;
 
       // Always capture unexpected errors — `silent` only suppresses the user-

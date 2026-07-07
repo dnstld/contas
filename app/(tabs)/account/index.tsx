@@ -9,7 +9,6 @@ import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { AccountCards } from '@/components/settings/account-cards';
 import { DangerZone } from '@/components/settings/danger-zone';
 import { useAuth } from '@/hooks/use-auth';
-import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useLanguage } from '@/hooks/use-language';
 import { useTransactions } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
@@ -44,7 +43,6 @@ export default function SettingsScreen() {
   const revenueToggleDisabled = !hasRevenue;
 
   const { language, setLanguage, supported } = useLanguage();
-  const { enabled: demoMode, set: setDemoMode } = useDemoMode();
 
   const { members, refetch: refetchMembers } = useWalletMembers();
 
@@ -83,12 +81,6 @@ export default function SettingsScreen() {
           disabled={revenueToggleDisabled}
         />
       ),
-    },
-    {
-      id: 'demoMode',
-      title: t('settings.demoMode.title'),
-      subtitle: t('settings.demoMode.description'),
-      trailing: <Toggle value={demoMode} onValueChange={setDemoMode} />,
     },
   ];
 

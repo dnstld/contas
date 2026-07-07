@@ -1,4 +1,3 @@
-import { type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { PriceText, type PriceTone } from '@/components/ui/atoms/price-text';
@@ -9,8 +8,6 @@ export interface CategoryHeaderProps {
   total: number;
   currency?: string;
   tone?: PriceTone;
-  /** Rendered in the top-right slot, e.g. an "Example" demo badge. */
-  badge?: ReactNode;
   /** Shown next to the amount, e.g. "of 500,00", when the category has a goal.
    * Colored to match `tone` (green under goal, amber at goal, red over goal). */
   goalText?: string;
@@ -21,7 +18,6 @@ export function CategoryHeader({
   total,
   currency = 'USD',
   tone = 'neutral',
-  badge,
   goalText,
 }: CategoryHeaderProps) {
   const goalTone: TextTone = tone === 'neutral' || tone === 'auto' ? 'textMuted' : tone;
@@ -32,7 +28,6 @@ export function CategoryHeader({
         <Text variant="body" weight="semibold" numberOfLines={1} style={styles.name}>
           {name}
         </Text>
-        {badge}
       </View>
       <View style={styles.amountRow}>
         <PriceText value={total} currency={currency} tone={tone} size="lg" />

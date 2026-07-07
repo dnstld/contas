@@ -1,8 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { generateDemoFinance } from '@/data/finance-demo';
 import { txDate, type Category, type Finance, type Transaction } from '@/data/finance-types';
-import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useWallet } from '@/hooks/use-wallet';
 
@@ -11,7 +9,6 @@ export type UseFinanceResult = {
   isLoading: boolean;
   isError: boolean;
   error: unknown;
-  isDemo: boolean;
   currency: string;
   refetch: () => Promise<void>;
 };
@@ -34,17 +31,11 @@ function assembleFinance(
 }
 
 export function useFinance(): UseFinanceResult {
-  const { enabled: demoMode } = useDemoMode();
   const { currency } = useWallet();
   const categoriesQ = useCategories();
   const transactionsQ = useTransactions();
 
-  const demoData = useMemo(
-    () => (demoMode ? generateDemoFinance(currency) : undefined),
-    [demoMode, currency],
-  );
-
-  const liveData = useMemo(
+  const data = useMemo(
     () =>
       categoriesQ.data && transactionsQ.data
         ? assembleFinance(categoriesQ.data, transactionsQ.data, currency)
@@ -56,24 +47,11 @@ export function useFinance(): UseFinanceResult {
     await Promise.all([categoriesQ.refetch(), transactionsQ.refetch()]);
   }, [categoriesQ, transactionsQ]);
 
-  if (demoMode) {
-    return {
-      data: demoData,
-      isLoading: false,
-      isError: false,
-      error: null,
-      isDemo: true,
-      currency,
-      refetch,
-    };
-  }
-
   return {
-    data: liveData,
+    data,
     isLoading: categoriesQ.isPending || transactionsQ.isPending,
     isError: categoriesQ.isError || transactionsQ.isError,
     error: categoriesQ.error ?? transactionsQ.error,
-    isDemo: false,
     currency,
     refetch,
   };

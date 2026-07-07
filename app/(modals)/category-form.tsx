@@ -15,7 +15,6 @@ import {
   useDeleteCategory,
   useUpdateCategory,
 } from '@/hooks/use-finance-mutations';
-import { useDemoMode } from '@/hooks/use-demo-mode';
 import { useCategories } from '@/hooks/use-finance-queries';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { categoryFormBridge } from '@/utils/modal-bridge';
@@ -54,7 +53,6 @@ export default function CategoryFormScreen() {
 
   const { danger: dangerColor } = useModalChrome();
 
-  const { enabled: demoMode } = useDemoMode();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();
   const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
@@ -157,7 +155,7 @@ export default function CategoryFormScreen() {
     name.trim() !== (editCategory?.name ?? '').trim() ||
     budgetCents !== originalBudgetCents;
 
-  const canSave = name.trim().length > 0 && isDirty && !isPending && !demoMode;
+  const canSave = name.trim().length > 0 && isDirty && !isPending;
 
   // First-category helper: when creating and the wallet has no categories of this
   // type yet, offer starter names as chips below the name input.
@@ -191,7 +189,7 @@ export default function CategoryFormScreen() {
                     variant="destructive"
                     size="large"
                     loading={isDeleting}
-                    disabled={(isPending && !isDeleting) || demoMode}
+                    disabled={isPending && !isDeleting}
                     onPress={handleDelete}
                   />
                 </View>

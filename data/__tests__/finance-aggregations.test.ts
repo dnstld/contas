@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { aggregate, buildDashboard, inYear } from '@/data/finance-aggregations';
+import {
+  aggregate,
+  buildDashboard,
+  inYear,
+  rankDescriptionsByUsage,
+} from '@/data/finance-aggregations';
 import type { Category, Finance, OneOffTransaction } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';
 import type { TimeFilterState } from '@/hooks/use-time-filter-state';
@@ -273,6 +278,36 @@ describe('aggregate() — edges', () => {
   });
 });
 
+describe('overview.lastActivityAt — the "Last update" line', () => {
+  it('reflects the newest completed transaction date, not the DB write time', () => {
+    // t3 (2026-07-12) is the newest *completed* transaction. t12 is scheduled
+    // and dated 2026-07-20 (future) — it must not win, so the label reads the
+    // real last activity, not a post-dated/scheduled entry.
+    const dashboard = buildDashboard(finance, monthFilter, now, 'en');
+    expect(dashboard.overview.lastActivityAt).toBe('2026-07-12');
+  });
+
+  it('ignores future-dated completed transactions (label never reads the future)', () => {
+    const future = mkTx({
+      id: 'future',
+      date: '2026-08-01', // after `now` (2026-07-15)
+      type: 'expense',
+      categoryId: 'rent',
+      categoryName: 'Rent',
+      amount: 10,
+    });
+    const withFuture: Finance = { ...finance, transactions: [...transactions, future] };
+    const dashboard = buildDashboard(withFuture, monthFilter, now, 'en');
+    expect(dashboard.overview.lastActivityAt).toBe('2026-07-12');
+  });
+
+  it('is undefined when the wallet has no completed transactions', () => {
+    const emptyFinance: Finance = { years: [], currency: 'USD', categories: [], transactions: [] };
+    const dashboard = buildDashboard(emptyFinance, monthFilter, now, 'en');
+    expect(dashboard.overview.lastActivityAt).toBeUndefined();
+  });
+});
+
 describe('anti-drift consistency: Overview and Transactions must agree', () => {
   it('buildTransactionsList totals === buildDashboard overview for the same (year, month)', () => {
     const list = buildTransactionsList(finance, monthFilter, now);
@@ -283,5 +318,77 @@ describe('anti-drift consistency: Overview and Transactions must agree', () => {
     expect(list.totals.net).toBe(dashboard.overview.net);
 
     expect(list.totals).toEqual({ income: 500, expenses: 350, net: 150 });
+  });
+});
+
+describe('rankDescriptionsByUsage — "What for" quick-pick suggestions', () => {
+  // Helper: a groceries expense with a given description and log time (createdAt
+  // drives the recency tiebreak; the calendar `date` is irrelevant here).
+  const desc = (id: string, description: string, createdAt: string, categoryId = 'groceries') =>
+    mkTx({
+      id,
+      date: '2026-07-01',
+      type: 'expense',
+      categoryId,
+      categoryName: categoryId,
+      amount: 10,
+      description,
+      createdAt,
+    });
+
+  it('ranks by frequency, most-used first', () => {
+    const txs = [
+      desc('a', 'Supermarket', '2026-07-01T10:00:00Z'),
+      desc('b', 'Supermarket', '2026-07-02T10:00:00Z'),
+      desc('c', 'Bakery', '2026-07-03T10:00:00Z'),
+    ];
+    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Supermarket', 'Bakery']);
+  });
+
+  it('breaks frequency ties by most recent (createdAt)', () => {
+    const txs = [
+      desc('a', 'Bakery', '2026-07-01T10:00:00Z'),
+      desc('b', 'Supermarket', '2026-07-05T10:00:00Z'),
+    ];
+    // Both used once → the more recently logged one wins the tie.
+    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Supermarket', 'Bakery']);
+  });
+
+  it('dedupes case/whitespace-insensitively, showing the most recent casing', () => {
+    const txs = [
+      desc('a', 'uber', '2026-07-01T10:00:00Z'),
+      desc('b', 'Uber ', '2026-07-04T10:00:00Z'),
+      desc('c', 'Bakery', '2026-07-02T10:00:00Z'),
+    ];
+    // "uber" + "Uber " collapse into one entry (count 2) → ranks first, and the
+    // display uses the most recent occurrence's trimmed casing ("Uber").
+    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Uber', 'Bakery']);
+  });
+
+  it('ignores empty and whitespace-only descriptions', () => {
+    const txs = [
+      desc('a', '', '2026-07-01T10:00:00Z'),
+      desc('b', '   ', '2026-07-02T10:00:00Z'),
+      desc('c', 'Bakery', '2026-07-03T10:00:00Z'),
+    ];
+    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Bakery']);
+  });
+
+  it('only considers the given category', () => {
+    const txs = [
+      desc('a', 'Supermarket', '2026-07-01T10:00:00Z', 'groceries'),
+      desc('b', 'Flight', '2026-07-02T10:00:00Z', 'travel'),
+    ];
+    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Supermarket']);
+    expect(rankDescriptionsByUsage(txs, 'travel')).toEqual(['Flight']);
+    expect(rankDescriptionsByUsage(txs, 'rent')).toEqual([]);
+  });
+
+  it('caps the result at the limit', () => {
+    const txs = Array.from({ length: 8 }, (_, i) =>
+      desc(`d${i}`, `Desc ${i}`, `2026-07-0${i + 1}T10:00:00Z`),
+    );
+    expect(rankDescriptionsByUsage(txs, 'groceries')).toHaveLength(5);
+    expect(rankDescriptionsByUsage(txs, 'groceries', 3)).toHaveLength(3);
   });
 });

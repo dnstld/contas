@@ -5,6 +5,7 @@ import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filte
 import { monthName } from '@/utils/format';
 
 import {
+  transactionDate,
   txDate,
   type Category,
   type Finance,
@@ -25,8 +26,14 @@ export interface DashboardOverviewData {
   revenue?: number;
   expenses?: number;
   net?: number;
-  /** Max `updatedAt` across the wallet's transactions; undefined when the wallet is empty. */
-  lastUpdatedAt?: string;
+  /**
+   * ISO date of the most recent *transaction* (its `occurred_at`), used for the
+   * card's "Last update" line. This is the newest completed, non-future
+   * transaction — the date a user perceives as "last activity" — not the
+   * database write timestamp (`updated_at`). Undefined when the wallet has no
+   * such transaction.
+   */
+  lastActivityAt?: string;
   // Months strip (year mode):
   timeline?: MonthlyTimelinePoint[];
   /** Anchors the strip ordering (current-month-first); undefined for past years. */
@@ -44,10 +51,6 @@ export interface DashboardData {
 
 function isCompletedExpense(t: Transaction): boolean {
   return t.status === 'completed' && t.type === 'expense';
-}
-
-function isCompletedIncome(t: Transaction): boolean {
-  return t.status === 'completed' && t.type === 'income';
 }
 
 export function inMonth(d: Date, year: number, month: number): boolean {
@@ -105,6 +108,58 @@ export function rankCategoriesByUsage(
   return { mostUsed, rest };
 }
 
+/** How many past descriptions are surfaced as quick-select shortcuts under the
+ * transaction form's "What for" field once a category is selected. */
+export const MOST_USED_DESCRIPTIONS_LIMIT = 5;
+
+/**
+ * Distinct past descriptions used for a given category, ranked "most used, most
+ * recent as the tiebreak" — the same intent as {@link rankCategoriesByUsage},
+ * applied to free text so the "What for" field can offer one-tap reuse of what
+ * the user has typed before for this category.
+ *
+ * Descriptions are matched case-insensitively on their trimmed value (so
+ * "Uber" and "uber " count as one), but the *most recent* original casing is
+ * what gets shown. Empty/whitespace-only descriptions are ignored. Recency uses
+ * `createdAt` (when the entry was logged). Returns at most `limit` strings.
+ */
+export function rankDescriptionsByUsage(
+  transactions: Transaction[],
+  categoryId: string,
+  limit: number = MOST_USED_DESCRIPTIONS_LIMIT,
+): string[] {
+  type Entry = { display: string; count: number; latest: string };
+  const byKey = new Map<string, Entry>();
+
+  for (const tx of transactions) {
+    if (tx.categoryId !== categoryId) continue;
+    const display = tx.description.trim();
+    if (!display) continue;
+    const key = display.toLowerCase();
+    const recency = tx.createdAt ?? '';
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, { display, count: 1, latest: recency });
+    } else {
+      existing.count += 1;
+      // Keep the casing from the most recently logged occurrence.
+      if (recency >= existing.latest) {
+        existing.latest = recency;
+        existing.display = display;
+      }
+    }
+  }
+
+  return [...byKey.values()]
+    .sort((a, b) => {
+      const diff = b.count - a.count;
+      if (diff !== 0) return diff;
+      return b.latest.localeCompare(a.latest);
+    })
+    .slice(0, limit)
+    .map((e) => e.display);
+}
+
 function isCategoryVisibleInYear(
   category: Category,
   year: number,
@@ -128,23 +183,35 @@ interface FinanceScan {
   // Categories referenced by at least one transaction (any year/status). Used to
   // distinguish brand-new/unused categories, which are always shown.
   usedIds: Set<string>;
-  // Max `updatedAt` across the wallet's transactions; undefined when empty.
-  lastUpdatedAt?: string;
+  // ISO date of the newest completed, non-future transaction (its `occurred_at`);
+  // undefined when the wallet has none. Drives the card's "Last update" label.
+  lastActivityAt?: string;
 }
 
 // Single pass replacing the former `yearActiveCategoryIds` / `usedCategoryIds` /
-// `lastUpdatedAt` helpers, which each scanned the full transaction set.
-function scanFinance(mock: Finance, year: number): FinanceScan {
+// `lastActivityAt` helpers, which each scanned the full transaction set.
+function scanFinance(mock: Finance, year: number, now: Date): FinanceScan {
   const yearActiveIds = new Set<string>();
   const usedIds = new Set<string>();
-  let lastUpdatedAt: string | undefined;
+  const nowMs = now.getTime();
+  let lastActivityAt: string | undefined;
+  let lastActivityMs = -Infinity;
   for (const t of mock.transactions) {
     usedIds.add(t.categoryId);
-    if (lastUpdatedAt === undefined || t.updatedAt > lastUpdatedAt) lastUpdatedAt = t.updatedAt;
     if (t.status !== 'completed') continue;
-    if (txDate(t).getFullYear() === year) yearActiveIds.add(t.categoryId);
+    const d = txDate(t);
+    const ms = d.getTime();
+    // "Last update" reflects the most recent activity the user actually
+    // recorded, so use the transaction's own date (`occurred_at`) — not the DB
+    // write timestamp — and ignore future-dated rows so a post-dated entry
+    // can't make the label read a date that hasn't happened yet.
+    if (!Number.isNaN(ms) && ms <= nowMs && ms > lastActivityMs) {
+      lastActivityMs = ms;
+      lastActivityAt = transactionDate(t);
+    }
+    if (d.getFullYear() === year) yearActiveIds.add(t.categoryId);
   }
-  return { yearActiveIds, usedIds, lastUpdatedAt };
+  return { yearActiveIds, usedIds, lastActivityAt };
 }
 
 function previousMonth(year: number, month: number): { year: number; month: number } {
@@ -441,7 +508,7 @@ export function buildDashboard(
   locale: string = 'en',
 ): DashboardData {
   const year = filter.years[0] ?? now.getFullYear();
-  const { yearActiveIds, usedIds, lastUpdatedAt } = scanFinance(mock, year);
+  const { yearActiveIds, usedIds, lastActivityAt } = scanFinance(mock, year, now);
   const base = filter.all
     ? buildYearMode(mock, year, now, yearActiveIds, usedIds)
     : (() => {
@@ -451,6 +518,6 @@ export function buildDashboard(
       })();
   return {
     ...base,
-    overview: { ...base.overview, lastUpdatedAt },
+    overview: { ...base.overview, lastActivityAt },
   };
 }

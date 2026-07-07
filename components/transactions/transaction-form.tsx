@@ -3,10 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { categorySelectHref } from '@/constants/routes';
+import { categoryFormHref, categorySelectHref } from '@/constants/routes';
 import { nextAmountCents } from '@/utils/amount-input';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
-import { Chip } from '@/components/ui/atoms/chip';
 import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
@@ -14,8 +13,13 @@ import { SegmentedControl, type SegmentedOption } from '@/components/ui/atoms/se
 import { Text } from '@/components/ui/atoms/text';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { CategorySelect } from '@/components/ui/organisms/category-select';
+import { QuickPickChips, type QuickPickItem } from '@/components/ui/molecules/quick-pick-chips';
 import { Fonts } from '@/constants/theme';
-import { MOST_USED_CATEGORIES_LIMIT, rankCategoriesByUsage } from '@/data/finance-aggregations';
+import {
+  MOST_USED_CATEGORIES_LIMIT,
+  rankCategoriesByUsage,
+  rankDescriptionsByUsage,
+} from '@/data/finance-aggregations';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -105,6 +109,33 @@ export function TransactionForm({
     return mostUsed.length > 0 ? mostUsed : rest.slice(0, MOST_USED_CATEGORIES_LIMIT);
   }, [categories, transactions, type]);
 
+  // Starter suggestions for a fresh wallet: only relevant when there are zero
+  // categories of the current type (i.e. the quick-pick row above would be
+  // empty). Parsed from the same comma-separated list the category picker uses,
+  // so both surfaces suggest the same starter names. Tapping one opens the
+  // category create flow pre-filled with that name (rather than creating
+  // silently) so the user can also set a monthly goal; the categoryFormBridge
+  // auto-selects the new category on success.
+  const suggestionNames = useMemo(() => {
+    if (topCategories.length > 0) return [];
+    return t(`categorySelect.suggestions.${type}`)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [topCategories.length, type, t]);
+
+  const showQuickPick = topCategories.length > 0;
+  const showSuggestions = !showQuickPick && suggestionNames.length > 0;
+
+  // Past descriptions used for the selected category, ranked most-used with a
+  // recency tiebreak, offered under the "What for" field for one-tap reuse.
+  // Only relevant once a category is picked; empty (row hidden) when that
+  // category has no prior descriptions yet.
+  const descriptionSuggestions = useMemo(
+    () => (categoryId ? rankDescriptionsByUsage(transactions, categoryId) : []),
+    [transactions, categoryId],
+  );
+
   const formattedAmount = formatAmount(amountCents / 100, currency);
 
   const handleAmountChange = (text: string) => {
@@ -118,6 +149,44 @@ export function TransactionForm({
 
   const openCategorySelect = () =>
     router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }));
+
+  const openCreateCategory = (prefillName?: string) =>
+    router.push(categoryFormHref({ type, bridgeId, ...(prefillName ? { prefillName } : {}) }));
+
+  // The category row swaps between two shapes: quick-pick over existing
+  // categories (with an "All categories" opener), or starter suggestions when
+  // the wallet has none of this type yet (with a "+ Add" opener). Both render
+  // through the same QuickPickChips surface.
+  const categoryQuickPick: {
+    items: QuickPickItem[];
+    trailing: { label: string; onPress: () => void };
+  } | null = showQuickPick
+    ? {
+        items: topCategories.map((c) => ({
+          key: c.id,
+          label: c.name,
+          selected: categoryId === c.id,
+          onPress: () => setCategoryId(c.id),
+        })),
+        trailing: { label: t('categorySelect.groups.all'), onPress: openCategorySelect },
+      }
+    : showSuggestions
+      ? {
+          items: suggestionNames.map((name) => ({
+            key: name,
+            label: name,
+            onPress: () => openCreateCategory(name),
+          })),
+          trailing: { label: t('category.create.chipLabel'), onPress: () => openCreateCategory() },
+        }
+      : null;
+
+  const descriptionItems: QuickPickItem[] = descriptionSuggestions.map((d) => ({
+    key: d,
+    label: d,
+    selected: description.trim() === d,
+    onPress: () => setDescription(d),
+  }));
 
   const busy = isSubmitting || isDeleting;
   const canSubmit = amountCents > 0 && categoryId !== null && !busy;
@@ -217,34 +286,23 @@ export function TransactionForm({
           placeholder={t('categorySelect.placeholder')}
           onPress={openCategorySelect}
         />
-        {topCategories.length > 0 ? (
-          <View style={styles.chipRow}>
-            {topCategories.map((c) => {
-              const selected = categoryId === c.id;
-              return (
-                <Chip
-                  key={c.id}
-                  label={c.name}
-                  variant={selected ? 'secondary' : 'default'}
-                  selected={selected}
-                  onPress={() => setCategoryId(c.id)}
-                />
-              );
-            })}
-            <Chip
-              label={t('categorySelect.groups.all')}
-              variant="primary"
-              accent
-              onPress={openCategorySelect}
-            />
-          </View>
+        {categoryQuickPick ? (
+          <QuickPickChips
+            items={categoryQuickPick.items}
+            trailing={categoryQuickPick.trailing}
+          />
         ) : null}
       </View>
 
       <View style={styles.field}>
-        <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-          {t('create.descriptionLabel').toUpperCase()}
-        </Text>
+        <View style={styles.descriptionHeader}>
+          <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+            {t('create.descriptionLabel').toUpperCase()}
+          </Text>
+          <Text variant="caption" tone="textMuted">
+            {t('create.descriptionCounter', { count: description.length })}
+          </Text>
+        </View>
         <TextInput
           value={description}
           onChangeText={setDescription}
@@ -260,14 +318,7 @@ export function TransactionForm({
             },
           ]}
         />
-        <View style={styles.descriptionMeta}>
-          <Text variant="caption" tone="textMuted">
-            {t('create.descriptionCaption')}
-          </Text>
-          <Text variant="caption" tone="textMuted">
-            {t('create.descriptionCounter', { count: description.length })}
-          </Text>
-        </View>
+        {descriptionItems.length > 0 ? <QuickPickChips items={descriptionItems} /> : null}
       </View>
     </ModalFormScaffold>
   );
@@ -287,13 +338,6 @@ const styles = StyleSheet.create({
   field: {
     gap: 8,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 4,
-  },
   label: {
     letterSpacing: 0.8,
   },
@@ -304,7 +348,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10,
   },
-  descriptionMeta: {
+  descriptionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

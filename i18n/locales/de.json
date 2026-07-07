@@ -65,10 +65,6 @@
     "home": "Zur Startseite"
   },
   "balance": {
-    "demoBadge": {
-      "title": "Demo-Modus aktiv",
-      "body": "Angezeigte Werte sind Beispieldaten. Deaktiviere ihn in Dein Konto."
-    },
     "welcome": {
       "title": "Willkommen an Bord!",
       "body": "Behalte dein Geld an einem Ort im Blick und verschaffe dir einen vollständigen Überblick über deine Finanzen."
@@ -151,10 +147,6 @@
       "description": "Zeigt Eingänge, Ausgaben und Saldo in der Übersicht an.",
       "descriptionDisabled": "Verfügbar, sobald du deinen ersten Eingang erfasst hast."
     },
-    "demoMode": {
-      "title": "Demo-Modus",
-      "description": "Ersetzt alle echten Werte durch Beispieldaten."
-    },
     "languageRow": {
       "title": "Sprache"
     },
@@ -177,7 +169,7 @@
     "revenue": "Eingänge",
     "balance": "Saldo",
     "primaryPrefix": "Für",
-    "lastUpdate": "Letzte Aktualisierung: {{date}}",
+    "lastTransaction": "Letzte Transaktion: {{date}}",
     "addFirstTransaction": "Meine erste Transaktion hinzufügen"
   },
   "timeFilter": {
@@ -194,8 +186,7 @@
     "dateLabel": "Wann",
     "descriptionLabel": "Wofür",
     "descriptionPlaceholder": "z. B. Flugticket",
-    "descriptionCaption": "Erscheint in den Transaktionen",
-    "descriptionCounter": "{{count}}/100",
+    "descriptionCounter": "{{count}}/50",
     "save": "Speichern",
     "error": "Ups! Das hat nicht gespeichert. Nochmal versuchen?",
     "duplicateWarning": {
@@ -212,7 +203,6 @@
     "delete": "Löschen",
     "updateError": "Ups! Das ließ sich nicht aktualisieren. Nochmal versuchen?",
     "deleteError": "Ups! Das ließ sich nicht entfernen. Nochmal versuchen?",
-    "demoReadOnly": "Der Demo-Modus ist nur zum Reinschnuppern. Deaktiviere ihn in Dein Konto, um echte Änderungen vorzunehmen.",
     "deleteConfirmTitle": "Diese Transaktion löschen?",
     "deleteConfirmMessage": "Sie wird aus deinen Aufzeichnungen entfernt. Das kann nicht rückgängig gemacht werden.",
     "deleteConfirmAction": "Löschen",
@@ -379,6 +369,7 @@
     "transactionCount_other": "{{count}} Transaktionen",
     "selectedCount_one": "{{count}} ausgewählt",
     "selectedCount_other": "{{count}} ausgewählt",
+    "clear": "Zurücksetzen",
     "noActivity": "Keine Aktivität in diesem Zeitraum",
     "exampleBadge": "Beispiel",
     "goalOf": "von {{value}}",
@@ -415,7 +406,7 @@
   "categorySelect": {
     "title": "Kategorie auswählen",
     "placeholder": "Kategorie auswählen",
-    "searchPlaceholder": "Name der Kategorie",
+    "searchPlaceholder": "Kategorie suchen oder erstellen",
     "groups": {
       "mostUsed": "Am häufigsten genutzt",
       "all": "Alle Kategorien"
