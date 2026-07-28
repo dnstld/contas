@@ -4,18 +4,23 @@ import { useTranslation } from 'react-i18next';
 import { Avatar } from '@/components/ui/atoms/avatar';
 import { PriceText } from '@/components/ui/atoms/price-text';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
+import {
+  resolveRowAttribution,
+  type TransactionRowCreator,
+} from '@/components/ui/molecules/transaction-row-attribution';
 import type { Transaction } from '@/data/finance-types';
 
-export type TransactionRowCreator = {
-  displayName: string | null;
-  avatarUrl: string | null;
-  isMe: boolean;
-};
+export type { TransactionRowCreator } from '@/components/ui/molecules/transaction-row-attribution';
 
 export interface TransactionRowProps {
   transaction: Transaction;
   currency: string;
   creator: TransactionRowCreator | null;
+  /**
+   * The member this transaction is FOR, when it was entered on their behalf.
+   * `null` for the common case (the transaction belongs to its creator).
+   */
+  beneficiary?: TransactionRowCreator | null;
   /**
    * Receives the transaction id so callers can keep a stable, memoized handler.
    * Omit to render the row as non-interactive (e.g. read-only example data).
@@ -23,30 +28,35 @@ export interface TransactionRowProps {
   onPress?: (transactionId: string) => void;
 }
 
-function firstName(name: string): string {
-  return name.trim().split(/\s+/)[0] ?? name;
-}
-
-function resolveCreatorLabel(
-  creator: TransactionRowCreator | null,
-  youLabel: string,
-): string | null {
-  if (!creator) return null;
-  if (creator.isMe) return youLabel;
-  if (creator.displayName) return firstName(creator.displayName);
-  return null;
-}
-
-function TransactionRowImpl({ transaction, currency, creator, onPress }: TransactionRowProps) {
+function TransactionRowImpl({
+  transaction,
+  currency,
+  creator,
+  beneficiary,
+  onPress,
+}: TransactionRowProps) {
   const { t } = useTranslation();
   const isIncome = transaction.type === 'income';
 
   const description = transaction.description?.trim() ?? '';
   const hasDescription = description.length > 0;
 
-  const creatorLabel = resolveCreatorLabel(creator, t('transactions.createdByYou'));
+  const attribution = resolveRowAttribution(creator, beneficiary, {
+    you: t('transactions.createdByYou'),
+    unnamed: t('wallet.partner.unnamed'),
+  });
 
-  const avatarName = creator?.displayName ?? transaction.categoryName;
+  // Attribution line. On-behalf rows read "<beneficiary> · added by <actor>";
+  // ordinary rows keep the plain creator label ("You" / first name).
+  const creatorLabel = attribution.isOnBehalf
+    ? t('transactions.onBehalf', {
+        beneficiary: attribution.beneficiaryName,
+        actor: attribution.actorName,
+      })
+    : attribution.plainLabel;
+
+  const avatarSource = attribution.avatarSource;
+  const avatarName = avatarSource?.displayName ?? transaction.categoryName;
 
   const accessibilityLabel = [transaction.categoryName, description, creatorLabel]
     .filter(Boolean)
@@ -62,7 +72,9 @@ function TransactionRowImpl({ transaction, currency, creator, onPress }: Transac
       density="compact"
       onPress={onPress ? handlePress : undefined}
       accessibilityLabel={accessibilityLabel}
-      leading={creator ? <Avatar url={creator.avatarUrl} name={avatarName} size="sm" /> : null}
+      leading={
+        avatarSource ? <Avatar url={avatarSource.avatarUrl} name={avatarName} size="sm" /> : null
+      }
       title={transaction.categoryName}
       text1={creatorLabel}
       subtitle={hasDescription ? description : null}

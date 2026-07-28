@@ -76,6 +76,7 @@ export default function EditScreen() {
     date: txDate(transaction),
     categoryId: transaction.categoryId,
     description: transaction.description,
+    onBehalfOfUserId: transaction.onBehalfOfUserId,
   };
 
   return (

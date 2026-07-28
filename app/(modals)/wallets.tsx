@@ -53,9 +53,17 @@ export default function WalletsScreen() {
   async function handleCreate() {
     const name = newName.trim();
     if (!name || createWallet.isPending) return;
-    const newId = await createWallet.mutateAsync({ name, currency: newCurrency });
-    switchWallet(newId);
-    router.dismissTo(ROUTES.home);
+    // Errors are surfaced centrally by mutationCache.onError (toast + Sentry).
+    // Catch here so a rejected mutateAsync doesn't escape this fire-and-forget
+    // onPress handler as an unhandled promise rejection (which bypasses the
+    // monitoring wrapper and double-reports raw — see CONTAS-6).
+    try {
+      const newId = await createWallet.mutateAsync({ name, currency: newCurrency });
+      switchWallet(newId);
+      router.dismissTo(ROUTES.home);
+    } catch {
+      // Handled centrally; navigation intentionally skipped on failure.
+    }
   }
 
   const canCreate = newName.trim().length > 0 && !createWallet.isPending;

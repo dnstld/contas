@@ -54,6 +54,7 @@ export function useCreateTransaction() {
           status: 'completed',
           recurrence: 'none',
           created_by: session.user.id,
+          on_behalf_of: values.onBehalfOfUserId,
         })
         .select()
         .single();
@@ -98,6 +99,7 @@ export function useUpdateTransaction() {
           amount_cents: values.amountCents,
           description: values.description,
           occurred_at: toDayString(values.date),
+          on_behalf_of: values.onBehalfOfUserId,
         })
         .eq('id', id)
         .select()

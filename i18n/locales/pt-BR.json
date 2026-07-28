@@ -80,6 +80,7 @@
     "countShort_one": "{{count}} transação",
     "countShort_other": "{{count}} transações",
     "createdByYou": "Você",
+    "onBehalf": "{{beneficiary}} · lançado por {{actor}}",
     "empty": {
       "title": "Vazio como o espaço",
       "body": "Nenhuma transação neste período — ainda."
@@ -184,6 +185,8 @@
     },
     "amountPlaceholder": "Quanto",
     "dateLabel": "Quando",
+    "forWhomLabel": "Em nome de",
+    "forWhomMyself": "Eu mesmo",
     "descriptionLabel": "Para quê",
     "descriptionPlaceholder": "ex: Passagem aérea",
     "descriptionCounter": "{{count}}/50",

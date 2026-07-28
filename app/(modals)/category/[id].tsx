@@ -123,6 +123,7 @@ export default function CategoryDetailModal() {
           transaction={item}
           currency={currency}
           creator={resolveCreator(item.createdByUserId)}
+          beneficiary={resolveCreator(item.onBehalfOfUserId)}
           onPress={handlePressTransaction}
         />
       )}

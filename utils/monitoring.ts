@@ -20,6 +20,17 @@ export function initMonitoring() {
     // Finance app: never let Sentry attach IPs/cookies/headers by default.
     sendDefaultPii: false,
     tracesSampleRate: 0.2,
+    // Central safety net. Transient connectivity drops are expected on mobile
+    // and self-heal via onlineManager (see use-query-client.tsx) — they are
+    // not actionable bugs, so drop them here rather than filing an issue per
+    // dropped request. This also catches the raw unhandled-rejection path
+    // (Sentry's global onunhandledrejection handler) that bypasses
+    // captureError entirely and would otherwise report the original object
+    // with a useless "Object captured as exception with keys: ..." title.
+    beforeSend(event, hint) {
+      if (isNetworkError(hint?.originalException)) return null;
+      return event;
+    },
     beforeBreadcrumb(breadcrumb) {
       // Console breadcrumbs can echo logged finance data — drop them entirely.
       if (breadcrumb.category === 'console') return null;
@@ -50,16 +61,13 @@ function toReportableError(error: unknown): Error {
 }
 
 export function captureError(error: unknown, context?: CaptureContext) {
-  // Losing connectivity mid-request is expected on mobile (TanStack Query's
-  // onlineManager already refetches on reconnect — see use-query-client.tsx).
-  // Report it for visibility but as `warning`, not `error`, so it doesn't
-  // read as an actionable production bug or skew error-rate noise.
-  const level = context?.level ?? (isNetworkError(error) ? 'warning' : undefined);
-  Sentry.captureException(toReportableError(error), {
-    ...context,
-    level,
-    tags: { ...context?.tags, ...(isNetworkError(error) ? { network: 'true' } : {}) },
-  });
+  // Transient connectivity drops are expected on mobile and self-heal via
+  // onlineManager (see use-query-client.tsx). They aren't actionable bugs, so
+  // skip them at the source rather than filing an issue per dropped request.
+  // (The beforeSend hook in initMonitoring is the backstop for network errors
+  // that reach Sentry through other paths, e.g. unhandled rejections.)
+  if (isNetworkError(error)) return;
+  Sentry.captureException(toReportableError(error), context);
 }
 
 export function captureMessage(

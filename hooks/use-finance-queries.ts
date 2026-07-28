@@ -44,6 +44,7 @@ export function adaptTransaction(
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     createdByUserId: row.created_by ?? null,
+    onBehalfOfUserId: row.on_behalf_of ?? null,
   };
   if (recurrence !== 'none') {
     return {
@@ -80,7 +81,7 @@ async function fetchTransactionRows(walletId: string): Promise<TransactionRow[]>
     const { data, error } = await supabase
       .from('transactions')
       .select(
-        'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, updated_at',
+        'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, on_behalf_of, updated_at',
       )
       .eq('wallet_id', walletId)
       // occurred_at is a date (no time), so tiebreak same-day rows by entry time
@@ -123,7 +124,7 @@ export function useTransaction(transactionId: string | null): UseQueryResult<Tra
       const { data, error } = await supabase
         .from('transactions')
         .select(
-          'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, updated_at',
+          'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, on_behalf_of, updated_at',
         )
         .eq('id', tid)
         .eq('wallet_id', wid)

@@ -80,6 +80,7 @@
     "countShort_one": "{{count}} transaction",
     "countShort_other": "{{count}} transactions",
     "createdByYou": "You",
+    "onBehalf": "{{beneficiary}} · added by {{actor}}",
     "empty": {
       "title": "Empty as space",
       "body": "No transactions in this period — yet."
@@ -184,6 +185,8 @@
     },
     "amountPlaceholder": "How much",
     "dateLabel": "When",
+    "forWhomLabel": "On behalf of",
+    "forWhomMyself": "Myself",
     "descriptionLabel": "What for",
     "descriptionPlaceholder": "ex: Airfare",
     "descriptionCounter": "{{count}}/50",

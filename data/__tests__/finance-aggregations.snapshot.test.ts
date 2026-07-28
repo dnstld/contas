@@ -28,6 +28,7 @@ function mkTx(
     createdAt: overrides.date,
     updatedAt: overrides.date,
     createdByUserId: null,
+    onBehalfOfUserId: null,
     ...overrides,
   };
 }

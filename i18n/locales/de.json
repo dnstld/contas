@@ -80,6 +80,7 @@
     "countShort_one": "{{count}} Transaktion",
     "countShort_other": "{{count}} Transaktionen",
     "createdByYou": "Du",
+    "onBehalf": "{{beneficiary}} · erfasst von {{actor}}",
     "empty": {
       "title": "Leer wie das All",
       "body": "Noch keine Transaktionen in diesem Zeitraum."
@@ -184,6 +185,8 @@
     },
     "amountPlaceholder": "Wie viel",
     "dateLabel": "Wann",
+    "forWhomLabel": "Im Namen von",
+    "forWhomMyself": "Ich selbst",
     "descriptionLabel": "Wofür",
     "descriptionPlaceholder": "z. B. Flugticket",
     "descriptionCounter": "{{count}}/50",

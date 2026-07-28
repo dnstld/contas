@@ -20,13 +20,29 @@ import {
   rankCategoriesByUsage,
   rankDescriptionsByUsage,
 } from '@/data/finance-aggregations';
+import { useAuth } from '@/hooks/use-auth';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
+import { useWalletMembers } from '@/hooks/use-wallet-members';
 import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from '@/constants/limits';
 
 export type TransactionType = 'expense' | 'income';
+
+/** First name for a member chip, falling back to the email local-part, then a
+ *  generic unnamed label. Mirrors the row's `firstName` presentation. */
+function memberLabel(
+  displayName: string | null,
+  email: string | null,
+  unnamedLabel: string,
+): string {
+  const name = displayName?.trim();
+  if (name) return name.split(/\s+/)[0] ?? name;
+  const local = email?.split('@')[0]?.trim();
+  if (local) return local;
+  return unnamedLabel;
+}
 
 export type TransactionFormValues = {
   type: TransactionType;
@@ -34,6 +50,8 @@ export type TransactionFormValues = {
   date: Date;
   categoryId: string | null;
   description: string;
+  /** Member the transaction is FOR. `null` = for the creator themselves. */
+  onBehalfOfUserId: string | null;
 };
 
 export interface TransactionFormProps {
@@ -62,6 +80,9 @@ export function TransactionForm({
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
   const { currency } = useWallet();
+  const { members } = useWalletMembers();
+  const { session } = useAuth();
+  const myUserId = session?.user.id ?? null;
   const { formatAmount } = useFormatters();
   // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
   // access during render) and gives us a one-time value identical to a ref.
@@ -77,6 +98,9 @@ export function TransactionForm({
   const [date, setDate] = useState<Date>(initialValues?.date ?? new Date());
   const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
   const [description, setDescription] = useState<string>(initialValues?.description ?? '');
+  const [onBehalfOfUserId, setOnBehalfOfUserId] = useState<string | null>(
+    initialValues?.onBehalfOfUserId ?? null,
+  );
 
   useEffect(() => {
     return categoryFormBridge.subscribe(bridgeId, {
@@ -188,6 +212,33 @@ export function TransactionForm({
     onPress: () => setDescription(d),
   }));
 
+  // "For whom" picker: only meaningful in a shared wallet. Lists every other
+  // member alongside a "Myself" chip (null = the transaction is for the
+  // creator). Rendered through the same QuickPickChips surface as categories.
+  const otherMembers = useMemo(
+    () => members.filter((m) => m.userId !== myUserId),
+    [members, myUserId],
+  );
+  // Hidden until the current user is known, so a solo wallet never flashes the
+  // picker while the session/members are still loading.
+  const showOnBehalfPicker = !!myUserId && otherMembers.length > 0;
+  const onBehalfItems: QuickPickItem[] = showOnBehalfPicker
+    ? [
+        {
+          key: '__self__',
+          label: t('create.forWhomMyself'),
+          selected: onBehalfOfUserId === null,
+          onPress: () => setOnBehalfOfUserId(null),
+        },
+        ...otherMembers.map((m) => ({
+          key: m.userId,
+          label: memberLabel(m.displayName, m.email, t('wallet.partner.unnamed')),
+          selected: onBehalfOfUserId === m.userId,
+          onPress: () => setOnBehalfOfUserId(m.userId),
+        })),
+      ]
+    : [];
+
   const busy = isSubmitting || isDeleting;
   const canSubmit = amountCents > 0 && categoryId !== null && !busy;
 
@@ -199,6 +250,7 @@ export function TransactionForm({
       date,
       categoryId,
       description,
+      onBehalfOfUserId,
     });
   };
 
@@ -293,6 +345,15 @@ export function TransactionForm({
           />
         ) : null}
       </View>
+
+      {showOnBehalfPicker ? (
+        <View style={styles.field}>
+          <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
+            {t('create.forWhomLabel').toUpperCase()}
+          </Text>
+          <QuickPickChips items={onBehalfItems} />
+        </View>
+      ) : null}
 
       <View style={styles.field}>
         <View style={styles.descriptionHeader}>
