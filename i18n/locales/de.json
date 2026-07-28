@@ -52,7 +52,8 @@
   "tabs": {
     "balance": "Übersicht",
     "transactions": "Transaktionen",
-    "settings": "Dein Konto"
+    "settings": "Dein Konto",
+    "categories": "Kategorien"
   },
   "errorFallback": {
     "title": "Ups! Da ist etwas schiefgelaufen",
@@ -420,6 +421,19 @@
       "section": "Vorschläge",
       "expense": "Lebensmittel, Apotheke, Miete",
       "income": "Gehalt, Investitionen, Freelance"
+    }
+  },
+  "categoriesTab": {
+    "sections": {
+      "expenses": "Ausgaben",
+      "income": "Einnahmen"
+    },
+    "itemCount_one": "{{count}} Eintrag",
+    "itemCount_other": "{{count}} Einträge",
+    "addCategory": "Neue Kategorie",
+    "empty": {
+      "title": "Noch keine Kategorien",
+      "subtitle": "Erstelle Kategorien, um Ausgaben und Einnahmen zu ordnen."
     }
   }
 }

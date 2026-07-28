@@ -1,4 +1,4 @@
-export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly';
+export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 export type RecurringRecurrence = Exclude<Recurrence, 'none'>;
 
@@ -12,6 +12,18 @@ export type Category = {
   type: TransactionType;
   monthlyBudget?: number;
   createdAt?: string;
+};
+
+export type CategoryItem = {
+  id: string;
+  categoryId: string;
+  name: string;
+  defaultAmount?: number; // major units (like Category.monthlyBudget)
+  recurrence: Recurrence;
+  nextDueOn?: string; // 'YYYY-MM-DD'
+  recurrenceEndOn?: string; // 'YYYY-MM-DD'; undefined = open-ended
+  recurrenceTotalCount?: number; // installment total, for "k of N"
+  archivedAt?: string; // ISO; set = archived
 };
 
 type TransactionBase = {

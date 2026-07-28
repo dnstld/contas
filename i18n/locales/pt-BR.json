@@ -52,7 +52,8 @@
   "tabs": {
     "balance": "Resumo",
     "transactions": "Transações",
-    "settings": "Sua conta"
+    "settings": "Sua conta",
+    "categories": "Categorias"
   },
   "errorFallback": {
     "title": "Ops! Algo deu errado",
@@ -420,6 +421,19 @@
       "section": "Sugestões",
       "expense": "Mercado, Farmácia, Aluguel",
       "income": "Salário, Investimentos, Freelance"
+    }
+  },
+  "categoriesTab": {
+    "sections": {
+      "expenses": "Despesas",
+      "income": "Receitas"
+    },
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} itens",
+    "addCategory": "Nova categoria",
+    "empty": {
+      "title": "Nenhuma categoria ainda",
+      "subtitle": "Crie categorias para organizar seus gastos e receitas."
     }
   }
 }

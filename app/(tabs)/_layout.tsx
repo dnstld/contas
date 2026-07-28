@@ -26,6 +26,11 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="arrow.left.arrow.right" drawable="ic_menu_recent_history" />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="categories">
+        <NativeTabs.Trigger.Label>{t('tabs.categories')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="folder.fill" drawable="ic_menu_archive" />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="account">
         <NativeTabs.Trigger.Label>{t('tabs.settings')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.crop.circle.fill" drawable="ic_menu_manage" />

@@ -52,7 +52,8 @@
   "tabs": {
     "balance": "Overview",
     "transactions": "Transactions",
-    "settings": "Your account"
+    "settings": "Your account",
+    "categories": "Categories"
   },
   "errorFallback": {
     "title": "Oops! Something went wrong",
@@ -420,6 +421,19 @@
       "section": "Suggestions",
       "expense": "Groceries, Pharmacy, Rent",
       "income": "Salary, Investments, Freelance"
+    }
+  },
+  "categoriesTab": {
+    "sections": {
+      "expenses": "Expenses",
+      "income": "Income"
+    },
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "addCategory": "New category",
+    "empty": {
+      "title": "No categories yet",
+      "subtitle": "Create categories to organize your spending and income."
     }
   }
 }
