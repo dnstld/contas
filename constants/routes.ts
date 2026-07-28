@@ -35,6 +35,10 @@ export function categoryDetailHref(id: string, filter: TimeFilterState): Href {
   };
 }
 
+export function categoryItemsHref(id: string): Href {
+  return { pathname: '/category-items', params: { id } };
+}
+
 export function walletsHref(): Href {
   return { pathname: '/wallets' };
 }

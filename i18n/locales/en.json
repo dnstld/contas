@@ -435,5 +435,29 @@
       "title": "No categories yet",
       "subtitle": "Create categories to organize your spending and income."
     }
+  },
+  "categoryItems": {
+    "segments": {
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "addItem": "New item",
+    "recurrence": {
+      "daily": "Every day",
+      "weekly": "Every week, next {{date}}",
+      "weeklyNoDate": "Every week",
+      "monthly": "Every month, next {{date}}",
+      "monthlyNoDate": "Every month",
+      "yearly": "Every year, next {{date}}",
+      "yearlyNoDate": "Every year"
+    },
+    "empty": {
+      "title": "No items yet",
+      "subtitle": "Add items to track recurring spending in this category."
+    },
+    "emptyArchived": {
+      "title": "No archived items",
+      "subtitle": "Archived items show up here."
+    }
   }
 }

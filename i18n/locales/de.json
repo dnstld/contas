@@ -435,5 +435,29 @@
       "title": "Noch keine Kategorien",
       "subtitle": "Erstelle Kategorien, um Ausgaben und Einnahmen zu ordnen."
     }
+  },
+  "categoryItems": {
+    "segments": {
+      "active": "Aktiv",
+      "archived": "Archiviert"
+    },
+    "addItem": "Neuer Eintrag",
+    "recurrence": {
+      "daily": "Jeden Tag",
+      "weekly": "Jede Woche, nächster Termin {{date}}",
+      "weeklyNoDate": "Jede Woche",
+      "monthly": "Jeden Monat, nächster Termin {{date}}",
+      "monthlyNoDate": "Jeden Monat",
+      "yearly": "Jedes Jahr, nächster Termin {{date}}",
+      "yearlyNoDate": "Jedes Jahr"
+    },
+    "empty": {
+      "title": "Noch keine Einträge",
+      "subtitle": "Füge Einträge hinzu, um wiederkehrende Ausgaben dieser Kategorie zu verfolgen."
+    },
+    "emptyArchived": {
+      "title": "Keine archivierten Einträge",
+      "subtitle": "Archivierte Einträge erscheinen hier."
+    }
   }
 }

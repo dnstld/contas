@@ -49,7 +49,6 @@ export const MOCK_CATEGORY_ITEMS: CategoryItem[] = [
     defaultAmount: 416.58,
     recurrence: 'monthly',
     nextDueOn: '2026-08-10',
-    recurrenceTotalCount: 12,
   },
   {
     id: 'item-spotify',

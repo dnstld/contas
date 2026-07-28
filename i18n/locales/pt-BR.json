@@ -435,5 +435,29 @@
       "title": "Nenhuma categoria ainda",
       "subtitle": "Crie categorias para organizar seus gastos e receitas."
     }
+  },
+  "categoryItems": {
+    "segments": {
+      "active": "Ativos",
+      "archived": "Arquivados"
+    },
+    "addItem": "Novo item",
+    "recurrence": {
+      "daily": "Todo dia",
+      "weekly": "Toda semana, próximo {{date}}",
+      "weeklyNoDate": "Toda semana",
+      "monthly": "Todo mês, próximo {{date}}",
+      "monthlyNoDate": "Todo mês",
+      "yearly": "Todo ano, próximo {{date}}",
+      "yearlyNoDate": "Todo ano"
+    },
+    "empty": {
+      "title": "Nenhum item ainda",
+      "subtitle": "Adicione itens para acompanhar gastos recorrentes nesta categoria."
+    },
+    "emptyArchived": {
+      "title": "Nenhum item arquivado",
+      "subtitle": "Itens arquivados aparecem aqui."
+    }
   }
 }

@@ -1,10 +1,12 @@
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { EmptyState, Icon, SectionList, Surface, Text } from '@/components/ui';
+import { EmptyState, Icon, PressableButton, SectionList, Text } from '@/components/ui';
 import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import type { SectionListSection } from '@/components/ui/organisms/section-list';
+import { categoryItemsHref } from '@/constants/routes';
 import { MOCK_CATEGORIES, itemCountByCategory } from '@/data/__fixtures__/category-items';
 import type { Category } from '@/data/finance-types';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -37,6 +39,7 @@ function CountTrailing({ label }: { label: string }) {
 export default function CategoriesScreen() {
   const background = useThemeColor({}, 'background');
   const { t } = useTranslation();
+  const router = useRouter();
 
   const counts = itemCountByCategory();
 
@@ -46,8 +49,7 @@ export default function CategoriesScreen() {
     trailing: (
       <CountTrailing label={t('categoriesTab.itemCount', { count: counts[category.id] ?? 0 })} />
     ),
-    // TODO(step 2): navigate to items screen
-    onPress: () => {},
+    onPress: () => router.push(categoryItemsHref(category.id)),
   });
 
   const expenseRows: Row[] = MOCK_CATEGORIES.filter((c) => c.type === 'expense').map(toRow);
@@ -92,15 +94,13 @@ export default function CategoriesScreen() {
         sections={sections}
       />
 
-      <Surface padding={0} bordered>
-        <SectionListRow
-          {...ROW_DEFAULTS}
-          leading={<Icon name="plus" size={18} tone="tint" />}
-          title={t('categoriesTab.addCategory')}
-          // TODO(step 5): open category form
-          onPress={() => {}}
-        />
-      </Surface>
+      <PressableButton
+        variant="primary"
+        iconName="plus"
+        label={t('categoriesTab.addCategory')}
+        // TODO(step 5): open category form
+        onPress={() => {}}
+      />
     </ScrollView>
   );
 }
