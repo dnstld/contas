@@ -90,6 +90,11 @@ function FlatSectionList<T>({
       contentContainerStyle={contentContainerStyle}
       style={style}
       ItemSeparatorComponent={Divider}
+      // Close each section with a divider so the last row always has a bottom
+      // border. Without this, `ItemSeparatorComponent` (which only draws
+      // between items) leaves single-transaction days with no divider before
+      // the next section.
+      renderSectionFooter={() => <Divider />}
       // First section keeps the default (small) top padding — it sits right
       // below the list header/filter, which already provides spacing. Every
       // section after that gets an extra 16pt gap so day-groups read as
