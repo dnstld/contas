@@ -484,6 +484,12 @@
     "title": "Upcoming",
     "paymentsCount_one": "{{count}} payment",
     "paymentsCount_other": "{{count}} payments",
-    "summary": "{{total}} · Next {{date}}"
+    "summary": "{{total}} · Next {{date}}",
+    "next": "Next {{date}}",
+    "overdue": "Overdue",
+    "empty": {
+      "title": "Nothing upcoming",
+      "subtitle": "Your upcoming payments will show up here."
+    }
   }
 }

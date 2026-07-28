@@ -50,6 +50,10 @@ export function walletsHref(): Href {
   return { pathname: '/wallets' };
 }
 
+export function upcomingHref(): Href {
+  return { pathname: '/upcoming' };
+}
+
 export function editWalletNameHref(id: string): Href {
   return { pathname: '/edit-wallet-name', params: { id } };
 }

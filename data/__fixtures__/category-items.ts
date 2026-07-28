@@ -125,6 +125,25 @@ export const MOCK_CATEGORY_ITEMS: CategoryItem[] = [
   },
 ];
 
+const expenseCategoryIds = new Set(
+  MOCK_CATEGORIES.filter((c) => c.type === 'expense').map((c) => c.id),
+);
+
+/**
+ * Non-archived recurring expense items with a due date, sorted by `nextDueOn`
+ * ascending — the shared source for the home "Upcoming" summary card and the
+ * `/upcoming` modal, so both agree without duplicating the filter/sort.
+ */
+export function upcomingExpenseItems(): CategoryItem[] {
+  return MOCK_CATEGORY_ITEMS.filter(
+    (it) =>
+      !it.archivedAt &&
+      it.recurrence !== 'none' &&
+      it.nextDueOn != null &&
+      expenseCategoryIds.has(it.categoryId),
+  ).sort((a, b) => (a.nextDueOn! < b.nextDueOn! ? -1 : a.nextDueOn! > b.nextDueOn! ? 1 : 0));
+}
+
 /**
  * Count of non-archived items per `categoryId`. Precomputed so the list can
  * render counts without any runtime logic.

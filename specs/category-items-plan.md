@@ -17,7 +17,8 @@ Replace today's implicit "descriptions derived from transaction history" with an
 | Free-text policy | Allow free text; unlisted typed descriptions save but are never suggested |
 | Menu placement | New dedicated bottom tab |
 | Transaction ↔ item link | Store a pointer (`category_item_id` FK) **and** the text |
-| Upcoming model | Forecast + tap to log (nothing unconfirmed hits totals) |
+| Upcoming model | **Calendar-driven forecast, view + manage only.** The list is informational; `next_due_on` rolls forward automatically as dates pass (no logging required). **No logging from the forecast** — logging happens in the normal create-transaction flow, where curated items power the description suggestions (the original goal). |
+| Upcoming row tap | Opens the **item modal** (`category-item-form`, edit mode) so the user can **edit / archive / delete** the item. No tap-to-log, no per-row action. |
 | Item fields | Optional expected amount; recurrence also allowed on income categories |
 | Migration | Backfill the top-used descriptions per category and link matching history |
 | Delete behavior | Block deletion while any transaction links to the item (reassign first) |
@@ -213,7 +214,9 @@ Add a `CategoryItemRowSchema` (reusing `RecurrenceSchema`) validating the Supaba
 
 - `hooks/use-finance-mutations.ts`: include `category_item_id: values.categoryItemId ?? null` in create + update inserts.
 - New `hooks/use-category-item-mutations.ts`: `useCreateCategoryItem`, `useUpdateCategoryItem`, `useArchiveCategoryItem` (toggles `archived_at`), `useDeleteCategoryItem`, and `useReassignItemTransactions(fromItemId, toItemId | null)` with optimistic cache updates (mirror category mutations). Delete surfaces the FK-restrict error as a friendly "This item is used by N transactions — reassign or archive it instead." Add `useArchiveCategory` alongside the existing category mutations.
-- `useLogUpcomingItem(itemId)`: creates a transaction (amount = `defaultAmount`, category = item's category, `description` = item name, `category_item_id` = item id, date = the due date), then advances the item's `next_due_on` by its frequency. If advancing passes `recurrence_end_on` or the logged-occurrence count reaches `recurrence_total_count`, it **auto-archives** the item instead of advancing. Ideally one RPC so the insert + advance/complete are atomic.
+- **No logging from the forecast.** Tapping an upcoming row opens `category-item-form` in edit mode (edit / archive / delete). Logging a payment is done through the normal create-transaction flow, where the curated items surface as description suggestions. There is no `useLogUpcomingItem`, no tap-to-log sheet, and no next-due-advance-on-log.
+- **`next_due_on` is calendar-driven:** `buildUpcoming` (§7) rolls a stale anchor forward to the next future occurrence for display; the stored `next_due_on` can be lazily normalized the same way. Advancing does not depend on any user action.
+- **Auto-archive on completion** still applies for bounded items (if/when bounded recurrence returns): once the schedule passes `recurrence_end_on`, the item stops appearing and can be archived. (Bounded recurrence is currently deferred — see decisions table.)
 
 ### 5.5 Suggestions — `data/finance-aggregations.ts` + `transaction-form.tsx`
 
@@ -266,7 +269,7 @@ Pure and unit-testable; no dates via `new Date('YYYY-MM-DD')` — reuse `parseDa
 
 ### 7.2 Placement
 
-Recommend a collapsible **"Upcoming · next 30 days"** section on the `(status)` balance tab (the financial overview), with amounts and a **Log** button per row wired to `useLogUpcomingItem`. Income items appear under an "Upcoming income" subsection, gated by the same `showRevenue` wallet setting the app already respects. _(Placement is a minor choice — easily moved into the Categories tab instead; call it if you'd prefer that.)_
+**Built (Phase A):** a summary **rollup card** on the Overview (home) tab below the balance ("N pagamentos · total · Próximo <date>", stacked avatars, chevron) opening an **Upcoming detail modal** (`/upcoming`) that lists each occurrence (avatar, name, "Próximo <date>", amount, overdue badge). No per-row Log button — **the row itself is the log affordance** (tap-to-log, see §5.4). Income ("Upcoming income") is deferred; the current surface is expenses only.
 
 ---
 
@@ -282,13 +285,13 @@ Beyond archive/decay, these follow naturally from the curated + recurring model.
 
 1. **Reassign transactions before delete [v1].** Because delete is blocked-in-use, the user needs an escape hatch: from an item, "Move its N transactions to → [another item / no item]", then delete. Without this, "block if in use" is a dead end. (`useReassignItemTransactions`, §5.4.)
 
-2. **Already-logged reconciliation [v1].** In the forecast+log model, a user might log Netflix manually. If a transaction linked to the item already exists inside the current cycle, hide/mark that occurrence as "Logged" so Upcoming can't double-count. Guards against duplicate entries.
+2. ~~Already-logged reconciliation.~~ **Dropped** — logging no longer happens from the forecast, so there is nothing to reconcile. The forecast is calendar-driven and informational.
 
 3. **Overdue vs. silent roll-forward [v1].** If a due date passes unlogged, don't silently advance and lose it — show the occurrence as **Overdue** with Log / Skip actions. Silent roll-forward would hide missed bills.
 
-4. **Skip a single occurrence [v1].** "Paused this month" — a **Skip** action advances `next_due_on` by one cycle without creating a transaction. Distinct from Stop/archive (which ends it entirely).
+4. ~~Skip a single occurrence.~~ **Dropped** — with a calendar-driven forecast and no logging, a single-cycle "skip" has no meaning; the item simply rolls to its next date on its own. Archiving still handles "stop entirely".
 
-5. **Expected-amount drift [v1].** When logging a recurring item at an amount different from `default_amount_cents` (e.g. Netflix $15.99 → $17.99), offer "Update expected amount to $17.99?" so forecasts stay accurate. One-tap, dismissible.
+5. ~~Expected-amount drift prompt.~~ **Dropped** — it hooked into the log flow (which no longer exists). Users edit an item's expected amount directly via the item modal instead.
 
 6. **Move item to another category [later].** Mis-filed items happen; editing `category_id` + re-checking the per-category name uniqueness. Relinked transactions keep their history.
 
@@ -349,7 +352,7 @@ One screen per step, each reviewed before the next:
 1. **Categories tab** — new 4th tab + `categories/index.tsx`: list of categories grouped by expense/income, each row showing name + item count, tapping opens the items screen. Add-category affordance. Empty state.
 2. **Category → items screen** — a **modal** (`app/(modals)/category-items.tsx`), category name in the **modal title** (never the tab header). Items list for one category: name, expected amount, and a plain-text recurrence line ("Every month, next 10 Aug" / pt-BR "Todo mês, próximo 10 ago"), left-aligned under the name. Active/Archived split via a **`SegmentedControl`** (not a toggle). Shared add-action row. Empty states. _(No installment "k of N" display.)_
 3. **Item form modal** — `category-item-form.tsx` via `ModalFormScaffold`: name, expected amount, recurrence `SegmentedControl` (`none · daily · weekly · monthly · yearly`), and — when recurring — a "Next due" `DatePicker`. Open-ended only (no Repeat/end-date/installment controls). Save/Delete/Archive buttons (visual only).
-4. **Upcoming section** — the "Upcoming · next 30 days" surface (on the balance tab or its own screen), rows with amount, due date, "k of N"/overdue badges, and a Log button. Expense + income groupings.
+4. **Upcoming surface** — a summary rollup card on the Overview (home) tab below the balance, opening an Upcoming detail modal (`/upcoming`) listing occurrences (amount, due date, overdue badge). Rows are the log affordance (tap-to-log); no per-row button. Expenses only for now.
 
 ### 11.B Phase B — logic & backend (after UI sign-off)
 
@@ -357,7 +360,7 @@ One screen per step, each reviewed before the next:
 6. **Backfill migration** + verification.
 7. **Data/query/mutation layer**: schemas, `useCategoryItems`, transaction insert/update carry the link, `rankItemsForCategory`, the item CRUD/archive/reassign mutations.
 8. **Wire the Phase-A screens** to real data + the transaction-form switch to curated items (parity with today, now curated).
-9. **Recurrence engine**: `buildUpcoming` + `useLogUpcomingItem` with auto-archive-on-completion, "k of N", overdue/skip/already-logged, expected-amount drift prompt.
+9. **Recurrence forecast**: `buildUpcoming` (calendar-driven, next-30-days, month-end clamping, overdue badge) feeding the summary card + detail modal; upcoming rows open the item modal (edit/archive/delete). No logging/reconciliation engine.
 10. **Polish**: recency decay, merge duplicates, move-category, budget-aware upcoming, free-tier cap (optional), tests, empty states.
 
 Locked pre-build decisions (see decisions table): `yearly` added to the shared enum; rename keeps saved text (§9).

@@ -484,6 +484,12 @@
     "title": "Anstehend",
     "paymentsCount_one": "{{count}} Zahlung",
     "paymentsCount_other": "{{count}} Zahlungen",
-    "summary": "{{total}} · Nächste {{date}}"
+    "summary": "{{total}} · Nächste {{date}}",
+    "next": "Nächste {{date}}",
+    "overdue": "Überfällig",
+    "empty": {
+      "title": "Nichts Anstehendes",
+      "subtitle": "Deine anstehenden Zahlungen erscheinen hier."
+    }
   }
 }
