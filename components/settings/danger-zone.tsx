@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Text } from '@/components/ui/atoms/text';
 import { ListCardRow } from '@/components/ui/molecules/list-card-row';
+import { SectionLabel } from '@/components/ui/molecules/section-label';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { withAlpha } from '@/utils/color';
 import { useAuth } from '@/hooks/use-auth';
@@ -101,13 +102,7 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
 
   return (
     <View style={styles.container}>
-      <Text
-        variant="caption"
-        weight="semibold"
-        style={[styles.sectionLabel, { color: dangerColor }]}
-      >
-        {t('dangerZone.title').toUpperCase()}
-      </Text>
+      <SectionLabel label={t('dangerZone.title')} tone="negative" />
 
       <View style={[styles.card, { borderColor: withAlpha(dangerColor, 0.27) }]}>
         {/* Sign out — always available */}
@@ -285,10 +280,6 @@ export function DangerZone({ currentUserId, partnerName, hasParter }: DangerZone
 const styles = StyleSheet.create({
   container: {
     gap: 8,
-  },
-  sectionLabel: {
-    letterSpacing: 0.8,
-    paddingHorizontal: 4,
   },
   card: {
     borderWidth: StyleSheet.hairlineWidth,

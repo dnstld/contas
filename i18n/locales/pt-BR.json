@@ -459,5 +459,31 @@
       "title": "Nenhum item arquivado",
       "subtitle": "Itens arquivados aparecem aqui."
     }
+  },
+  "categoryItemForm": {
+    "createTitle": "Novo item",
+    "editTitle": "Editar item",
+    "nameLabel": "Nome",
+    "namePlaceholder": "Ex.: Netflix",
+    "amountLabel": "Valor esperado",
+    "amountCaption": "Opcional",
+    "recurrenceLabel": "Recorrência",
+    "recurrence": {
+      "none": "Nenhuma",
+      "daily": "Diário",
+      "weekly": "Semanal",
+      "monthly": "Mensal",
+      "yearly": "Anual"
+    },
+    "nextDueLabel": "Próximo vencimento",
+    "save": "Salvar",
+    "archive": "Arquivar item",
+    "delete": "Excluir item"
+  },
+  "upcoming": {
+    "title": "Próximos",
+    "paymentsCount_one": "{{count}} pagamento",
+    "paymentsCount_other": "{{count}} pagamentos",
+    "summary": "{{total}} · Próximo {{date}}"
   }
 }

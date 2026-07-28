@@ -5,8 +5,8 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { CategoryFields } from '@/components/categories/category-fields';
 import { Icon } from '@/components/ui/atoms/icon';
-import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
+import { ModalActions } from '@/components/ui/molecules/modal-actions';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { SectionList, type SectionListSection } from '@/components/ui/organisms/section-list';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
@@ -164,13 +164,13 @@ export default function CategorySelectScreen() {
         />
         <ModalFormScaffold
           footer={
-            <PressableButton
-              label={t('categorySelect.createAndSelect')}
-              variant="primary"
-              size="large"
-              loading={isCreating}
-              disabled={!canCreate}
-              onPress={handleCreate}
+            <ModalActions
+              primary={{
+                label: t('categorySelect.createAndSelect'),
+                onPress: handleCreate,
+                loading: isCreating,
+                disabled: !canCreate,
+              }}
             />
           }
         >

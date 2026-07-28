@@ -459,5 +459,31 @@
       "title": "Keine archivierten Einträge",
       "subtitle": "Archivierte Einträge erscheinen hier."
     }
+  },
+  "categoryItemForm": {
+    "createTitle": "Neuer Eintrag",
+    "editTitle": "Eintrag bearbeiten",
+    "nameLabel": "Name",
+    "namePlaceholder": "z. B. Netflix",
+    "amountLabel": "Erwarteter Betrag",
+    "amountCaption": "Optional",
+    "recurrenceLabel": "Wiederholung",
+    "recurrence": {
+      "none": "Keine",
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "monthly": "Monatlich",
+      "yearly": "Jährlich"
+    },
+    "nextDueLabel": "Nächste Fälligkeit",
+    "save": "Speichern",
+    "archive": "Eintrag archivieren",
+    "delete": "Eintrag löschen"
+  },
+  "upcoming": {
+    "title": "Anstehend",
+    "paymentsCount_one": "{{count}} Zahlung",
+    "paymentsCount_other": "{{count}} Zahlungen",
+    "summary": "{{total}} · Nächste {{date}}"
   }
 }

@@ -11,7 +11,7 @@ import {
 import { Divider } from '@/components/ui/atoms/divider';
 import { Surface } from '@/components/ui/atoms/surface';
 import { Text } from '@/components/ui/atoms/text';
-import { SectionHeader } from '@/components/ui/molecules/section-header';
+import { SectionLabel } from '@/components/ui/molecules/section-label';
 
 export type SectionListVariant = 'card' | 'flat';
 
@@ -51,9 +51,7 @@ function FlatSectionHeader({ title, spaced }: { title?: string; spaced?: boolean
   if (!title) return null;
   return (
     <View style={[flatStyles.header, spaced ? flatStyles.headerSpaced : null]}>
-      <Text variant="caption" tone="textMuted" weight="semibold">
-        {title.toUpperCase()}
-      </Text>
+      <SectionLabel label={title} />
     </View>
   );
 }
@@ -144,12 +142,18 @@ function CardSectionList<T>({
         : sections.map((section) =>
             section.data.length === 0 ? null : (
               <View key={section.id} style={cardStyles.section}>
-                {section.title ? (
-                  <SectionHeader
-                    title={section.title}
-                    subtitle={section.subtitle}
-                    trailing={section.trailing}
-                  />
+                {section.title || section.subtitle || section.trailing ? (
+                  <View style={cardStyles.header}>
+                    <View style={cardStyles.headerText}>
+                      {section.title ? <SectionLabel label={section.title} /> : null}
+                      {section.subtitle ? (
+                        <Text variant="caption" tone="textMuted">
+                          {section.subtitle}
+                        </Text>
+                      ) : null}
+                    </View>
+                    {section.trailing ? <View>{section.trailing}</View> : null}
+                  </View>
                 ) : null}
                 <Surface padding={0} bordered>
                   {section.data.map((item, index) => (
@@ -193,5 +197,15 @@ const cardStyles = StyleSheet.create({
   },
   section: {
     gap: 8,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  headerText: {
+    flex: 1,
+    gap: 2,
   },
 });

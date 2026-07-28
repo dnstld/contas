@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
+import { ModalActions } from '@/components/ui/molecules/modal-actions';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { Fonts } from '@/constants/theme';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
@@ -56,13 +56,13 @@ export default function EditWalletNameScreen() {
   return (
     <ModalFormScaffold
       footer={
-        <PressableButton
-          label={t('wallets.saveButton')}
-          variant="primary"
-          size="large"
-          loading={isPending}
-          disabled={!canSave}
-          onPress={handleSave}
+        <ModalActions
+          primary={{
+            label: t('wallets.saveButton'),
+            onPress: handleSave,
+            loading: isPending,
+            disabled: !canSave,
+          }}
         />
       }
     >

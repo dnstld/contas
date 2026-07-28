@@ -58,6 +58,47 @@ export const MOCK_CATEGORY_ITEMS: CategoryItem[] = [
     recurrence: 'monthly',
     archivedAt: '2026-06-01T00:00:00.000Z',
   },
+  {
+    id: 'item-vodafone',
+    categoryId: 'cat-subscriptions',
+    name: 'Vodafone',
+    defaultAmount: 59.9,
+    recurrence: 'monthly',
+    nextDueOn: '2026-08-15',
+  },
+  {
+    id: 'item-google-one',
+    categoryId: 'cat-subscriptions',
+    name: 'Google One',
+    defaultAmount: 8.99,
+    recurrence: 'monthly',
+    nextDueOn: '2026-08-18',
+  },
+  {
+    id: 'item-hbo-max',
+    categoryId: 'cat-subscriptions',
+    name: 'HBO Max',
+    defaultAmount: 29.9,
+    recurrence: 'monthly',
+    nextDueOn: '2026-08-22',
+  },
+  {
+    id: 'item-disney-plus',
+    categoryId: 'cat-subscriptions',
+    name: 'Disney+',
+    defaultAmount: 27.9,
+    recurrence: 'monthly',
+    nextDueOn: '2026-08-25',
+  },
+  // Housing
+  {
+    id: 'item-internet',
+    categoryId: 'cat-housing',
+    name: 'Internet',
+    defaultAmount: 99.9,
+    recurrence: 'monthly',
+    nextDueOn: '2026-08-08',
+  },
   // Bar / Café
   {
     id: 'item-cafe-do-bairro',

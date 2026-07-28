@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
+import { ModalActions } from '@/components/ui/molecules/modal-actions';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { DISPLAY_NAME_MAX_LENGTH } from '@/constants/limits';
 import { Fonts } from '@/constants/theme';
@@ -53,13 +53,13 @@ export default function EditDisplayNameScreen() {
   return (
     <ModalFormScaffold
       footer={
-        <PressableButton
-          label={t('profile.editName.save')}
-          variant="primary"
-          size="large"
-          loading={isPending}
-          disabled={!canSave}
-          onPress={handleSave}
+        <ModalActions
+          primary={{
+            label: t('profile.editName.save'),
+            onPress: handleSave,
+            loading: isPending,
+            disabled: !canSave,
+          }}
         />
       }
     >

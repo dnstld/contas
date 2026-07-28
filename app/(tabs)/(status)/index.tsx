@@ -19,6 +19,7 @@ import {
 import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
+import { UpcomingSummary } from '@/components/upcoming/upcoming-summary';
 import { categoryDetailHref, categoryFormHref } from '@/constants/routes';
 import { useCategoryGrid } from '@/hooks/use-category-grid';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
@@ -121,6 +122,8 @@ export default function HomeScreen() {
         revenueVisible={revenueVisible}
         onSelectMonth={filterApi.toggleMonth}
       />
+
+      <UpcomingSummary />
 
       <CategoryGridControls
         sortOptions={grid.sortOptions}

@@ -6,6 +6,7 @@ import { Chip } from '@/components/ui/atoms/chip';
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
 import { ChipGroup, type ChipGroupItem } from '@/components/ui/molecules/chip-group';
+import { SectionLabel } from '@/components/ui/molecules/section-label';
 
 export type CategoryPickerItem = ChipGroupItem<string>;
 
@@ -92,11 +93,7 @@ export function CategoryPicker({
       {title || summaryLabel || showClear ? (
         <View style={styles.header}>
           <View style={styles.titleGroup}>
-            {title ? (
-              <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-                {title.toUpperCase()}
-              </Text>
-            ) : null}
+            {title ? <SectionLabel label={title} /> : null}
             {mode === 'multi' && summaryLabel ? (
               <Badge label={summaryLabel} tone="tint" variant="soft" />
             ) : null}
@@ -146,7 +143,6 @@ const styles = StyleSheet.create({
     gap: 8,
     flexShrink: 1,
   },
-  label: { letterSpacing: 0.8 },
   clear: {
     flexDirection: 'row',
     alignItems: 'center',

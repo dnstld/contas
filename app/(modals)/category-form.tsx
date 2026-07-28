@@ -4,9 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 
 import { CategoryFields } from '@/components/categories/category-fields';
-import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
-import { Text } from '@/components/ui/atoms/text';
+import { ModalActions } from '@/components/ui/molecules/modal-actions';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import type { TransactionType } from '@/data/finance-types';
 import {
@@ -16,7 +15,6 @@ import {
   useUpdateCategory,
 } from '@/hooks/use-finance-mutations';
 import { useCategories } from '@/hooks/use-finance-queries';
-import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { categoryFormBridge } from '@/utils/modal-bridge';
 import { toast } from '@/utils/toast';
 
@@ -50,8 +48,6 @@ export default function CategoryFormScreen() {
     ],
     [t],
   );
-
-  const { danger: dangerColor } = useModalChrome();
 
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();
@@ -174,38 +170,28 @@ export default function CategoryFormScreen() {
       />
       <ModalFormScaffold
         footer={
-          <>
-            {isEdit && deleteWarning ? (
-              <Text variant="caption" style={[styles.deleteWarning, { color: dangerColor }]}>
-                {deleteWarning}
-              </Text>
-            ) : null}
-
-            <View style={styles.actionRow}>
-              {isEdit ? (
-                <View style={styles.actionItem}>
-                  <PressableButton
-                    label={t('category.edit.delete')}
-                    variant="destructive"
-                    size="large"
-                    loading={isDeleting}
-                    disabled={isPending && !isDeleting}
-                    onPress={handleDelete}
-                  />
-                </View>
-              ) : null}
-              <View style={styles.actionItem}>
-                <PressableButton
-                  label={isEdit ? t('category.edit.saveButton') : t('category.create.createButton')}
-                  variant="primary"
-                  size="large"
-                  loading={isCreating || isUpdating}
-                  disabled={!canSave}
-                  onPress={handleSave}
-                />
-              </View>
-            </View>
-          </>
+          <ModalActions
+            primary={{
+              label: isEdit ? t('category.edit.saveButton') : t('category.create.createButton'),
+              onPress: handleSave,
+              loading: isCreating || isUpdating,
+              disabled: !canSave,
+            }}
+            secondary={
+              isEdit
+                ? [
+                    {
+                      label: t('category.edit.delete'),
+                      onPress: handleDelete,
+                      tone: 'destructive',
+                      loading: isDeleting,
+                      disabled: isPending && !isDeleting,
+                    },
+                  ]
+                : undefined
+            }
+            warning={deleteWarning}
+          />
         }
       >
         {showTypePicker ? (
@@ -231,16 +217,5 @@ export default function CategoryFormScreen() {
 const styles = StyleSheet.create({
   field: {
     gap: 6,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionItem: {
-    flex: 1,
-  },
-  deleteWarning: {
-    textAlign: 'center',
-    marginBottom: 12,
   },
 });

@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -10,6 +10,7 @@ import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
 import { EmptyState } from '@/components/ui/molecules/empty-state';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { SectionList, type SectionListSection } from '@/components/ui/organisms/section-list';
+import { categoryItemFormHref } from '@/constants/routes';
 import { MOCK_CATEGORIES, MOCK_CATEGORY_ITEMS } from '@/data/__fixtures__/category-items';
 import { type CategoryItem, parseDayStart } from '@/data/finance-types';
 import { useFormatters } from '@/hooks/use-formatters';
@@ -21,6 +22,7 @@ type Row = CategoryItem;
 
 export default function CategoryItemsScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { currency = 'BRL' } = useWallet();
   const { formatDate } = useFormatters();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -55,8 +57,7 @@ export default function CategoryItemsScreen() {
           variant="primary"
           iconName="plus"
           label={t('categoryItems.addItem')}
-          // TODO(step 3): open item form
-          onPress={() => {}}
+          onPress={() => router.push(categoryItemFormHref({ categoryId: id }))}
         />
       ) : null}
     </View>
@@ -101,8 +102,7 @@ export default function CategoryItemsScreen() {
               ) : undefined
             }
             trailing={<Icon name="chevron.right" size={16} tone="textMuted" />}
-            // TODO(step 3): open item form
-            onPress={() => {}}
+            onPress={() => router.push(categoryItemFormHref({ categoryId: id, editId: item.id }))}
             accessibilityLabel={item.name}
           />
         )}

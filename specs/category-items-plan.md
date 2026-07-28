@@ -25,7 +25,7 @@ Replace today's implicit "descriptions derived from transaction history" with an
 | Upcoming window | Rolling next 30 days |
 | Lifecycle | Three states — **active**, **archived** (hidden going forward, history kept, reversible), **deleted** (unused only). Applies to items **and** categories |
 | Suggestion decay | Recency-based auto-hide **plus** manual archive |
-| Bounded recurrence | Optional: **open-ended** (default), **until a date**, or **for N payments** (installments / _parcelas_). Auto-archives on completion. Soft cap `RECURRENCE_MAX_MONTHS` = 60 |
+| Recurrence duration | **Open-ended by default.** A subscription runs until the user archives/blocks it — **no maximum term, no cap.** Bounded variants (until-a-date, installments / _parcelas_ with "k of N") are **deferred** and not surfaced in the UI for now. Schema columns for bounds stay (Phase B) but the form only offers open-ended recurrence. |
 | Recurrence frequencies | `none · daily · weekly · monthly · yearly` — **`yearly` added** to the shared enum (covers annual subscriptions, insurance, renewals) |
 | Rename behavior | Transactions keep the **description text captured at save time**; the item link drives grouping/analytics/upcoming. Renaming an item does not rewrite historical rows (audit-accurate) |
 
@@ -237,8 +237,9 @@ Add a `CategoryItemRowSchema` (reusing `RecurrenceSchema`) validating the Supaba
 - **Categories list** (`categories/index.tsx`): reuse `SectionList` grouped by expense/income; each row shows category name + item count, opens the category's items. "Add category" reuses the existing `category-form` modal.
 - **Category items screen**: list of items for one category — name, expected amount, and a recurrence badge (e.g. "Monthly · 5th"). Add / edit / delete items. Delete blocked-in-use shows the friendly error from 5.4.
 - **Item form modal** (`app/(modals)/category-item-form.tsx`): fields — name; parent category (fixed when opened from a category, selectable when opened standalone); optional expected amount; recurrence segmented control (`none | daily | weekly | monthly` — plus `yearly` if §8b.8 is adopted). When recurrence ≠ none, reveal:
-  - a **"Next due"** date picker (the anchor), and
-  - a **"Repeat"** control with three options: **Forever** (default), **Until a date**, or **For N payments** (installments / _parcelas_). "Until a date" shows a date picker; "For N payments" shows a number stepper and a live "ends ~Jun 2027" hint. Both are bounded by `RECURRENCE_MAX_MONTHS` (60) — a soft guardrail on the picker, not a hard wall in data. On save, a count is converted to `recurrence_end_on = anchor + (N-1)·period` and `recurrence_total_count = N`; a date sets `recurrence_end_on` and leaves count null.
+  - a **"Next due"** date picker (the anchor). Recurrence is **open-ended** — it runs until the user archives the item. No end-date or installment controls are shown (per the latest direction; see decisions table).
+
+  > _Deferred (not built now):_ a "Repeat" control offering **Until a date** or **For N payments** (installments / _parcelas_), writing `recurrence_end_on` / `recurrence_total_count`. The schema keeps those columns for if/when this returns, but the near-term UI omits them and the "k of N" badge.
 
   Reuse the `categoryFormBridge` / `makeBridgeId` pattern so that launching "＋ Add item" from the transaction form returns and auto-selects the new item.
 
@@ -329,13 +330,25 @@ This build runs **UI-first**: every screen is built as a static, production-fide
 - **Mock data:** a single typed fixtures module `data/__fixtures__/category-items.ts` exports sample `Category` / `CategoryItem` / upcoming rows using the plan's types (add the new types to `data/finance-types.ts` as type-only, no queries). Every Phase-A screen imports from here; later phases swap fixtures for real hooks.
 - **Prompt-driven:** Claude does **not** edit code. Claude writes one prompt per step; Denis's agent applies it; Claude then reviews the changed files in the repo, adjusts anything it disagrees with, and commits before issuing the next prompt.
 
+**Project conventions (learned; apply to every prompt):**
+
+- **Secondary screens are modals**, registered in `app/(modals)/_layout.tsx` — never tab-nested `[id]` routes or root navigation.
+- **Never override a tab's stack header.** Contextual titles go in the **modal title** (`Stack.Screen headerTitle` within the modal), which also carries the ✕ close button from the modals layout.
+- **Sub-views split with a `SegmentedControl`** (like expense/income in create-transaction), not toggles.
+- **Reuse `PressableButton`** (variant `secondary`, `plus` icon) for every "＋ New …" action — don't build bespoke add-rows; Add-category and Add-item must look identical. Check the `@/components/ui` barrel for an existing component before creating a new one.
+- **Recurrence shows as a plain, left-aligned phrase** ("Every month, next 10 Aug"), not a pill badge — aligned under the item name.
+- **Recurring items are open-ended until archived** — no term cap, and no installment / "k of N" display in the current UI.
+- **All modal bottom actions go through one `ModalActions` component** — the single source of truth. It renders the whole bottom region: an optional warning caption, any secondary/destructive links (`ModalActionLink`, stacked), and exactly one full-width primary button. Every form modal passes props to it (no hand-assembled footers), so changing the bottom-actions layout/behavior is a one-file edit. Apply retroactively to every footer modal (`category-form`, `edit-*`, `invite-member`, `wallets`, `category-select`).
+- **The item form has no center header title** — back button + ✕ only (context comes from the back button, which shows the parent modal's title).
+- **Section labels use the shared `SectionLabel`** (uppercased muted caption, `letterSpacing 0.8`) — the same component behind the "Where it goes"/"Despesas" header. Reuse it for any new section title (e.g. "Upcoming").
+
 ### 11.A Phase A — UI first (static, no logic)
 
 One screen per step, each reviewed before the next:
 
 1. **Categories tab** — new 4th tab + `categories/index.tsx`: list of categories grouped by expense/income, each row showing name + item count, tapping opens the items screen. Add-category affordance. Empty state.
-2. **Category → items screen** — items list for one category: name, expected amount, recurrence badge ("Monthly · 5th", "12x · 3 of 12"), archived section behind a "Show archived" toggle. Add/edit affordances. Empty state.
-3. **Item form modal** — `category-item-form.tsx` via `ModalFormScaffold`: name, expected amount, recurrence `SegmentedControl` (`none · daily · weekly · monthly · yearly`), and — when recurring — "Next due" `DatePicker` + the "Repeat" control (Forever / Until date / For N payments). Save/Delete/Archive buttons (visual only).
+2. **Category → items screen** — a **modal** (`app/(modals)/category-items.tsx`), category name in the **modal title** (never the tab header). Items list for one category: name, expected amount, and a plain-text recurrence line ("Every month, next 10 Aug" / pt-BR "Todo mês, próximo 10 ago"), left-aligned under the name. Active/Archived split via a **`SegmentedControl`** (not a toggle). Shared add-action row. Empty states. _(No installment "k of N" display.)_
+3. **Item form modal** — `category-item-form.tsx` via `ModalFormScaffold`: name, expected amount, recurrence `SegmentedControl` (`none · daily · weekly · monthly · yearly`), and — when recurring — a "Next due" `DatePicker`. Open-ended only (no Repeat/end-date/installment controls). Save/Delete/Archive buttons (visual only).
 4. **Upcoming section** — the "Upcoming · next 30 days" surface (on the balance tab or its own screen), rows with amount, due date, "k of N"/overdue badges, and a Log button. Expense + income groupings.
 
 ### 11.B Phase B — logic & backend (after UI sign-off)

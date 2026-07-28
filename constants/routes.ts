@@ -39,6 +39,13 @@ export function categoryItemsHref(id: string): Href {
   return { pathname: '/category-items', params: { id } };
 }
 
+export function categoryItemFormHref(args: { categoryId: string; editId?: string }): Href {
+  return {
+    pathname: '/category-item-form',
+    params: { categoryId: args.categoryId, ...(args.editId ? { editId: args.editId } : {}) },
+  };
+}
+
 export function walletsHref(): Href {
   return { pathname: '/wallets' };
 }

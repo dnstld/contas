@@ -11,4 +11,6 @@ export const TRANSACTION_DESCRIPTION_MAX_LENGTH = 50;
 
 export const CATEGORY_NAME_MAX_LENGTH = 50;
 
+export const ITEM_NAME_MAX_LENGTH = 40;
+
 export const DISPLAY_NAME_MAX_LENGTH = 80;

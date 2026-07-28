@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { Surface } from '@/components/ui';
-import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
+import { ModalActions } from '@/components/ui/molecules/modal-actions';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { Fonts } from '@/constants/theme';
@@ -88,13 +88,13 @@ export default function InviteMemberScreen() {
   return (
     <ModalFormScaffold
       footer={
-        <PressableButton
-          label={t('wallet.invitation.sendButton')}
-          variant="primary"
-          size="large"
-          loading={invite.isPending}
-          disabled={!canSend}
-          onPress={handleSend}
+        <ModalActions
+          primary={{
+            label: t('wallet.invitation.sendButton'),
+            onPress: handleSend,
+            loading: invite.isPending,
+            disabled: !canSend,
+          }}
         />
       }
     >

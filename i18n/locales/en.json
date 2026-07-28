@@ -459,5 +459,31 @@
       "title": "No archived items",
       "subtitle": "Archived items show up here."
     }
+  },
+  "categoryItemForm": {
+    "createTitle": "New item",
+    "editTitle": "Edit item",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Netflix",
+    "amountLabel": "Expected amount",
+    "amountCaption": "Optional",
+    "recurrenceLabel": "Recurrence",
+    "recurrence": {
+      "none": "None",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "nextDueLabel": "Next due",
+    "save": "Save",
+    "archive": "Archive item",
+    "delete": "Delete item"
+  },
+  "upcoming": {
+    "title": "Upcoming",
+    "paymentsCount_one": "{{count}} payment",
+    "paymentsCount_other": "{{count}} payments",
+    "summary": "{{total}} · Next {{date}}"
   }
 }

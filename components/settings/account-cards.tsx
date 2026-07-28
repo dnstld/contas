@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AddSquareCard, SquareCard, SquareCardSkeleton, Text } from '@/components/ui';
+import { AddSquareCard, SectionLabel, SquareCard, SquareCardSkeleton } from '@/components/ui';
 import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/use-auth';
 import { useFreeTierLimits } from '@/hooks/use-free-tier-limits';
@@ -89,9 +89,7 @@ export function AccountCards() {
 
   return (
     <View style={styles.wrapper}>
-      <Text variant="caption" weight="semibold" tone="textMuted" style={styles.label}>
-        {t('settings.sections.account').toUpperCase()}
-      </Text>
+      <SectionLabel label={t('settings.sections.account')} />
 
       <ScrollView
         horizontal
@@ -158,10 +156,6 @@ export function AccountCards() {
 const styles = StyleSheet.create({
   wrapper: {
     gap: 8,
-  },
-  label: {
-    letterSpacing: 0.6,
-    paddingHorizontal: 4,
   },
   row: {
     flexDirection: 'row',

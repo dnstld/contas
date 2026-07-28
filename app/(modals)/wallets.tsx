@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
+import { ModalActions } from '@/components/ui/molecules/modal-actions';
 import { SortMenu } from '@/components/ui/molecules/sort-menu';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { ROUTES } from '@/constants/routes';
@@ -71,13 +71,13 @@ export default function WalletsScreen() {
   return (
     <ModalFormScaffold
       footer={
-        <PressableButton
-          label={t('common.create')}
-          variant="primary"
-          size="large"
-          loading={createWallet.isPending}
-          disabled={!canCreate}
-          onPress={handleCreate}
+        <ModalActions
+          primary={{
+            label: t('common.create'),
+            onPress: handleCreate,
+            loading: createWallet.isPending,
+            disabled: !canCreate,
+          }}
         />
       }
     >
