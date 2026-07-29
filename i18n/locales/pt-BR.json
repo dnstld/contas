@@ -438,7 +438,7 @@
     "itemCount_other": "{{count}} itens",
     "welcome": {
       "title": "Comece com categorias",
-      "body": "Categorias agrupam suas transações — como Mercado ou Salário. Toque em uma sugestão abaixo para adicioná-la, ou crie a sua com ＋ Categoria."
+      "body": "Categorias agrupam suas transações, como Mercado ou Salário, para você ver para onde vai seu dinheiro."
     }
   },
   "categoryItems": {
@@ -456,13 +456,9 @@
       "yearly": "Todo ano, próximo {{date}}",
       "yearlyNoDate": "Todo ano"
     },
-    "empty": {
-      "title": "Nenhum item ainda",
-      "subtitle": "Adicione itens para acompanhar gastos recorrentes nesta categoria."
-    },
-    "emptyArchived": {
-      "title": "Nenhum item arquivado",
-      "subtitle": "Itens arquivados aparecem aqui."
+    "welcome": {
+      "title": "Adicione itens a esta categoria",
+      "body": "Itens são o que você gasta aqui, como Netflix em Assinaturas. Adicioná-los gera sugestões rápidas ao registrar transações."
     }
   },
   "categoryItemForm": {

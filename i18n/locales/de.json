@@ -438,7 +438,7 @@
     "itemCount_other": "{{count}} Einträge",
     "welcome": {
       "title": "Beginne mit Kategorien",
-      "body": "Kategorien gruppieren deine Transaktionen – z. B. Lebensmittel oder Gehalt. Tippe unten auf einen Vorschlag, um ihn hinzuzufügen, oder erstelle mit ＋ Kategorie eine eigene."
+      "body": "Kategorien gruppieren deine Transaktionen, z. B. Lebensmittel oder Gehalt, damit du siehst, wohin dein Geld fließt."
     }
   },
   "categoryItems": {
@@ -456,13 +456,9 @@
       "yearly": "Jedes Jahr, nächster Termin {{date}}",
       "yearlyNoDate": "Jedes Jahr"
     },
-    "empty": {
-      "title": "Noch keine Einträge",
-      "subtitle": "Füge Einträge hinzu, um wiederkehrende Ausgaben dieser Kategorie zu verfolgen."
-    },
-    "emptyArchived": {
-      "title": "Keine archivierten Einträge",
-      "subtitle": "Archivierte Einträge erscheinen hier."
+    "welcome": {
+      "title": "Füge dieser Kategorie Einträge hinzu",
+      "body": "Einträge sind das, wofür du hier ausgibst, z. B. Netflix in Abos. Sie liefern dir schnelle Vorschläge beim Erfassen von Transaktionen."
     }
   },
   "categoryItemForm": {

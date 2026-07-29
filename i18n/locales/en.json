@@ -438,7 +438,7 @@
     "itemCount_other": "{{count}} items",
     "welcome": {
       "title": "Start with categories",
-      "body": "Categories group your transactions — like Groceries or Salary. Tap a suggestion below to add it, or create your own with ＋ Category."
+      "body": "Categories group your transactions, like Groceries or Salary, so you can see where your money goes."
     }
   },
   "categoryItems": {
@@ -456,13 +456,9 @@
       "yearly": "Every year, next {{date}}",
       "yearlyNoDate": "Every year"
     },
-    "empty": {
-      "title": "No items yet",
-      "subtitle": "Add items to track recurring spending in this category."
-    },
-    "emptyArchived": {
-      "title": "No archived items",
-      "subtitle": "Archived items show up here."
+    "welcome": {
+      "title": "Add items to this category",
+      "body": "Items are what you spend on here, like Netflix in Subscriptions. Adding them gives you quick suggestions when logging transactions."
     }
   },
   "categoryItemForm": {

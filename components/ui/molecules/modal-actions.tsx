@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { type IconName } from '@/components/ui/atoms/icon';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
 import { Text } from '@/components/ui/atoms/text';
 import {
@@ -13,6 +14,8 @@ export interface ModalPrimaryAction {
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
+  /** Optional leading icon shown inside the primary button. */
+  iconName?: IconName;
 }
 
 export interface ModalSecondaryAction {
@@ -63,6 +66,7 @@ export function ModalActions({ primary, secondary, warning }: ModalActionsProps)
         label={primary.label}
         variant="primary"
         size="large"
+        iconName={primary.iconName}
         loading={primary.loading}
         disabled={primary.disabled}
         onPress={primary.onPress}
