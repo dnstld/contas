@@ -10,6 +10,7 @@ import type { SectionListSection } from '@/components/ui/organisms/section-list'
 import { categoryFormHref, categoryItemsHref } from '@/constants/routes';
 import type { Category } from '@/data/finance-types';
 import { useCategories, useCategoryItems } from '@/hooks/use-finance-queries';
+import { useHeaderHeight } from '@/hooks/use-header-height';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 
@@ -40,6 +41,7 @@ function CountTrailing({ label }: { label: string }) {
 
 export default function CategoriesScreen() {
   const background = useThemeColor({}, 'background');
+  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -101,7 +103,7 @@ export default function CategoriesScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.centered, { backgroundColor: background }]}>
+      <View style={[styles.centered, { backgroundColor: background, paddingTop: headerHeight }]}>
         <ActivityIndicator />
       </View>
     );
@@ -109,7 +111,7 @@ export default function CategoriesScreen() {
 
   if (categories.length === 0) {
     return (
-      <View style={[styles.emptyState, { backgroundColor: background }]}>
+      <View style={[styles.emptyState, { backgroundColor: background, paddingTop: headerHeight }]}>
         <EmptyState
           icon="tag.fill"
           title={t('categoriesTab.empty.title')}
@@ -126,26 +128,31 @@ export default function CategoriesScreen() {
   }
 
   return (
-    <ScrollView style={{ backgroundColor: background }} contentContainerStyle={styles.content}>
-      <SectionList<Row>
-        variant="card"
-        scrollEnabled={false}
-        keyExtractor={keyExtractor}
-        renderItem={renderRow}
-        sections={sections}
-      />
+    <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <SectionList<Row>
+          variant="card"
+          scrollEnabled={false}
+          keyExtractor={keyExtractor}
+          renderItem={renderRow}
+          sections={sections}
+        />
 
-      <PressableButton
-        variant="primary"
-        iconName="plus"
-        label={t('categoriesTab.addCategory')}
-        onPress={openCategoryForm}
-      />
-    </ScrollView>
+        <PressableButton
+          variant="primary"
+          iconName="plus"
+          label={t('categoriesTab.addCategory')}
+          onPress={openCategoryForm}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   content: {
     padding: 16,
     paddingTop: 16,
