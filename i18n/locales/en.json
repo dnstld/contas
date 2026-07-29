@@ -436,9 +436,9 @@
     },
     "itemCount_one": "{{count}} item",
     "itemCount_other": "{{count}} items",
-    "empty": {
-      "title": "No categories yet",
-      "subtitle": "Create categories to organize your spending and income."
+    "welcome": {
+      "title": "Start with categories",
+      "body": "Categories group your transactions — like Groceries or Salary. Tap a suggestion below to add it, or create your own with ＋ Category."
     }
   },
   "categoryItems": {

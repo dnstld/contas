@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
-import { EmptyState, Icon, SectionList, Text } from '@/components/ui';
+import { Icon, SectionList, Surface, Text } from '@/components/ui';
 import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
+import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import type { SectionListSection } from '@/components/ui/organisms/section-list';
 import { categoryFormHref, categoryItemsHref } from '@/constants/routes';
@@ -109,13 +110,51 @@ export default function CategoriesScreen() {
   }
 
   if (categories.length === 0) {
+    const parseSuggestions = (type: 'expense' | 'income') =>
+      t(`categorySelect.suggestions.${type}`)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+    const suggestionRow =
+      (type: 'expense' | 'income') =>
+      (name: string): Row => ({
+        id: `sugg-${type}-${name}`,
+        title: name,
+        trailing: <Icon name="plus" size={20} tone="tint" />,
+        onPress: () => router.push(categoryFormHref({ type, prefillName: name, bridgeId })),
+      });
+
+    const suggestionSections: SectionListSection<Row>[] = [
+      {
+        id: 'sugg-expense',
+        title: t('categoriesTab.sections.expenses'),
+        data: parseSuggestions('expense').map(suggestionRow('expense')),
+      },
+      {
+        id: 'sugg-income',
+        title: t('categoriesTab.sections.income'),
+        data: parseSuggestions('income').map(suggestionRow('income')),
+      },
+    ];
+
     return (
-      <View style={[styles.emptyState, { backgroundColor: background, paddingTop: headerHeight }]}>
-        <EmptyState
-          icon="tag.fill"
-          title={t('categoriesTab.empty.title')}
-          body={t('categoriesTab.empty.subtitle')}
-        />
+      <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <Surface variant="plain" bordered padding={16}>
+            <NotificationBanner
+              title={t('categoriesTab.welcome.title')}
+              subtitle={t('categoriesTab.welcome.body')}
+            />
+          </Surface>
+          <SectionList<Row>
+            variant="card"
+            scrollEnabled={false}
+            keyExtractor={keyExtractor}
+            renderItem={renderRow}
+            sections={suggestionSections}
+          />
+        </ScrollView>
       </View>
     );
   }
@@ -150,13 +189,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 64,
     gap: 16,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    gap: 20,
   },
   centered: {
     flex: 1,

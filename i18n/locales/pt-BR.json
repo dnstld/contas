@@ -436,9 +436,9 @@
     },
     "itemCount_one": "{{count}} item",
     "itemCount_other": "{{count}} itens",
-    "empty": {
-      "title": "Nenhuma categoria ainda",
-      "subtitle": "Crie categorias para organizar seus gastos e receitas."
+    "welcome": {
+      "title": "Comece com categorias",
+      "body": "Categorias agrupam suas transações — como Mercado ou Salário. Toque em uma sugestão abaixo para adicioná-la, ou crie a sua com ＋ Categoria."
     }
   },
   "categoryItems": {

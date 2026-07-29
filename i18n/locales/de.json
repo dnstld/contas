@@ -436,9 +436,9 @@
     },
     "itemCount_one": "{{count}} Eintrag",
     "itemCount_other": "{{count}} Einträge",
-    "empty": {
-      "title": "Noch keine Kategorien",
-      "subtitle": "Erstelle Kategorien, um Ausgaben und Einnahmen zu ordnen."
+    "welcome": {
+      "title": "Beginne mit Kategorien",
+      "body": "Kategorien gruppieren deine Transaktionen – z. B. Lebensmittel oder Gehalt. Tippe unten auf einen Vorschlag, um ihn hinzuzufügen, oder erstelle mit ＋ Kategorie eine eigene."
     }
   },
   "categoryItems": {

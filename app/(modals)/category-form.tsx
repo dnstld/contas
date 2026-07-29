@@ -153,16 +153,6 @@ export default function CategoryFormScreen() {
 
   const canSave = name.trim().length > 0 && isDirty && !isPending;
 
-  // First-category helper: when creating and the wallet has no categories of this
-  // type yet, offer starter names as chips below the name input.
-  const nameSuggestions = useMemo(() => {
-    if (isEdit || allCategories.some((c) => c.type === type)) return [];
-    return t(`categorySelect.suggestions.${type}`)
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-  }, [isEdit, allCategories, type, t]);
-
   return (
     <>
       <Stack.Screen
@@ -207,7 +197,6 @@ export default function CategoryFormScreen() {
           onBudgetChange={setBudgetCents}
           nameInputRef={nameInputRef}
           onSubmitBudget={handleSave}
-          nameSuggestions={nameSuggestions}
         />
       </ModalFormScaffold>
     </>
