@@ -62,13 +62,9 @@ create table public.category_items (
   -- Anchor for the recurrence: the next date the charge is expected.
   -- Required when recurrence <> 'none', must be null when 'none'.
   next_due_on         date,
-  -- Bounded recurrence (optional). Both null = open-ended (subscriptions, salary).
-  --   recurrence_end_on    : last date an occurrence should be generated.
-  --   recurrence_total_count: total occurrences when the user thinks in "N payments"
-  --                           (installments / parcelas); enables "3 of 12" display.
-  -- When the user enters a count, we compute end_on = anchor + (N-1)*period at save.
-  recurrence_end_on    date,
-  recurrence_total_count int check (recurrence_total_count is null or recurrence_total_count >= 1),
+  -- NOTE: bounded-recurrence columns (recurrence_end_on, recurrence_total_count)
+  -- are DEFERRED — not created now. Recurring items are open-ended until archived.
+  -- Add them in a later migration if/when installments/until-date returns.
   -- Lifecycle: null = active; set = archived (hidden from suggestions/upcoming,
   -- history preserved, reversible). Distinct from a hard delete.
   archived_at         timestamptz,
@@ -77,10 +73,6 @@ create table public.category_items (
   constraint category_items_recurrence_anchor_ck check (
     (recurrence = 'none' and next_due_on is null) or
     (recurrence <> 'none' and next_due_on is not null)
-  ),
-  -- Bounds only make sense on a recurring item.
-  constraint category_items_recurrence_bounds_ck check (
-    recurrence <> 'none' or (recurrence_end_on is null and recurrence_total_count is null)
   )
 );
 
