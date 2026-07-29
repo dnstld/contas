@@ -459,6 +459,10 @@
     "welcome": {
       "title": "Add items to this category",
       "body": "Items are what you spend on here, like Netflix in Subscriptions. Adding them gives you quick suggestions when logging transactions."
+    },
+    "archivedEmpty": {
+      "title": "No archived items",
+      "body": "Archive an item to hide it from suggestions without losing its history."
     }
   },
   "categoryItemForm": {

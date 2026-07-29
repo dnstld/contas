@@ -459,6 +459,10 @@
     "welcome": {
       "title": "Füge dieser Kategorie Einträge hinzu",
       "body": "Einträge sind das, wofür du hier ausgibst, z. B. Netflix in Abos. Sie liefern dir schnelle Vorschläge beim Erfassen von Transaktionen."
+    },
+    "archivedEmpty": {
+      "title": "Keine archivierten Einträge",
+      "body": "Archiviere einen Eintrag, um ihn aus den Vorschlägen auszublenden, ohne seinen Verlauf zu verlieren."
     }
   },
   "categoryItemForm": {

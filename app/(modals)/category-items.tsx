@@ -52,17 +52,9 @@ export default function CategoryItemsScreen() {
   const items = useMemo(() => allItems.filter((it) => it.categoryId === id), [allItems, id]);
   const active = items.filter((it) => !it.archivedAt);
   const archived = items.filter((it) => it.archivedAt);
-  const hasArchived = archived.length > 0;
 
-  // Un-archiving/deleting the last archived item empties the (now unreachable)
-  // Archived tab; drop back to Active so the segment never points at nothing.
-  // Adjusting state during render is React's recommended replacement for an
-  // effect here — it re-renders immediately with the corrected segment.
-  if (!hasArchived && segment === 'archived') setSegment('active');
-
-  const showTabs = hasArchived;
   const visible = segment === 'archived' ? archived : active;
-  const showBanner = segment === 'active' && active.length === 0;
+  const isEmpty = visible.length === 0;
 
   const segmentedOptions = [
     { value: 'active' as const, label: t('categoryItems.segments.active') },
@@ -82,22 +74,28 @@ export default function CategoryItemsScreen() {
         </View>
       ) : (
         <View style={styles.body}>
-          {showTabs ? (
-            <View style={styles.tabs}>
-              <SegmentedControl<Segment>
-                options={segmentedOptions}
-                value={segment}
-                onChange={setSegment}
-              />
-            </View>
-          ) : null}
+          <View style={styles.tabs}>
+            <SegmentedControl<Segment>
+              options={segmentedOptions}
+              value={segment}
+              onChange={setSegment}
+            />
+          </View>
 
-          {showBanner ? (
+          {isEmpty ? (
             <View style={styles.bannerWrap}>
               <Surface variant="plain" bordered padding={16}>
                 <NotificationBanner
-                  title={t('categoryItems.welcome.title')}
-                  subtitle={t('categoryItems.welcome.body')}
+                  title={t(
+                    segment === 'archived'
+                      ? 'categoryItems.archivedEmpty.title'
+                      : 'categoryItems.welcome.title',
+                  )}
+                  subtitle={t(
+                    segment === 'archived'
+                      ? 'categoryItems.archivedEmpty.body'
+                      : 'categoryItems.welcome.body',
+                  )}
                 />
               </Surface>
             </View>

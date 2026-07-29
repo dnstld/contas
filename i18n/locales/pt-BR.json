@@ -459,6 +459,10 @@
     "welcome": {
       "title": "Adicione itens a esta categoria",
       "body": "Itens são o que você gasta aqui, como Netflix em Assinaturas. Adicioná-los gera sugestões rápidas ao registrar transações."
+    },
+    "archivedEmpty": {
+      "title": "Nenhum item arquivado",
+      "body": "Arquive um item para ocultá-lo das sugestões sem perder seu histórico."
     }
   },
   "categoryItemForm": {
