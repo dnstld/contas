@@ -14,7 +14,8 @@
   "common": {
     "appName": "Spendspacey",
     "appTagline": "Gastos do dia a dia, seu espaço",
-    "add": "Lançar",
+    "addTransaction": "Transação",
+    "addCategory": "Categoria",
     "cancel": "Cancelar",
     "manage": "Gerenciar",
     "back": "Voltar",
@@ -435,7 +436,6 @@
     },
     "itemCount_one": "{{count}} item",
     "itemCount_other": "{{count}} itens",
-    "addCategory": "Nova categoria",
     "empty": {
       "title": "Nenhuma categoria ainda",
       "subtitle": "Crie categorias para organizar seus gastos e receitas."

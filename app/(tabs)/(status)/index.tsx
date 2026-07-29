@@ -89,13 +89,6 @@ export default function HomeScreen() {
     [router, filterApi.state],
   );
 
-  const handleCategoryLongPress = useCallback(
-    (id: string) => {
-      router.push(categoryFormHref({ bridgeId, editId: id }));
-    },
-    [router, bridgeId],
-  );
-
   const handleCreateCategory = useCallback(() => {
     router.push(categoryFormHref({ bridgeId }));
   }, [router, bridgeId]);
@@ -134,7 +127,6 @@ export default function HomeScreen() {
         onSelectedChange={grid.setSelected}
         onCreateCategory={handleCreateCategory}
         createLabel={t('category.create.chipLabelCategory')}
-        onEditCategory={handleCategoryLongPress}
         // Keep the sort menu visible whenever any categories exist, so the user
         // can switch back after landing on an empty kind (e.g. no income).
         showSort={dashboard.categories.length > 0}
@@ -225,7 +217,6 @@ export default function HomeScreen() {
                   currency={currency}
                   revenueVisible={revenueVisible}
                   onPress={handleCategoryPress}
-                  onLongPress={handleCategoryLongPress}
                 />
               </View>
             )}

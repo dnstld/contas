@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
-import { EmptyState, Icon, PressableButton, SectionList, Text } from '@/components/ui';
+import { EmptyState, Icon, SectionList, Text } from '@/components/ui';
 import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import type { SectionListSection } from '@/components/ui/organisms/section-list';
@@ -80,6 +80,7 @@ export default function CategoriesScreen() {
       <CountTrailing label={t('categoriesTab.itemCount', { count: counts[category.id] ?? 0 })} />
     ),
     onPress: () => router.push(categoryItemsHref(category.id)),
+    onLongPress: () => router.push(categoryFormHref({ editId: category.id, bridgeId })),
   });
 
   const expenseRows: Row[] = categories.filter((c) => c.type === 'expense').map(toRow);
@@ -99,8 +100,6 @@ export default function CategoriesScreen() {
     },
   ];
 
-  const openCategoryForm = () => router.push(categoryFormHref({ bridgeId }));
-
   if (isLoading) {
     return (
       <View style={[styles.centered, { backgroundColor: background, paddingTop: headerHeight }]}>
@@ -117,12 +116,6 @@ export default function CategoriesScreen() {
           title={t('categoriesTab.empty.title')}
           body={t('categoriesTab.empty.subtitle')}
         />
-        <PressableButton
-          variant="primary"
-          iconName="plus"
-          label={t('categoriesTab.addCategory')}
-          onPress={openCategoryForm}
-        />
       </View>
     );
   }
@@ -137,13 +130,12 @@ export default function CategoriesScreen() {
           renderItem={renderRow}
           sections={sections}
         />
-
-        <PressableButton
-          variant="primary"
-          iconName="plus"
-          label={t('categoriesTab.addCategory')}
-          onPress={openCategoryForm}
-        />
+        <View style={styles.hint}>
+          <Icon name="hand.tap" size={14} tone="textMuted" />
+          <Text variant="caption" tone="textMuted">
+            {t('category.pressAndHoldHint')}
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -175,5 +167,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  hint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingTop: 4,
   },
 });

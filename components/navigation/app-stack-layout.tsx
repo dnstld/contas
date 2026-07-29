@@ -13,7 +13,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/atoms/icon';
 import { Text } from '@/components/ui/atoms/text';
-import { ROUTES } from '@/constants/routes';
+import { categoryFormHref, ROUTES } from '@/constants/routes';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -36,12 +36,10 @@ function HeaderLogo() {
   );
 }
 
-function HeaderCreateButton({ onPress }: { onPress: () => void }) {
+function HeaderCreateButton({ label, onPress }: { label: string; onPress: () => void }) {
   const scheme = useColorScheme() ?? 'light';
   const tintColor = Colors[scheme].tint;
   const onPrimary = useThemeColor({}, 'onPrimary');
-  const { t } = useTranslation();
-  const label = t('common.add');
 
   if (Platform.OS === 'ios') {
     return (
@@ -80,10 +78,32 @@ function HeaderCreateButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-export default function AppStackLayout() {
+export default function AppStackLayout({
+  create = 'transaction',
+}: {
+  create?: 'transaction' | 'category' | 'none';
+}) {
   const router = useRouter();
+  const { t } = useTranslation();
   const scheme = useColorScheme() ?? 'light';
   const backgroundColor = Colors[scheme].background;
+
+  const headerRight =
+    create === 'none'
+      ? () => null
+      : create === 'category'
+        ? () => (
+            <HeaderCreateButton
+              label={t('common.addCategory')}
+              onPress={() => router.push(categoryFormHref({ bridgeId: 'header' }))}
+            />
+          )
+        : () => (
+            <HeaderCreateButton
+              label={t('common.addTransaction')}
+              onPress={() => router.push(ROUTES.createTransaction)}
+            />
+          );
 
   return (
     <Stack
@@ -93,9 +113,7 @@ export default function AppStackLayout() {
         headerTitle: '',
         headerLeft: () => <HeaderLogo />,
         headerShadowVisible: false,
-        headerRight: () => (
-          <HeaderCreateButton onPress={() => router.push(ROUTES.createTransaction)} />
-        ),
+        headerRight,
       }}
     />
   );

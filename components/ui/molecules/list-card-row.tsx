@@ -39,6 +39,7 @@ export interface ListCardRowProps {
   trailing?: ReactNode;
 
   onPress?: () => void;
+  onLongPress?: () => void;
   accessibilityLabel?: string;
 
   size?: ListCardRowSize;
@@ -91,6 +92,7 @@ export function ListCardRow({
   text2,
   trailing,
   onPress,
+  onLongPress,
   accessibilityLabel,
   size = 'sm',
   density = 'compact',
@@ -130,11 +132,12 @@ export function ListCardRow({
     </View>
   );
 
-  if (!onPress) return content;
+  if (!onPress && !onLongPress) return content;
 
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [pressed && styles.pressed]}

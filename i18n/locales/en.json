@@ -14,7 +14,8 @@
   "common": {
     "appName": "Spendspacey",
     "appTagline": "Everyday spending, your space",
-    "add": "Add",
+    "addTransaction": "Transaction",
+    "addCategory": "Category",
     "cancel": "Cancel",
     "manage": "Manage",
     "back": "Back",
@@ -435,7 +436,6 @@
     },
     "itemCount_one": "{{count}} item",
     "itemCount_other": "{{count}} items",
-    "addCategory": "New category",
     "empty": {
       "title": "No categories yet",
       "subtitle": "Create categories to organize your spending and income."

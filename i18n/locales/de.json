@@ -14,7 +14,8 @@
   "common": {
     "appName": "Spendspacey",
     "appTagline": "Alltagsausgaben, dein Raum",
-    "add": "Hinzufügen",
+    "addTransaction": "Transaktion",
+    "addCategory": "Kategorie",
     "cancel": "Abbrechen",
     "manage": "Verwalten",
     "back": "Zurück",
@@ -435,7 +436,6 @@
     },
     "itemCount_one": "{{count}} Eintrag",
     "itemCount_other": "{{count}} Einträge",
-    "addCategory": "Neue Kategorie",
     "empty": {
       "title": "Noch keine Kategorien",
       "subtitle": "Erstelle Kategorien, um Ausgaben und Einnahmen zu ordnen."
