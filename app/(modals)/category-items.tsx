@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
@@ -11,11 +11,12 @@ import { EmptyState } from '@/components/ui/molecules/empty-state';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import { SectionList, type SectionListSection } from '@/components/ui/organisms/section-list';
 import { categoryItemFormHref } from '@/constants/routes';
-import { MOCK_CATEGORIES, MOCK_CATEGORY_ITEMS } from '@/data/__fixtures__/category-items';
 import { type CategoryItem, parseDayStart } from '@/data/finance-types';
+import { useCategories, useCategoryItems } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
+import { categoryItemFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 
 type Segment = 'active' | 'archived';
 type Row = CategoryItem;
@@ -30,9 +31,23 @@ export default function CategoryItemsScreen() {
   const backgroundColor = useThemeColor({}, 'modalBackground');
 
   const [segment, setSegment] = useState<Segment>('active');
+  const [bridgeId] = useState(() => makeBridgeId());
 
-  const category = MOCK_CATEGORIES.find((c) => c.id === id);
-  const items = MOCK_CATEGORY_ITEMS.filter((it) => it.categoryId === id);
+  const { data: categories = [] } = useCategories();
+  const { data: allItems = [], refetch } = useCategoryItems();
+
+  // The item form closes then signals through the bridge; refetch so the list
+  // reflects create/edit/archive/delete without a manual pull.
+  useEffect(() => {
+    return categoryItemFormBridge.subscribe(bridgeId, {
+      changed: () => {
+        refetch();
+      },
+    });
+  }, [bridgeId, refetch]);
+
+  const category = categories.find((c) => c.id === id);
+  const items = useMemo(() => allItems.filter((it) => it.categoryId === id), [allItems, id]);
   const activeItems = items.filter((it) => !it.archivedAt);
   const archivedItems = items.filter((it) => it.archivedAt);
 
@@ -57,7 +72,7 @@ export default function CategoryItemsScreen() {
           variant="primary"
           iconName="plus"
           label={t('categoryItems.addItem')}
-          onPress={() => router.push(categoryItemFormHref({ categoryId: id }))}
+          onPress={() => router.push(categoryItemFormHref({ categoryId: id, bridgeId }))}
         />
       ) : null}
     </View>
@@ -102,7 +117,9 @@ export default function CategoryItemsScreen() {
               ) : undefined
             }
             trailing={<Icon name="chevron.right" size={16} tone="textMuted" />}
-            onPress={() => router.push(categoryItemFormHref({ categoryId: id, editId: item.id }))}
+            onPress={() =>
+              router.push(categoryItemFormHref({ categoryId: id, bridgeId, editId: item.id }))
+            }
             accessibilityLabel={item.name}
           />
         )}
@@ -113,8 +130,7 @@ export default function CategoryItemsScreen() {
 
 /**
  * Presentation-only recurrence line for an item, e.g. "Todo mês, próximo 10
- * ago". Plain text so `ListCardRow` left-aligns it under the title. Phase B
- * replaces this with a real recurrence formatter derived from transactions.
+ * ago". Plain text so `ListCardRow` left-aligns it under the title.
  */
 function recurrenceLine(
   item: CategoryItem,

@@ -1,15 +1,17 @@
 import { useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import { EmptyState, Icon, PressableButton, SectionList, Text } from '@/components/ui';
 import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
 import type { SectionListSection } from '@/components/ui/organisms/section-list';
-import { categoryItemsHref } from '@/constants/routes';
-import { MOCK_CATEGORIES, itemCountByCategory } from '@/data/__fixtures__/category-items';
+import { categoryFormHref, categoryItemsHref } from '@/constants/routes';
 import type { Category } from '@/data/finance-types';
+import { useCategories, useCategoryItems } from '@/hooks/use-finance-queries';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 
 type Row = ListCardRowProps & { id: string };
 
@@ -41,7 +43,33 @@ export default function CategoriesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const counts = itemCountByCategory();
+  const [bridgeId] = useState(() => makeBridgeId());
+
+  const { data: categories = [], isLoading, refetch } = useCategories();
+  const { data: items = [] } = useCategoryItems();
+
+  // A category created/deleted from the `category-form` modal signals here so
+  // the list refreshes once the modal closes.
+  useEffect(() => {
+    return categoryFormBridge.subscribe(bridgeId, {
+      created: () => {
+        refetch();
+      },
+      deleted: () => {
+        refetch();
+      },
+    });
+  }, [bridgeId, refetch]);
+
+  // Non-archived item count per category.
+  const counts = useMemo(() => {
+    const acc: Record<string, number> = {};
+    for (const item of items) {
+      if (item.archivedAt) continue;
+      acc[item.categoryId] = (acc[item.categoryId] ?? 0) + 1;
+    }
+    return acc;
+  }, [items]);
 
   const toRow = (category: Category): Row => ({
     id: category.id,
@@ -52,8 +80,8 @@ export default function CategoriesScreen() {
     onPress: () => router.push(categoryItemsHref(category.id)),
   });
 
-  const expenseRows: Row[] = MOCK_CATEGORIES.filter((c) => c.type === 'expense').map(toRow);
-  const incomeRows: Row[] = MOCK_CATEGORIES.filter((c) => c.type === 'income').map(toRow);
+  const expenseRows: Row[] = categories.filter((c) => c.type === 'expense').map(toRow);
+  const incomeRows: Row[] = categories.filter((c) => c.type === 'income').map(toRow);
 
   const sections: SectionListSection<Row>[] = [
     {
@@ -69,7 +97,17 @@ export default function CategoriesScreen() {
     },
   ];
 
-  if (MOCK_CATEGORIES.length === 0) {
+  const openCategoryForm = () => router.push(categoryFormHref({ bridgeId }));
+
+  if (isLoading) {
+    return (
+      <View style={[styles.centered, { backgroundColor: background }]}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (categories.length === 0) {
     return (
       <ScrollView
         style={{ backgroundColor: background }}
@@ -98,8 +136,7 @@ export default function CategoriesScreen() {
         variant="primary"
         iconName="plus"
         label={t('categoriesTab.addCategory')}
-        // TODO(step 5): open category form
-        onPress={() => {}}
+        onPress={openCategoryForm}
       />
     </ScrollView>
   );
@@ -116,6 +153,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 16,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   trailing: {
     flexDirection: 'row',

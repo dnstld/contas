@@ -47,7 +47,12 @@
     "transactionDeleted": "Transaktion gelöscht.",
     "categoryCreated": "Kategorie erstellt!",
     "categoryUpdated": "Kategorie aktualisiert",
-    "categoryDeleted": "Kategorie gelöscht."
+    "categoryDeleted": "Kategorie gelöscht.",
+    "categoryItemCreated": "Eintrag erstellt!",
+    "categoryItemUpdated": "Eintrag aktualisiert",
+    "categoryItemArchived": "Eintrag archiviert",
+    "categoryItemUnarchived": "Eintrag wiederhergestellt",
+    "categoryItemDeleted": "Eintrag gelöscht."
   },
   "tabs": {
     "balance": "Übersicht",
@@ -478,7 +483,10 @@
     "nextDueLabel": "Nächste Fälligkeit",
     "save": "Speichern",
     "archive": "Eintrag archivieren",
-    "delete": "Eintrag löschen"
+    "unarchive": "Eintrag wiederherstellen",
+    "delete": "Eintrag löschen",
+    "inUseWarning_one": "Dieser Eintrag wird von {{count}} Transaktion verwendet. Weise sie vor dem Löschen neu zu.",
+    "inUseWarning_other": "Dieser Eintrag wird von {{count}} Transaktionen verwendet. Weise sie vor dem Löschen neu zu."
   },
   "upcoming": {
     "title": "Anstehend",
@@ -486,7 +494,6 @@
     "paymentsCount_other": "{{count}} Zahlungen",
     "summary": "{{total}} · Nächste {{date}}",
     "next": "Nächste {{date}}",
-    "overdue": "Überfällig",
     "empty": {
       "title": "Nichts Anstehendes",
       "subtitle": "Deine anstehenden Zahlungen erscheinen hier."

@@ -48,6 +48,7 @@ describe('day-string helpers — calendar dates are timezone-stable', () => {
       type: 'expense',
       categoryId: 'c',
       categoryName: 'C',
+      categoryItemId: null,
       amount: 10,
       description: '',
       status: 'completed',

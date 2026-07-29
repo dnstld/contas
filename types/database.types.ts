@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       categories: {
@@ -52,6 +77,60 @@ export type Database = {
           },
         ]
       }
+      category_items: {
+        Row: {
+          archived_at: string | null
+          category_id: string
+          created_at: string
+          default_amount_cents: number | null
+          id: string
+          name: string
+          next_due_on: string | null
+          recurrence: string
+          updated_at: string
+          wallet_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          category_id: string
+          created_at?: string
+          default_amount_cents?: number | null
+          id?: string
+          name: string
+          next_due_on?: string | null
+          recurrence?: string
+          updated_at?: string
+          wallet_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          category_id?: string
+          created_at?: string
+          default_amount_cents?: number | null
+          id?: string
+          name?: string
+          next_due_on?: string | null
+          recurrence?: string
+          updated_at?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_items_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -80,6 +159,7 @@ export type Database = {
         Row: {
           amount_cents: number
           category_id: string
+          category_item_id: string | null
           created_at: string
           created_by: string | null
           description: string
@@ -94,6 +174,7 @@ export type Database = {
         Insert: {
           amount_cents: number
           category_id: string
+          category_item_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -108,6 +189,7 @@ export type Database = {
         Update: {
           amount_cents?: number
           category_id?: string
+          category_item_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -125,6 +207,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_item_id_fkey"
+            columns: ["category_item_id"]
+            isOneToOne: false
+            referencedRelation: "category_items"
             referencedColumns: ["id"]
           },
           {
@@ -498,6 +587,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

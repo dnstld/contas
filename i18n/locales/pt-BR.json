@@ -47,7 +47,12 @@
     "transactionDeleted": "Transação removida.",
     "categoryCreated": "Categoria criada!",
     "categoryUpdated": "Categoria atualizada",
-    "categoryDeleted": "Categoria removida."
+    "categoryDeleted": "Categoria removida.",
+    "categoryItemCreated": "Item criado!",
+    "categoryItemUpdated": "Item atualizado",
+    "categoryItemArchived": "Item arquivado",
+    "categoryItemUnarchived": "Item desarquivado",
+    "categoryItemDeleted": "Item removido."
   },
   "tabs": {
     "balance": "Resumo",
@@ -478,7 +483,10 @@
     "nextDueLabel": "Próximo vencimento",
     "save": "Salvar",
     "archive": "Arquivar item",
-    "delete": "Excluir item"
+    "unarchive": "Desarquivar item",
+    "delete": "Excluir item",
+    "inUseWarning_one": "Este item é usado por {{count}} transação. Reatribua-a antes de excluir.",
+    "inUseWarning_other": "Este item é usado por {{count}} transações. Reatribua-as antes de excluir."
   },
   "upcoming": {
     "title": "Próximos",
@@ -486,7 +494,6 @@
     "paymentsCount_other": "{{count}} pagamentos",
     "summary": "{{total}} · Próximo {{date}}",
     "next": "Próximo {{date}}",
-    "overdue": "Atrasado",
     "empty": {
       "title": "Nada por vir",
       "subtitle": "Seus próximos pagamentos aparecerão aqui."

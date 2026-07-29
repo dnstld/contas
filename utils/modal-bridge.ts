@@ -27,6 +27,13 @@ export const categoryFormBridge = createChannel<{
   selected: string;
 }>();
 
+// Signals that a category item was created / updated / archived / deleted from
+// the `category-item-form` modal. The opener (items modal, categories tab)
+// subscribes so it can refresh once the form closes. Payload = the item id.
+export const categoryItemFormBridge = createChannel<{
+  changed: string;
+}>();
+
 export function makeBridgeId(): string {
   return `bridge-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
 }

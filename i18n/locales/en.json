@@ -47,7 +47,12 @@
     "transactionDeleted": "Transaction deleted.",
     "categoryCreated": "Category created!",
     "categoryUpdated": "Category updated",
-    "categoryDeleted": "Category deleted."
+    "categoryDeleted": "Category deleted.",
+    "categoryItemCreated": "Item created!",
+    "categoryItemUpdated": "Item updated",
+    "categoryItemArchived": "Item archived",
+    "categoryItemUnarchived": "Item unarchived",
+    "categoryItemDeleted": "Item deleted."
   },
   "tabs": {
     "balance": "Overview",
@@ -478,7 +483,10 @@
     "nextDueLabel": "Next due",
     "save": "Save",
     "archive": "Archive item",
-    "delete": "Delete item"
+    "unarchive": "Unarchive item",
+    "delete": "Delete item",
+    "inUseWarning_one": "This item is used by {{count}} transaction. Reassign it before deleting.",
+    "inUseWarning_other": "This item is used by {{count}} transactions. Reassign them before deleting."
   },
   "upcoming": {
     "title": "Upcoming",
@@ -486,7 +494,6 @@
     "paymentsCount_other": "{{count}} payments",
     "summary": "{{total}} · Next {{date}}",
     "next": "Next {{date}}",
-    "overdue": "Overdue",
     "empty": {
       "title": "Nothing upcoming",
       "subtitle": "Your upcoming payments will show up here."

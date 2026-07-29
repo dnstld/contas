@@ -13,8 +13,18 @@ export type TransactionTypeParsed = z.infer<typeof TransactionTypeSchema>;
 export const TransactionStatusSchema = z.enum(['completed', 'scheduled']);
 export type TransactionStatusParsed = z.infer<typeof TransactionStatusSchema>;
 
-export const RecurrenceSchema = z.enum(['none', 'daily', 'weekly', 'monthly']);
+export const RecurrenceSchema = z.enum(['none', 'daily', 'weekly', 'monthly', 'yearly']);
 export type RecurrenceParsed = z.infer<typeof RecurrenceSchema>;
+
+/**
+ * Boundary guard for `category_items` rows. Like the transaction schemas, we
+ * only validate the enum that would silently misbehave on a client/DB drift —
+ * the rest of the row is trusted from the generated `Database` types.
+ */
+export const CategoryItemRowSchema = z.object({
+  recurrence: RecurrenceSchema,
+});
+export type CategoryItemRowParsed = z.infer<typeof CategoryItemRowSchema>;
 
 export const DeleteWalletResultSchema = z.enum(['deleted', 'pending']);
 export type DeleteWalletResultParsed = z.infer<typeof DeleteWalletResultSchema>;

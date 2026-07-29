@@ -9,9 +9,11 @@ import { ListCardRow } from '@/components/ui/molecules/list-card-row';
 import { SectionLabel } from '@/components/ui/molecules/section-label';
 import { upcomingHref } from '@/constants/routes';
 import { UPCOMING_AVATAR_TONES } from '@/components/upcoming/tones';
-import { upcomingExpenseItems } from '@/data/__fixtures__/category-items';
+import { buildUpcoming } from '@/data/finance-aggregations';
 import { parseDayStart } from '@/data/finance-types';
+import { useCategories, useCategoryItems } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
+import { useNow } from '@/hooks/use-now';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
 
@@ -20,32 +22,35 @@ const MAX_AVATARS = 3;
 export function UpcomingSummary() {
   const { t } = useTranslation();
   const router = useRouter();
+  const now = useNow();
   const { currency = 'BRL' } = useWallet();
   const { formatCurrency, formatDate } = useFormatters();
   const surfaceColor = useThemeColor({}, 'surface');
 
-  const items = upcomingExpenseItems();
-  const count = items.length;
+  const { data: items = [] } = useCategoryItems();
+  const { data: categories = [] } = useCategories();
+  const occurrences = buildUpcoming(items, categories, now);
+  const count = occurrences.length;
 
   if (count === 0) return null;
 
-  const total = items.reduce((sum, it) => sum + (it.defaultAmount ?? 0), 0);
-  const nextDate = items[0]!.nextDueOn!;
-  const avatarItems = items.slice(0, MAX_AVATARS);
+  const total = occurrences.reduce((sum, occ) => sum + (occ.item.defaultAmount ?? 0), 0);
+  const nextDate = occurrences[0]!.dueOn;
+  const avatarItems = occurrences.slice(0, MAX_AVATARS);
   const extra = count - avatarItems.length;
 
   const ringStyle = { borderColor: surfaceColor };
 
   const avatarStack = (
     <View style={styles.avatarStack}>
-      {avatarItems.map((item, index) => (
+      {avatarItems.map((occ, index) => (
         <View
-          key={item.id}
+          key={occ.item.id}
           style={[styles.avatarRing, ringStyle, index > 0 && styles.avatarOverlap]}
         >
           <Avatar
             size="sm"
-            name={item.name}
+            name={occ.item.name}
             tone={UPCOMING_AVATAR_TONES[index % UPCOMING_AVATAR_TONES.length]}
           />
         </View>

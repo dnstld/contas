@@ -31,6 +31,8 @@ type TransactionBase = {
   type: TransactionType;
   categoryId: string;
   categoryName: string;
+  /** Recurring template this transaction was logged from, if any. */
+  categoryItemId: string | null;
   amount: number;
   description: string;
   status: TransactionStatus;

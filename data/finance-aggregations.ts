@@ -5,10 +5,14 @@ import { MONTHS, type Month, type TimeFilterState } from '@/hooks/use-time-filte
 import { monthName } from '@/utils/format';
 
 import {
+  parseDayStart,
+  toDayString,
   transactionDate,
   txDate,
   type Category,
+  type CategoryItem,
   type Finance,
+  type RecurringRecurrence,
   type Transaction,
   type TransactionType,
 } from './finance-types';
@@ -520,4 +524,116 @@ export function buildDashboard(
     ...base,
     overview: { ...base.overview, lastActivityAt },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Upcoming forecast (calendar-driven)
+// ---------------------------------------------------------------------------
+
+/** A single projected charge for a recurring item, within the forecast window. */
+export interface UpcomingOccurrence {
+  item: CategoryItem;
+  dueOn: string; // 'YYYY-MM-DD'
+}
+
+/**
+ * Roll a recurrence anchor forward to the first occurrence on or after `from`.
+ * All arithmetic goes through local-midnight `Date`s (via `parseDayStart` /
+ * plain `Date(y, m, d)`), never `new Date('YYYY-MM-DD')`, so the calendar day
+ * is stable across timezones. Returns a `YYYY-MM-DD` string.
+ *
+ * - `daily`: the anchor if it's already ≥ `from`, otherwise `from` itself.
+ * - `weekly`: step +7 days from the anchor until ≥ `from` (preserves weekday).
+ * - `monthly`: step whole months, clamping the anchor's day-of-month to the
+ *   target month's length (e.g. day 31 → Feb 28/29). Clamping is recomputed
+ *   from the original day each step, so a short month doesn't shrink later ones.
+ * - `yearly`: step whole years, clamping Feb 29 → Feb 28 on non-leap years.
+ */
+export function nextOccurrenceOnOrAfter(
+  anchor: string,
+  recurrence: RecurringRecurrence,
+  from: Date,
+): string {
+  const a = parseDayStart(anchor);
+  const fromTime = from.getTime();
+
+  switch (recurrence) {
+    case 'daily':
+      return a.getTime() >= fromTime ? toDayString(a) : toDayString(from);
+
+    case 'weekly': {
+      let cand = a;
+      while (cand.getTime() < fromTime) {
+        cand = new Date(cand.getFullYear(), cand.getMonth(), cand.getDate() + 7);
+      }
+      return toDayString(cand);
+    }
+
+    case 'monthly': {
+      const day = a.getDate();
+      let year = a.getFullYear();
+      let month = a.getMonth();
+      const candidate = () => new Date(year, month, Math.min(day, daysInMonth(year, month)));
+      let cand = candidate();
+      while (cand.getTime() < fromTime) {
+        month += 1;
+        if (month > 11) {
+          month = 0;
+          year += 1;
+        }
+        cand = candidate();
+      }
+      return toDayString(cand);
+    }
+
+    case 'yearly': {
+      const month = a.getMonth();
+      const day = a.getDate();
+      let year = a.getFullYear();
+      const candidate = () => new Date(year, month, Math.min(day, daysInMonth(year, month)));
+      let cand = candidate();
+      while (cand.getTime() < fromTime) {
+        year += 1;
+        cand = candidate();
+      }
+      return toDayString(cand);
+    }
+  }
+}
+
+/**
+ * Project the next upcoming expense charge for each recurring item within a
+ * rolling window. Pure and timezone-safe. Considers only non-archived items
+ * that recur, carry a `nextDueOn` anchor, and belong to an expense category.
+ * Emits one occurrence per item (its next within the window), sorted by due
+ * date ascending.
+ */
+export function buildUpcoming(
+  items: CategoryItem[],
+  categories: Category[],
+  now: Date,
+  windowDays = 30,
+): UpcomingOccurrence[] {
+  const todayStart = parseDayStart(toDayString(now));
+  const windowEnd = new Date(
+    todayStart.getFullYear(),
+    todayStart.getMonth(),
+    todayStart.getDate() + windowDays,
+  );
+  const windowEndStr = toDayString(windowEnd);
+  const expenseCategoryIds = new Set(
+    categories.filter((c) => c.type === 'expense').map((c) => c.id),
+  );
+
+  const out: UpcomingOccurrence[] = [];
+  for (const item of items) {
+    if (item.archivedAt) continue;
+    if (item.recurrence === 'none' || !item.nextDueOn) continue;
+    if (!expenseCategoryIds.has(item.categoryId)) continue;
+    const dueOn = nextOccurrenceOnOrAfter(item.nextDueOn, item.recurrence, todayStart);
+    // Day strings compare lexically, so a plain `<=` bounds the window.
+    if (dueOn <= windowEndStr) out.push({ item, dueOn });
+  }
+
+  return out.sort((a, b) => (a.dueOn < b.dueOn ? -1 : a.dueOn > b.dueOn ? 1 : 0));
 }

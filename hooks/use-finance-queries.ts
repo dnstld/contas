@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 
-import type { Category, Transaction } from '@/data/finance-types';
+import type { Category, CategoryItem, Transaction } from '@/data/finance-types';
 import { RecurrenceSchema, TransactionStatusSchema, TransactionTypeSchema } from '@/data/schemas';
 import { useWallet } from '@/hooks/use-wallet';
 import { supabase } from '@/utils/supabase';
@@ -12,10 +12,12 @@ export const financeKeys = {
   transactions: (walletId: string) => ['finance', walletId, 'transactions'] as const,
   transaction: (walletId: string, transactionId: string) =>
     ['finance', walletId, 'transaction', transactionId] as const,
+  categoryItems: (walletId: string) => ['finance', walletId, 'categoryItems'] as const,
 };
 
 type CategoryRow = Tables<'categories'>;
 type TransactionRow = Tables<'transactions'>;
+type CategoryItemRow = Tables<'category_items'>;
 
 function adaptCategory(row: CategoryRow): Category {
   return {
@@ -38,6 +40,7 @@ export function adaptTransaction(
     type: cat?.type ?? ('expense' as const),
     categoryId: row.category_id,
     categoryName: cat?.name ?? '',
+    categoryItemId: row.category_item_id ?? null,
     amount: row.amount_cents / 100,
     description: row.description,
     status: TransactionStatusSchema.catch('completed').parse(row.status),
@@ -63,6 +66,20 @@ export function adaptTransaction(
   };
 }
 
+// The `category_items` select omits `created_at`/`updated_at`, so the adapter
+// only sees the columns actually fetched.
+function adaptCategoryItem(row: Omit<CategoryItemRow, 'created_at' | 'updated_at'>): CategoryItem {
+  return {
+    id: row.id,
+    categoryId: row.category_id,
+    name: row.name,
+    defaultAmount: row.default_amount_cents == null ? undefined : row.default_amount_cents / 100,
+    recurrence: RecurrenceSchema.catch('none').parse(row.recurrence),
+    nextDueOn: row.next_due_on ?? undefined,
+    archivedAt: row.archived_at ?? undefined,
+  };
+}
+
 async function fetchCategories(walletId: string): Promise<Category[]> {
   const { data, error } = await supabase
     .from('categories')
@@ -70,6 +87,17 @@ async function fetchCategories(walletId: string): Promise<Category[]> {
     .eq('wallet_id', walletId);
   if (error) throw error;
   return (data ?? []).map(adaptCategory);
+}
+
+async function fetchCategoryItems(walletId: string): Promise<CategoryItem[]> {
+  const { data, error } = await supabase
+    .from('category_items')
+    .select(
+      'id, category_id, name, default_amount_cents, recurrence, next_due_on, archived_at, wallet_id',
+    )
+    .eq('wallet_id', walletId);
+  if (error) throw error;
+  return (data ?? []).map(adaptCategoryItem);
 }
 
 const TRANSACTIONS_PAGE_SIZE = 1000;
@@ -81,7 +109,7 @@ async function fetchTransactionRows(walletId: string): Promise<TransactionRow[]>
     const { data, error } = await supabase
       .from('transactions')
       .select(
-        'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, on_behalf_of, updated_at',
+        'id, category_id, category_item_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, on_behalf_of, updated_at',
       )
       .eq('wallet_id', walletId)
       // occurred_at is a date (no time), so tiebreak same-day rows by entry time
@@ -107,6 +135,18 @@ export function useCategories(): UseQueryResult<Category[]> {
   });
 }
 
+export function useCategoryItems(): UseQueryResult<CategoryItem[]> {
+  const { walletId } = useWallet();
+
+  return useQuery({
+    queryKey: walletId
+      ? financeKeys.categoryItems(walletId)
+      : ['finance', 'unbound', 'categoryItems'],
+    enabled: !!walletId,
+    queryFn: () => fetchCategoryItems(walletId!),
+  });
+}
+
 export function useTransaction(transactionId: string | null): UseQueryResult<Transaction | null> {
   const { walletId } = useWallet();
   const queryClient = useQueryClient();
@@ -124,7 +164,7 @@ export function useTransaction(transactionId: string | null): UseQueryResult<Tra
       const { data, error } = await supabase
         .from('transactions')
         .select(
-          'id, category_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, on_behalf_of, updated_at',
+          'id, category_id, category_item_id, amount_cents, description, status, occurred_at, recurrence, wallet_id, created_at, created_by, on_behalf_of, updated_at',
         )
         .eq('id', tid)
         .eq('wallet_id', wid)

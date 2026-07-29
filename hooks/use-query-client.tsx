@@ -11,6 +11,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 
 import { useAppForeground } from '@/hooks/use-app-foreground';
 import { useAuth } from '@/hooks/use-auth';
+import { isCategoryItemInUseError } from '@/hooks/use-category-item-mutations';
 import { isCategoryHasTransactionsError } from '@/hooks/use-finance-mutations';
 import { financeKeys } from '@/hooks/use-finance-queries';
 import { myProfileKey } from '@/hooks/use-my-profile';
@@ -69,6 +70,7 @@ export const queryClient = new QueryClient({
       // Known business errors: handled by callers, never toasted, never sent
       // to Sentry (they're expected).
       if (isCategoryHasTransactionsError(err)) return;
+      if (isCategoryItemInUseError(err)) return;
 
       // Always capture unexpected errors — `silent` only suppresses the user-
       // facing toast for screens that render their own inline error UI.

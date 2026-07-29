@@ -29,6 +29,7 @@ function mkTx(
     recurrence: 'none',
     status: 'completed',
     description: '',
+    categoryItemId: null,
     createdAt: overrides.date,
     updatedAt: overrides.date,
     createdByUserId: null,

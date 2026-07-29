@@ -11,13 +11,22 @@ import { ModalActions } from '@/components/ui/molecules/modal-actions';
 import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold';
 import { ITEM_NAME_MAX_LENGTH } from '@/constants/limits';
 import { Fonts } from '@/constants/theme';
-import { MOCK_CATEGORY_ITEMS } from '@/data/__fixtures__/category-items';
-import { parseDayStart, type Recurrence } from '@/data/finance-types';
+import { parseDayStart, toDayString, type Recurrence } from '@/data/finance-types';
+import {
+  isCategoryItemInUseError,
+  useArchiveCategoryItem,
+  useCreateCategoryItem,
+  useDeleteCategoryItem,
+  useUpdateCategoryItem,
+} from '@/hooks/use-category-item-mutations';
+import { useCategoryItems } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useNow } from '@/hooks/use-now';
 import { useWallet } from '@/hooks/use-wallet';
 import { nextAmountCents } from '@/utils/amount-input';
+import { categoryItemFormBridge } from '@/utils/modal-bridge';
+import { toast } from '@/utils/toast';
 
 const RECURRENCE_ORDER: Recurrence[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
 
@@ -29,11 +38,15 @@ export default function CategoryItemFormScreen() {
   const { formatAmount } = useFormatters();
   const { text: textColor, textMuted: mutedColor, inputBackground } = useModalChrome();
 
-  const params = useLocalSearchParams<{ categoryId: string; editId?: string }>();
+  const params = useLocalSearchParams<{ categoryId: string; bridgeId: string; editId?: string }>();
+  const categoryId = params.categoryId;
+  const bridgeId = params.bridgeId;
   const editId = params.editId ?? null;
   const isEdit = !!editId;
 
-  const editItem = isEdit ? (MOCK_CATEGORY_ITEMS.find((it) => it.id === editId) ?? null) : null;
+  const { data: allItems = [] } = useCategoryItems();
+  const editItem = isEdit ? (allItems.find((it) => it.id === editId) ?? null) : null;
+  const isArchived = !!editItem?.archivedAt;
 
   const [name, setName] = useState(editItem?.name ?? '');
   const [amountCents, setAmountCents] = useState(
@@ -43,8 +56,22 @@ export default function CategoryItemFormScreen() {
   const [nextDue, setNextDue] = useState<Date>(
     editItem?.nextDueOn ? parseDayStart(editItem.nextDueOn) : now,
   );
+  const [inUseWarning, setInUseWarning] = useState<string | null>(null);
 
   const nameInputRef = useRef<TextInput>(null);
+  const hasHydratedEdit = useRef(false);
+
+  // Hydrate the form once the edited item resolves from the query cache (it may
+  // load async on a cold start), mirroring `category-form`.
+  useEffect(() => {
+    if (isEdit && editItem && !hasHydratedEdit.current) {
+      hasHydratedEdit.current = true;
+      setName(editItem.name);
+      setAmountCents(editItem.defaultAmount != null ? Math.round(editItem.defaultAmount * 100) : 0);
+      setRecurrence(editItem.recurrence);
+      setNextDue(editItem.nextDueOn ? parseDayStart(editItem.nextDueOn) : now);
+    }
+  }, [isEdit, editItem, now]);
 
   useEffect(() => {
     if (!isEdit) {
@@ -52,6 +79,12 @@ export default function CategoryItemFormScreen() {
       return () => clearTimeout(handle);
     }
   }, [isEdit]);
+
+  const { mutate: createItem, isPending: isCreating } = useCreateCategoryItem();
+  const { mutate: updateItem, isPending: isUpdating } = useUpdateCategoryItem();
+  const { mutate: archiveItem, isPending: isArchiving } = useArchiveCategoryItem();
+  const { mutate: deleteItem, isPending: isDeleting } = useDeleteCategoryItem();
+  const isPending = isCreating || isUpdating || isArchiving || isDeleting;
 
   const recurrenceOptions = useMemo(
     () =>
@@ -67,32 +100,109 @@ export default function CategoryItemFormScreen() {
     setAmountCents(nextAmountCents(amountCents, formattedAmount, value));
   };
 
-  const canSave = name.trim().length > 0;
+  const canSave = name.trim().length > 0 && !isPending;
 
-  // TODO(phaseB): create item
-  const handleSave = () => router.back();
-  // TODO(phaseB): archive item
-  const handleArchive = () => router.back();
-  // TODO(phaseB): delete item
-  const handleDelete = () => router.back();
+  const handleSave = () => {
+    const trimmed = name.trim();
+    if (!trimmed || isPending) return;
+    const shared = {
+      name: trimmed,
+      recurrence,
+      ...(amountCents > 0 && { defaultAmountCents: amountCents }),
+      ...(recurrence !== 'none' && { nextDueOn: toDayString(nextDue) }),
+    };
+    if (isEdit && editItem) {
+      updateItem(
+        { id: editItem.id, ...shared },
+        {
+          onSuccess: (updated) => {
+            toast.success(t('feedback.categoryItemUpdated'));
+            categoryItemFormBridge.emit(bridgeId, 'changed', updated.id);
+            router.back();
+          },
+        },
+      );
+    } else {
+      createItem(
+        { categoryId, ...shared },
+        {
+          onSuccess: (created) => {
+            toast.success(t('feedback.categoryItemCreated'));
+            categoryItemFormBridge.emit(bridgeId, 'changed', created.id);
+            router.back();
+          },
+        },
+      );
+    }
+  };
+
+  const handleArchiveToggle = () => {
+    if (!editItem || isPending) return;
+    const archived = !isArchived;
+    archiveItem(
+      { id: editItem.id, archived },
+      {
+        onSuccess: (updated) => {
+          toast.success(
+            archived ? t('feedback.categoryItemArchived') : t('feedback.categoryItemUnarchived'),
+          );
+          categoryItemFormBridge.emit(bridgeId, 'changed', updated.id);
+          router.back();
+        },
+      },
+    );
+  };
+
+  const handleDelete = () => {
+    if (!editItem || isPending) return;
+    setInUseWarning(null);
+    deleteItem(editItem.id, {
+      onSuccess: (id) => {
+        toast.success(t('feedback.categoryItemDeleted'));
+        categoryItemFormBridge.emit(bridgeId, 'changed', id);
+        router.back();
+      },
+      onError: (err) => {
+        if (isCategoryItemInUseError(err)) {
+          setInUseWarning(t('categoryItemForm.inUseWarning', { count: err.transactionCount }));
+        }
+      },
+    });
+  };
 
   return (
     <ModalFormScaffold
       footer={
         <ModalActions
-          primary={{ label: t('categoryItemForm.save'), onPress: handleSave, disabled: !canSave }}
+          primary={{
+            label: t('categoryItemForm.save'),
+            onPress: handleSave,
+            loading: isCreating || isUpdating,
+            disabled: !canSave,
+          }}
           secondary={
             isEdit
               ? [
-                  { label: t('categoryItemForm.archive'), onPress: handleArchive, tone: 'muted' },
+                  {
+                    label: isArchived
+                      ? t('categoryItemForm.unarchive')
+                      : t('categoryItemForm.archive'),
+                    onPress: handleArchiveToggle,
+                    tone: 'muted',
+                    loading: isArchiving,
+                    disabled: isPending && !isArchiving,
+                  },
                   {
                     label: t('categoryItemForm.delete'),
                     onPress: handleDelete,
                     tone: 'destructive',
+                    loading: isDeleting,
+                    disabled: isPending && !isDeleting,
                   },
                 ]
               : undefined
           }
+          warning={inUseWarning}
         />
       }
     >

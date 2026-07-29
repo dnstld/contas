@@ -39,10 +39,18 @@ export function categoryItemsHref(id: string): Href {
   return { pathname: '/category-items', params: { id } };
 }
 
-export function categoryItemFormHref(args: { categoryId: string; editId?: string }): Href {
+export function categoryItemFormHref(args: {
+  categoryId: string;
+  bridgeId: string;
+  editId?: string;
+}): Href {
   return {
     pathname: '/category-item-form',
-    params: { categoryId: args.categoryId, ...(args.editId ? { editId: args.editId } : {}) },
+    params: {
+      categoryId: args.categoryId,
+      bridgeId: args.bridgeId,
+      ...(args.editId ? { editId: args.editId } : {}),
+    },
   };
 }
 
