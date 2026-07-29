@@ -109,16 +109,19 @@ export default function CategoriesScreen() {
 
   if (categories.length === 0) {
     return (
-      <ScrollView
-        style={{ backgroundColor: background }}
-        contentContainerStyle={styles.emptyContent}
-      >
+      <View style={[styles.emptyState, { backgroundColor: background }]}>
         <EmptyState
           icon="tag.fill"
           title={t('categoriesTab.empty.title')}
           body={t('categoriesTab.empty.subtitle')}
         />
-      </ScrollView>
+        <PressableButton
+          variant="primary"
+          iconName="plus"
+          label={t('categoriesTab.addCategory')}
+          onPress={openCategoryForm}
+        />
+      </View>
     );
   }
 
@@ -149,10 +152,12 @@ const styles = StyleSheet.create({
     paddingBottom: 64,
     gap: 16,
   },
-  emptyContent: {
-    flexGrow: 1,
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    padding: 24,
+    gap: 20,
   },
   centered: {
     flex: 1,
