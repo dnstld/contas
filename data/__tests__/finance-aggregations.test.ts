@@ -4,9 +4,9 @@ import {
   aggregate,
   buildDashboard,
   inYear,
-  rankDescriptionsByUsage,
+  rankItemsForCategory,
 } from '@/data/finance-aggregations';
-import type { Category, Finance, OneOffTransaction } from '@/data/finance-types';
+import type { Category, CategoryItem, Finance, OneOffTransaction } from '@/data/finance-types';
 import { buildTransactionsList } from '@/data/transactions-list';
 import type { TimeFilterState } from '@/hooks/use-time-filter-state';
 
@@ -323,74 +323,65 @@ describe('anti-drift consistency: Overview and Transactions must agree', () => {
   });
 });
 
-describe('rankDescriptionsByUsage — "What for" quick-pick suggestions', () => {
-  // Helper: a groceries expense with a given description and log time (createdAt
-  // drives the recency tiebreak; the calendar `date` is irrelevant here).
-  const desc = (id: string, description: string, createdAt: string, categoryId = 'groceries') =>
+describe('rankItemsForCategory — "What for" curated item suggestions', () => {
+  const mkItem = (
+    overrides: Partial<CategoryItem> & Pick<CategoryItem, 'id' | 'name'>,
+  ): CategoryItem => ({
+    categoryId: 'groceries',
+    recurrence: 'none',
+    ...overrides,
+  });
+
+  // A groceries transaction linked to a given item.
+  const linked = (id: string, categoryItemId: string | null) =>
     mkTx({
       id,
       date: '2026-07-01',
       type: 'expense',
-      categoryId,
-      categoryName: categoryId,
+      categoryId: 'groceries',
+      categoryName: 'Groceries',
       amount: 10,
-      description,
-      createdAt,
+      categoryItemId,
     });
 
-  it('ranks by frequency, most-used first', () => {
-    const txs = [
-      desc('a', 'Supermarket', '2026-07-01T10:00:00Z'),
-      desc('b', 'Supermarket', '2026-07-02T10:00:00Z'),
-      desc('c', 'Bakery', '2026-07-03T10:00:00Z'),
+  it('orders by linked-transaction usage, most-used first', () => {
+    const items = [
+      mkItem({ id: 'bakery', name: 'Bakery' }),
+      mkItem({ id: 'market', name: 'Market' }),
     ];
-    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Supermarket', 'Bakery']);
+    const txs = [linked('a', 'market'), linked('b', 'market'), linked('c', 'bakery')];
+    expect(rankItemsForCategory(items, txs, 'groceries').map((i) => i.id)).toEqual([
+      'market',
+      'bakery',
+    ]);
   });
 
-  it('breaks frequency ties by most recent (createdAt)', () => {
-    const txs = [
-      desc('a', 'Bakery', '2026-07-01T10:00:00Z'),
-      desc('b', 'Supermarket', '2026-07-05T10:00:00Z'),
-    ];
-    // Both used once → the more recently logged one wins the tie.
-    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Supermarket', 'Bakery']);
+  it('breaks usage ties alphabetically by name', () => {
+    const items = [mkItem({ id: 'z', name: 'Zucchini' }), mkItem({ id: 'a', name: 'Apple' })];
+    // Neither is linked (usage 0) → alphabetical.
+    expect(rankItemsForCategory(items, [], 'groceries').map((i) => i.id)).toEqual(['a', 'z']);
   });
 
-  it('dedupes case/whitespace-insensitively, showing the most recent casing', () => {
-    const txs = [
-      desc('a', 'uber', '2026-07-01T10:00:00Z'),
-      desc('b', 'Uber ', '2026-07-04T10:00:00Z'),
-      desc('c', 'Bakery', '2026-07-02T10:00:00Z'),
+  it('excludes archived items', () => {
+    const items = [
+      mkItem({ id: 'active', name: 'Active' }),
+      mkItem({ id: 'archived', name: 'Archived', archivedAt: '2026-06-01T00:00:00.000Z' }),
     ];
-    // "uber" + "Uber " collapse into one entry (count 2) → ranks first, and the
-    // display uses the most recent occurrence's trimmed casing ("Uber").
-    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Uber', 'Bakery']);
+    expect(rankItemsForCategory(items, [], 'groceries').map((i) => i.id)).toEqual(['active']);
   });
 
-  it('ignores empty and whitespace-only descriptions', () => {
-    const txs = [
-      desc('a', '', '2026-07-01T10:00:00Z'),
-      desc('b', '   ', '2026-07-02T10:00:00Z'),
-      desc('c', 'Bakery', '2026-07-03T10:00:00Z'),
+  it('only considers items in the given category', () => {
+    const items = [
+      mkItem({ id: 'g', name: 'Groceries item', categoryId: 'groceries' }),
+      mkItem({ id: 'r', name: 'Rent item', categoryId: 'rent' }),
     ];
-    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Bakery']);
-  });
-
-  it('only considers the given category', () => {
-    const txs = [
-      desc('a', 'Supermarket', '2026-07-01T10:00:00Z', 'groceries'),
-      desc('b', 'Flight', '2026-07-02T10:00:00Z', 'travel'),
-    ];
-    expect(rankDescriptionsByUsage(txs, 'groceries')).toEqual(['Supermarket']);
-    expect(rankDescriptionsByUsage(txs, 'travel')).toEqual(['Flight']);
-    expect(rankDescriptionsByUsage(txs, 'rent')).toEqual([]);
+    expect(rankItemsForCategory(items, [], 'groceries').map((i) => i.id)).toEqual(['g']);
+    expect(rankItemsForCategory(items, [], 'travel')).toEqual([]);
   });
 
   it('caps the result at the limit', () => {
-    const txs = Array.from({ length: 8 }, (_, i) =>
-      desc(`d${i}`, `Desc ${i}`, `2026-07-0${i + 1}T10:00:00Z`),
-    );
-    expect(rankDescriptionsByUsage(txs, 'groceries')).toHaveLength(5);
-    expect(rankDescriptionsByUsage(txs, 'groceries', 3)).toHaveLength(3);
+    const items = Array.from({ length: 8 }, (_, i) => mkItem({ id: `i${i}`, name: `Item ${i}` }));
+    expect(rankItemsForCategory(items, [], 'groceries')).toHaveLength(5);
+    expect(rankItemsForCategory(items, [], 'groceries', 3)).toHaveLength(3);
   });
 });

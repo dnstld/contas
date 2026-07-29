@@ -48,6 +48,7 @@ export function useCreateTransaction() {
         .insert({
           wallet_id: walletId,
           category_id: ensureCategoryId(values),
+          category_item_id: values.categoryItemId ?? null,
           amount_cents: values.amountCents,
           description: values.description,
           occurred_at: toDayString(values.date),
@@ -96,6 +97,7 @@ export function useUpdateTransaction() {
         .from('transactions')
         .update({
           category_id: ensureCategoryId(values),
+          category_item_id: values.categoryItemId ?? null,
           amount_cents: values.amountCents,
           description: values.description,
           occurred_at: toDayString(values.date),

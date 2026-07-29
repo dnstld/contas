@@ -75,6 +75,7 @@ export default function EditScreen() {
     amountCents: Math.round(transaction.amount * 100),
     date: txDate(transaction),
     categoryId: transaction.categoryId,
+    categoryItemId: transaction.categoryItemId,
     description: transaction.description,
     onBehalfOfUserId: transaction.onBehalfOfUserId,
   };

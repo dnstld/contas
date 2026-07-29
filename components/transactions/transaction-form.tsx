@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { categoryFormHref, categorySelectHref } from '@/constants/routes';
+import { categoryFormHref, categoryItemFormHref, categorySelectHref } from '@/constants/routes';
 import { nextAmountCents } from '@/utils/amount-input';
-import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
+import { categoryFormBridge, categoryItemFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
@@ -18,10 +18,11 @@ import { Fonts } from '@/constants/theme';
 import {
   MOST_USED_CATEGORIES_LIMIT,
   rankCategoriesByUsage,
-  rankDescriptionsByUsage,
+  rankItemsForCategory,
 } from '@/data/finance-aggregations';
+import type { CategoryItem } from '@/data/finance-types';
 import { useAuth } from '@/hooks/use-auth';
-import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
+import { useCategories, useCategoryItems, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
@@ -49,6 +50,8 @@ export type TransactionFormValues = {
   amountCents: number;
   date: Date;
   categoryId: string | null;
+  /** Curated item this transaction is linked to. `null` = free text / unlinked. */
+  categoryItemId: string | null;
   description: string;
   /** Member the transaction is FOR. `null` = for the creator themselves. */
   onBehalfOfUserId: string | null;
@@ -79,14 +82,18 @@ export function TransactionForm({
   const router = useRouter();
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
+  const { data: categoryItems = [], refetch: refetchItems } = useCategoryItems();
   const { currency } = useWallet();
   const { members } = useWalletMembers();
   const { session } = useAuth();
   const myUserId = session?.user.id ?? null;
   const { formatAmount } = useFormatters();
-  // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
+  // Stable per-mount ids. Lazy useState avoids react-hooks/refs (no `.current`
   // access during render) and gives us a one-time value identical to a ref.
+  // The category and item form modals get separate bridges so their callbacks
+  // don't cross-fire.
   const [bridgeId] = useState(() => makeBridgeId());
+  const [itemBridgeId] = useState(() => makeBridgeId());
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
@@ -97,18 +104,54 @@ export function TransactionForm({
   const [amountCents, setAmountCents] = useState<number>(initialValues?.amountCents ?? 0);
   const [date, setDate] = useState<Date>(initialValues?.date ?? new Date());
   const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
+  const [categoryItemId, setCategoryItemId] = useState<string | null>(
+    initialValues?.categoryItemId ?? null,
+  );
   const [description, setDescription] = useState<string>(initialValues?.description ?? '');
   const [onBehalfOfUserId, setOnBehalfOfUserId] = useState<string | null>(
     initialValues?.onBehalfOfUserId ?? null,
   );
 
   useEffect(() => {
+    // Switching to a different category invalidates the current item link (a
+    // different category's items don't apply), so clear it alongside.
     return categoryFormBridge.subscribe(bridgeId, {
-      created: (id) => setCategoryId(id),
-      deleted: (id) => setCategoryId((current) => (current === id ? null : current)),
-      selected: (id) => setCategoryId(id),
+      created: (id) => {
+        setCategoryId(id);
+        setCategoryItemId(null);
+      },
+      deleted: (id) =>
+        setCategoryId((current) => {
+          if (current === id) setCategoryItemId(null);
+          return current === id ? null : current;
+        }),
+      selected: (id) => {
+        setCategoryId(id);
+        setCategoryItemId(null);
+      },
     });
   }, [bridgeId]);
+
+  // The inline "＋ Add item" flow returns through this bridge: refetch the items
+  // list, then auto-select the newly created item (filling the description and
+  // pre-filling the amount when it's still empty).
+  useEffect(() => {
+    return categoryItemFormBridge.subscribe(itemBridgeId, {
+      changed: (id) => {
+        refetchItems().then((res) => {
+          setCategoryItemId(id);
+          const created = res.data?.find((it) => it.id === id);
+          if (!created) return;
+          setDescription(created.name);
+          setAmountCents((cur) =>
+            cur === 0 && created.defaultAmount != null
+              ? Math.round(created.defaultAmount * 100)
+              : cur,
+          );
+        });
+      },
+    });
+  }, [itemBridgeId, refetchItems]);
 
   const typeOptions: SegmentedOption<TransactionType>[] = useMemo(
     () => [
@@ -151,13 +194,11 @@ export function TransactionForm({
   const showQuickPick = topCategories.length > 0;
   const showSuggestions = !showQuickPick && suggestionNames.length > 0;
 
-  // Past descriptions used for the selected category, ranked most-used with a
-  // recency tiebreak, offered under the "What for" field for one-tap reuse.
-  // Only relevant once a category is picked; empty (row hidden) when that
-  // category has no prior descriptions yet.
-  const descriptionSuggestions = useMemo(
-    () => (categoryId ? rankDescriptionsByUsage(transactions, categoryId) : []),
-    [transactions, categoryId],
+  // Curated items for the selected category, ranked most-used first, offered
+  // under the "What for" field. Only relevant once a category is picked.
+  const rankedItems = useMemo(
+    () => (categoryId ? rankItemsForCategory(categoryItems, transactions, categoryId) : []),
+    [categoryItems, transactions, categoryId],
   );
 
   const formattedAmount = formatAmount(amountCents / 100, currency);
@@ -169,7 +210,46 @@ export function TransactionForm({
   const handleTypeChange = (next: TransactionType) => {
     setType(next);
     setCategoryId(null);
+    setCategoryItemId(null);
   };
+
+  // Picking a category from the quick-pick row also drops any item link (the
+  // link belongs to the previously-selected category).
+  const handlePickCategory = (id: string) => {
+    setCategoryId(id);
+    setCategoryItemId(null);
+  };
+
+  // Selecting a curated item fills the description, links it, and pre-fills the
+  // amount from its expected amount when the field is still empty.
+  const selectItem = (item: CategoryItem) => {
+    setCategoryItemId(item.id);
+    setDescription(item.name);
+    if (amountCents === 0 && item.defaultAmount != null) {
+      setAmountCents(Math.round(item.defaultAmount * 100));
+    }
+  };
+
+  // Typing re-derives the link: an exact (case-insensitive) match against a
+  // non-archived item in the selected category links it; anything else clears
+  // the link. Typed text is never turned into an item.
+  const handleDescriptionChange = (text: string) => {
+    setDescription(text);
+    const trimmed = text.trim().toLowerCase();
+    const match =
+      categoryId && trimmed
+        ? categoryItems.find(
+            (it) =>
+              it.categoryId === categoryId && !it.archivedAt && it.name.toLowerCase() === trimmed,
+          )
+        : undefined;
+    setCategoryItemId(match?.id ?? null);
+  };
+
+  const openCreateItem = () =>
+    categoryId
+      ? router.push(categoryItemFormHref({ categoryId, bridgeId: itemBridgeId }))
+      : undefined;
 
   const openCategorySelect = () =>
     router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }));
@@ -190,7 +270,7 @@ export function TransactionForm({
           key: c.id,
           label: c.name,
           selected: categoryId === c.id,
-          onPress: () => setCategoryId(c.id),
+          onPress: () => handlePickCategory(c.id),
         })),
         trailing: { label: t('categorySelect.groups.all'), onPress: openCategorySelect },
       }
@@ -205,11 +285,11 @@ export function TransactionForm({
         }
       : null;
 
-  const descriptionItems: QuickPickItem[] = descriptionSuggestions.map((d) => ({
-    key: d,
-    label: d,
-    selected: description.trim() === d,
-    onPress: () => setDescription(d),
+  const itemChips: QuickPickItem[] = rankedItems.map((it) => ({
+    key: it.id,
+    label: it.name,
+    selected: categoryItemId === it.id,
+    onPress: () => selectItem(it),
   }));
 
   // "For whom" picker: only meaningful in a shared wallet. Lists every other
@@ -249,6 +329,7 @@ export function TransactionForm({
       amountCents,
       date,
       categoryId,
+      categoryItemId,
       description,
       onBehalfOfUserId,
     });
@@ -339,10 +420,7 @@ export function TransactionForm({
           onPress={openCategorySelect}
         />
         {categoryQuickPick ? (
-          <QuickPickChips
-            items={categoryQuickPick.items}
-            trailing={categoryQuickPick.trailing}
-          />
+          <QuickPickChips items={categoryQuickPick.items} trailing={categoryQuickPick.trailing} />
         ) : null}
       </View>
 
@@ -366,7 +444,7 @@ export function TransactionForm({
         </View>
         <TextInput
           value={description}
-          onChangeText={setDescription}
+          onChangeText={handleDescriptionChange}
           maxLength={TRANSACTION_DESCRIPTION_MAX_LENGTH}
           placeholder={t('create.descriptionPlaceholder')}
           placeholderTextColor={mutedColor}
@@ -379,7 +457,18 @@ export function TransactionForm({
             },
           ]}
         />
-        {descriptionItems.length > 0 ? <QuickPickChips items={descriptionItems} /> : null}
+        {/* Curated items for this category, plus an inline "＋ Add item". Shown
+            only once a category is picked; the ＋ stays available even when the
+            category has no items yet, so there's never a blank chips row. */}
+        {categoryId ? (
+          <QuickPickChips
+            items={itemChips}
+            trailing={{
+              label: `＋ ${t('categoryItems.addItem')}`,
+              onPress: openCreateItem,
+            }}
+          />
+        ) : null}
       </View>
     </ModalFormScaffold>
   );

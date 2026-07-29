@@ -112,56 +112,35 @@ export function rankCategoriesByUsage(
   return { mostUsed, rest };
 }
 
-/** How many past descriptions are surfaced as quick-select shortcuts under the
- * transaction form's "What for" field once a category is selected. */
+/** How many curated category items are surfaced as quick-select shortcuts under
+ * the transaction form's "What for" field once a category is selected. */
 export const MOST_USED_DESCRIPTIONS_LIMIT = 5;
 
 /**
- * Distinct past descriptions used for a given category, ranked "most used, most
- * recent as the tiebreak" — the same intent as {@link rankCategoriesByUsage},
- * applied to free text so the "What for" field can offer one-tap reuse of what
- * the user has typed before for this category.
- *
- * Descriptions are matched case-insensitively on their trimmed value (so
- * "Uber" and "uber " count as one), but the *most recent* original casing is
- * what gets shown. Empty/whitespace-only descriptions are ignored. Recency uses
- * `createdAt` (when the entry was logged). Returns at most `limit` strings.
+ * The curated items for a category, ordered "most used first" — by the count of
+ * transactions linked to each item (`categoryItemId`), with an alphabetical
+ * tiebreak — so the "What for" field suggests only user-curated items, not text
+ * derived from history. Archived items are excluded. Returns at most `limit`.
  */
-export function rankDescriptionsByUsage(
+export function rankItemsForCategory(
+  items: CategoryItem[],
   transactions: Transaction[],
   categoryId: string,
   limit: number = MOST_USED_DESCRIPTIONS_LIMIT,
-): string[] {
-  type Entry = { display: string; count: number; latest: string };
-  const byKey = new Map<string, Entry>();
-
+): CategoryItem[] {
+  const usageByItem = new Map<string, number>();
   for (const tx of transactions) {
-    if (tx.categoryId !== categoryId) continue;
-    const display = tx.description.trim();
-    if (!display) continue;
-    const key = display.toLowerCase();
-    const recency = tx.createdAt ?? '';
-    const existing = byKey.get(key);
-    if (!existing) {
-      byKey.set(key, { display, count: 1, latest: recency });
-    } else {
-      existing.count += 1;
-      // Keep the casing from the most recently logged occurrence.
-      if (recency >= existing.latest) {
-        existing.latest = recency;
-        existing.display = display;
-      }
-    }
+    if (tx.categoryItemId == null) continue;
+    usageByItem.set(tx.categoryItemId, (usageByItem.get(tx.categoryItemId) ?? 0) + 1);
   }
 
-  return [...byKey.values()]
+  return items
+    .filter((it) => it.categoryId === categoryId && !it.archivedAt)
     .sort((a, b) => {
-      const diff = b.count - a.count;
-      if (diff !== 0) return diff;
-      return b.latest.localeCompare(a.latest);
+      const diff = (usageByItem.get(b.id) ?? 0) - (usageByItem.get(a.id) ?? 0);
+      return diff !== 0 ? diff : a.name.localeCompare(b.name);
     })
-    .slice(0, limit)
-    .map((e) => e.display);
+    .slice(0, limit);
 }
 
 function isCategoryVisibleInYear(
