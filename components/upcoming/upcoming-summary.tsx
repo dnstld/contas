@@ -11,6 +11,7 @@ import { upcomingHref } from '@/constants/routes';
 import { UPCOMING_AVATAR_TONES } from '@/components/upcoming/tones';
 import { buildUpcoming } from '@/data/finance-aggregations';
 import { parseDayStart } from '@/data/finance-types';
+import { formatRelativeDate } from '@/utils/format';
 import { useCategories, useCategoryItems } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useNow } from '@/hooks/use-now';
@@ -24,7 +25,7 @@ export function UpcomingSummary() {
   const router = useRouter();
   const now = useNow();
   const { currency = 'BRL' } = useWallet();
-  const { formatCurrency, formatDate } = useFormatters();
+  const { formatCurrency, locale } = useFormatters();
   const surfaceColor = useThemeColor({}, 'surface');
 
   const { data: items = [] } = useCategoryItems();
@@ -36,6 +37,10 @@ export function UpcomingSummary() {
 
   const total = occurrences.reduce((sum, occ) => sum + (occ.item.defaultAmount ?? 0), 0);
   const nextDate = occurrences[0]!.dueOn;
+  const relativeNext = formatRelativeDate(parseDayStart(nextDate), now, locale, {
+    today: t('transactions.today'),
+    yesterday: t('transactions.yesterday'),
+  });
   const avatarItems = occurrences.slice(0, MAX_AVATARS);
   const extra = count - avatarItems.length;
 
@@ -76,7 +81,7 @@ export function UpcomingSummary() {
           title={t('upcoming.paymentsCount', { count })}
           subtitle={t('upcoming.summary', {
             total: formatCurrency(total, currency),
-            date: formatDate(parseDayStart(nextDate), { day: 'numeric', month: 'short' }),
+            date: relativeNext,
           })}
           trailing={<Icon name="chevron.right" tone="textMuted" />}
           onPress={() => router.push(upcomingHref())}

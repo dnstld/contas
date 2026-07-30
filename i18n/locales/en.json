@@ -494,8 +494,7 @@
     "title": "Upcoming",
     "paymentsCount_one": "{{count}} payment",
     "paymentsCount_other": "{{count}} payments",
-    "summary": "{{total}} · Next {{date}}",
-    "next": "Next {{date}}",
+    "summary": "{{total}} · {{date}}",
     "empty": {
       "title": "Nothing upcoming",
       "subtitle": "Your upcoming payments will show up here."

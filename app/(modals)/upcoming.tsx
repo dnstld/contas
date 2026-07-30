@@ -18,6 +18,7 @@ import { useFormatters } from '@/hooks/use-formatters';
 import { useNow } from '@/hooks/use-now';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
+import { formatRelativeDate } from '@/utils/format';
 import { categoryItemFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 
 type Row = UpcomingOccurrence;
@@ -27,7 +28,7 @@ export default function UpcomingScreen() {
   const router = useRouter();
   const now = useNow();
   const { currency = 'BRL' } = useWallet();
-  const { formatDate } = useFormatters();
+  const { locale } = useFormatters();
 
   const backgroundColor = useThemeColor({}, 'modalBackground');
 
@@ -82,8 +83,9 @@ export default function UpcomingScreen() {
               />
             }
             title={occ.item.name}
-            subtitle={t('upcoming.next', {
-              date: formatDate(parseDayStart(occ.dueOn), { day: 'numeric', month: 'short' }),
+            subtitle={formatRelativeDate(parseDayStart(occ.dueOn), now, locale, {
+              today: t('transactions.today'),
+              yesterday: t('transactions.yesterday'),
             })}
             text1={
               occ.item.defaultAmount != null ? (

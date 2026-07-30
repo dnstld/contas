@@ -494,8 +494,7 @@
     "title": "Próximos",
     "paymentsCount_one": "{{count}} pagamento",
     "paymentsCount_other": "{{count}} pagamentos",
-    "summary": "{{total}} · Próximo {{date}}",
-    "next": "Próximo {{date}}",
+    "summary": "{{total}} · {{date}}",
     "empty": {
       "title": "Nada por vir",
       "subtitle": "Seus próximos pagamentos aparecerão aqui."
