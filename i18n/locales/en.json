@@ -195,8 +195,10 @@
     "forWhomLabel": "On behalf of",
     "forWhomMyself": "Myself",
     "descriptionLabel": "What for",
-    "descriptionPlaceholder": "ex: Airfare",
+    "descriptionPlaceholder": "Give it a name",
     "descriptionCounter": "{{count}}/50",
+    "saveItem": "Save \"{{name}}\"",
+    "itemHint": "Type what it was for, then save it to reuse next time in {{category}}.",
     "save": "Save",
     "error": "Oops! That didn't save. Want to try again?",
     "duplicateWarning": {

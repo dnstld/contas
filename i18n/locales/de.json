@@ -195,8 +195,10 @@
     "forWhomLabel": "Im Namen von",
     "forWhomMyself": "Ich selbst",
     "descriptionLabel": "Wofür",
-    "descriptionPlaceholder": "z. B. Flugticket",
+    "descriptionPlaceholder": "Gib einen Namen",
     "descriptionCounter": "{{count}}/50",
+    "saveItem": "„{{name}}“ speichern",
+    "itemHint": "Gib ein, wofür es war, und speichere es, um es beim nächsten Mal in {{category}} wiederzuverwenden.",
     "save": "Speichern",
     "error": "Ups! Das hat nicht gespeichert. Nochmal versuchen?",
     "duplicateWarning": {

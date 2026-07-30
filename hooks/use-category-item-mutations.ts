@@ -88,7 +88,35 @@ export function useCreateCategoryItem() {
         )
         .single();
       if (error) throw error;
-      return adaptCategoryItem(data);
+      const created = adaptCategoryItem(data);
+
+      // Retroactively link past transactions in this category whose description
+      // matches the new item's name (trimmed, case-insensitive) and aren't linked
+      // yet. Normalizing in JS with `trim().toLowerCase()` matches the backfill's
+      // `lower(btrim(...))`. The `transactions_item_guard` trigger passes because
+      // we only touch transactions already in this item's category/wallet.
+      const norm = input.name.trim().toLowerCase();
+      const { data: candidates, error: fetchErr } = await supabase
+        .from('transactions')
+        .select('id, description')
+        .eq('wallet_id', walletId)
+        .eq('category_id', input.categoryId)
+        .is('category_item_id', null);
+      if (fetchErr) throw fetchErr;
+
+      const matchIds = (candidates ?? [])
+        .filter((t) => (t.description ?? '').trim().toLowerCase() === norm)
+        .map((t) => t.id);
+
+      if (matchIds.length > 0) {
+        const { error: linkErr } = await supabase
+          .from('transactions')
+          .update({ category_item_id: created.id })
+          .in('id', matchIds);
+        if (linkErr) throw linkErr;
+      }
+
+      return created;
     },
     onSuccess: (created) => {
       if (!walletId) return;
@@ -98,6 +126,9 @@ export function useCreateCategoryItem() {
         upsertItem(old, created),
       );
       qc.invalidateQueries({ queryKey: financeKeys.categoryItems(walletId) });
+      // Refresh transactions so newly-linked rows (and item-usage ranking)
+      // reflect the retroactive links.
+      qc.invalidateQueries({ queryKey: financeKeys.transactions(walletId) });
     },
   });
 }

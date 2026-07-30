@@ -195,8 +195,10 @@
     "forWhomLabel": "Em nome de",
     "forWhomMyself": "Eu mesmo",
     "descriptionLabel": "Para quê",
-    "descriptionPlaceholder": "ex: Passagem aérea",
+    "descriptionPlaceholder": "Dê um nome",
     "descriptionCounter": "{{count}}/50",
+    "saveItem": "Salvar \"{{name}}\"",
+    "itemHint": "Digite para que foi e salve para reutilizar na próxima vez em {{category}}.",
     "save": "Salvar",
     "error": "Ops! Isso não salvou. Tenta de novo?",
     "duplicateWarning": {

@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { categoryFormHref, categoryItemFormHref, categorySelectHref } from '@/constants/routes';
+import { categoryFormHref, categorySelectHref } from '@/constants/routes';
 import { nextAmountCents } from '@/utils/amount-input';
-import { categoryFormBridge, categoryItemFormBridge, makeBridgeId } from '@/utils/modal-bridge';
+import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
@@ -22,6 +22,7 @@ import {
 } from '@/data/finance-aggregations';
 import type { CategoryItem } from '@/data/finance-types';
 import { useAuth } from '@/hooks/use-auth';
+import { useCreateCategoryItem } from '@/hooks/use-category-item-mutations';
 import { useCategories, useCategoryItems, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -82,18 +83,16 @@ export function TransactionForm({
   const router = useRouter();
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
-  const { data: categoryItems = [], refetch: refetchItems } = useCategoryItems();
+  const { data: categoryItems = [] } = useCategoryItems();
   const { currency } = useWallet();
   const { members } = useWalletMembers();
   const { session } = useAuth();
   const myUserId = session?.user.id ?? null;
   const { formatAmount } = useFormatters();
-  // Stable per-mount ids. Lazy useState avoids react-hooks/refs (no `.current`
+  // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
   // access during render) and gives us a one-time value identical to a ref.
-  // The category and item form modals get separate bridges so their callbacks
-  // don't cross-fire.
   const [bridgeId] = useState(() => makeBridgeId());
-  const [itemBridgeId] = useState(() => makeBridgeId());
+  const { mutate: createItem } = useCreateCategoryItem();
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
@@ -131,27 +130,6 @@ export function TransactionForm({
       },
     });
   }, [bridgeId]);
-
-  // The inline "＋ Add item" flow returns through this bridge: refetch the items
-  // list, then auto-select the newly created item (filling the description and
-  // pre-filling the amount when it's still empty).
-  useEffect(() => {
-    return categoryItemFormBridge.subscribe(itemBridgeId, {
-      changed: (id) => {
-        refetchItems().then((res) => {
-          setCategoryItemId(id);
-          const created = res.data?.find((it) => it.id === id);
-          if (!created) return;
-          setDescription(created.name);
-          setAmountCents((cur) =>
-            cur === 0 && created.defaultAmount != null
-              ? Math.round(created.defaultAmount * 100)
-              : cur,
-          );
-        });
-      },
-    });
-  }, [itemBridgeId, refetchItems]);
 
   const typeOptions: SegmentedOption<TransactionType>[] = useMemo(
     () => [
@@ -246,10 +224,27 @@ export function TransactionForm({
     setCategoryItemId(match?.id ?? null);
   };
 
-  const openCreateItem = () =>
-    categoryId
-      ? router.push(categoryItemFormHref({ categoryId, bridgeId: itemBridgeId }))
-      : undefined;
+  // Saving the typed name as a reusable item (inline, no modal). Offered only
+  // when a category is picked, something is typed, and no non-archived item in
+  // this category already has that name (case-insensitively). Saving creates a
+  // name-only item (recurrence defaults to none) and links it; richer setup
+  // (amount, recurrence) still happens in the Categories tab.
+  const trimmed = description.trim();
+  const categoryItemsForCategory = categoryItems.filter(
+    (it) => it.categoryId === categoryId && !it.archivedAt,
+  );
+  const canSaveTyped =
+    !!categoryId &&
+    trimmed.length > 0 &&
+    !categoryItemsForCategory.some((it) => it.name.toLowerCase() === trimmed.toLowerCase());
+
+  const saveTypedAsItem = () => {
+    if (!categoryId || !canSaveTyped) return;
+    createItem(
+      { categoryId, name: trimmed, recurrence: 'none' },
+      { onSuccess: (item) => setCategoryItemId(item.id) },
+    );
+  };
 
   const openCategorySelect = () =>
     router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }));
@@ -258,12 +253,13 @@ export function TransactionForm({
     router.push(categoryFormHref({ type, bridgeId, ...(prefillName ? { prefillName } : {}) }));
 
   // The category row swaps between two shapes: quick-pick over existing
-  // categories (with an "All categories" opener), or starter suggestions when
-  // the wallet has none of this type yet (with a "+ Add" opener). Both render
-  // through the same QuickPickChips surface.
+  // categories (the tappable field above already opens the full picker, so no
+  // trailing chip), or starter suggestions when the wallet has none of this
+  // type yet (with a "+ Add" opener). Both render through the same
+  // QuickPickChips surface.
   const categoryQuickPick: {
     items: QuickPickItem[];
-    trailing: { label: string; onPress: () => void };
+    trailing?: { label: string; onPress: () => void };
   } | null = showQuickPick
     ? {
         items: topCategories.map((c) => ({
@@ -272,7 +268,6 @@ export function TransactionForm({
           selected: categoryId === c.id,
           onPress: () => handlePickCategory(c.id),
         })),
-        trailing: { label: t('categorySelect.groups.all'), onPress: openCategorySelect },
       }
     : showSuggestions
       ? {
@@ -457,17 +452,25 @@ export function TransactionForm({
             },
           ]}
         />
-        {/* Curated items for this category, plus an inline "＋ Add item". Shown
-            only once a category is picked; the ＋ stays available even when the
-            category has no items yet, so there's never a blank chips row. */}
-        {categoryId ? (
+        {/* Curated items for this category, plus an inline "＋ Save …" chip that
+            turns the typed name into a reusable item (no modal). Shown once a
+            category is picked and there are chips or something new to save. */}
+        {categoryId && (itemChips.length > 0 || canSaveTyped) ? (
           <QuickPickChips
             items={itemChips}
-            trailing={{
-              label: `＋ ${t('categoryItems.addItem')}`,
-              onPress: openCreateItem,
-            }}
+            trailing={
+              canSaveTyped
+                ? { label: `＋ ${t('create.saveItem', { name: trimmed })}`, onPress: saveTypedAsItem }
+                : undefined
+            }
           />
+        ) : null}
+        {/* When the category has no items and nothing is typed, a muted helper
+            line teaches the save-to-reuse concept. */}
+        {categoryId && categoryItemsForCategory.length === 0 && trimmed.length === 0 ? (
+          <Text variant="caption" tone="textMuted" style={styles.hint}>
+            {t('create.itemHint', { category: selectedCategoryName })}
+          </Text>
         ) : null}
       </View>
     </ModalFormScaffold>
@@ -502,6 +505,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  hint: {
+    paddingTop: 2,
   },
   errorBanner: {
     marginBottom: 12,
