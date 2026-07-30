@@ -8,7 +8,11 @@ import {
 const LABELS = { you: 'You', unnamed: 'Someone' };
 
 const me: TransactionRowCreator = { displayName: 'Denis Toledo', avatarUrl: null, isMe: true };
-const maria: TransactionRowCreator = { displayName: 'Maria Silva', avatarUrl: 'm.png', isMe: false };
+const maria: TransactionRowCreator = {
+  displayName: 'Maria Silva',
+  avatarUrl: 'm.png',
+  isMe: false,
+};
 
 describe('resolveRowAttribution', () => {
   it('plain row: no beneficiary → creator label, creator avatar', () => {

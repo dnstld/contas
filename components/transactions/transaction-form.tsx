@@ -460,7 +460,10 @@ export function TransactionForm({
             items={itemChips}
             trailing={
               canSaveTyped
-                ? { label: `＋ ${t('create.saveItem', { name: trimmed })}`, onPress: saveTypedAsItem }
+                ? {
+                    label: `＋ ${t('create.saveItem', { name: trimmed })}`,
+                    onPress: saveTypedAsItem,
+                  }
                 : undefined
             }
           />
