@@ -9,21 +9,25 @@ export interface CategorySelectProps {
   title?: string;
   /** Label of the currently selected option, or null when nothing is selected. */
   selectedLabel?: string | null;
-  /** Shown when no option is selected. */
+  /** Shown when no option is selected (or the hint to show while disabled). */
   placeholder: string;
   onPress: () => void;
+  /** Greys the field and blocks tapping (e.g. "What for" before a category is picked). */
+  disabled?: boolean;
 }
 
 /**
- * Trigger field for the grouped category picker. Tapping it opens the
- * `category-select` modal where options are shown in groups. Presentational —
- * the modal owns the data and grouping logic.
+ * Trigger field for a grouped select modal. Tapping it opens the picker where
+ * options are shown in groups. Presentational — the modal owns the data and
+ * grouping logic. Shared by the transaction form's "Where it goes" (categories)
+ * and "What for" (items) fields.
  */
 export function CategorySelect({
   title,
   selectedLabel,
   placeholder,
   onPress,
+  disabled = false,
 }: CategorySelectProps) {
   const { text, textMuted, inputBackground } = useModalChrome();
   const hasValue = !!selectedLabel;
@@ -36,19 +40,22 @@ export function CategorySelect({
         </Text>
       ) : null}
       <Pressable
-        onPress={onPress}
+        onPress={disabled ? undefined : onPress}
+        disabled={disabled}
         accessibilityRole="button"
+        accessibilityState={{ disabled }}
         accessibilityLabel={selectedLabel ?? placeholder}
         style={({ pressed }) => [
           styles.field,
           { backgroundColor: inputBackground },
-          pressed && styles.pressed,
+          disabled && styles.disabled,
+          !disabled && pressed && styles.pressed,
         ]}
       >
         <Text
           variant="body"
           numberOfLines={1}
-          style={[styles.value, { color: hasValue ? text : textMuted }]}
+          style={[styles.value, { color: hasValue && !disabled ? text : textMuted }]}
         >
           {hasValue ? selectedLabel : placeholder}
         </Text>
@@ -70,5 +77,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   pressed: { opacity: 0.6 },
+  disabled: { opacity: 0.5 },
   value: { flex: 1, minWidth: 0 },
 });

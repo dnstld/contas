@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { categoryFormHref, categorySelectHref } from '@/constants/routes';
+import { categoryFormHref, categorySelectHref, itemSelectHref } from '@/constants/routes';
 import { nextAmountCents } from '@/utils/amount-input';
-import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
+import { categoryFormBridge, categoryItemSelectBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
 import { PressableButton } from '@/components/ui/atoms/pressable-button';
@@ -22,13 +22,11 @@ import {
 } from '@/data/finance-aggregations';
 import type { CategoryItem } from '@/data/finance-types';
 import { useAuth } from '@/hooks/use-auth';
-import { useCreateCategoryItem } from '@/hooks/use-category-item-mutations';
 import { useCategories, useCategoryItems, useTransactions } from '@/hooks/use-finance-queries';
 import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
-import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from '@/constants/limits';
 
 export type TransactionType = 'expense' | 'income';
 
@@ -92,7 +90,6 @@ export function TransactionForm({
   // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
   // access during render) and gives us a one-time value identical to a ref.
   const [bridgeId] = useState(() => makeBridgeId());
-  const { mutate: createItem } = useCreateCategoryItem();
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'textMuted');
@@ -111,10 +108,28 @@ export function TransactionForm({
     initialValues?.onBehalfOfUserId ?? null,
   );
 
+  // Apply a chosen item: link it, fill the description, and pre-fill the amount
+  // from its expected amount only when the field is still empty. Uses functional
+  // state updates so it's safe to call from the (once-subscribed) item bridge
+  // handler without capturing a stale `amountCents`. Shared by the quick-pick
+  // chip tap and the full item-select sheet.
+  const applyItemSelection = useCallback(
+    (payload: { id: string; name: string; defaultAmount: number | null }) => {
+      setCategoryItemId(payload.id);
+      setDescription(payload.name);
+      setAmountCents((prev) =>
+        prev === 0 && payload.defaultAmount != null
+          ? Math.round(payload.defaultAmount * 100)
+          : prev,
+      );
+    },
+    [],
+  );
+
   useEffect(() => {
     // Switching to a different category invalidates the current item link (a
     // different category's items don't apply), so clear it alongside.
-    return categoryFormBridge.subscribe(bridgeId, {
+    const unsubscribeCategory = categoryFormBridge.subscribe(bridgeId, {
       created: (id) => {
         setCategoryId(id);
         setCategoryItemId(null);
@@ -129,7 +144,20 @@ export function TransactionForm({
         setCategoryItemId(null);
       },
     });
-  }, [bridgeId]);
+    // "What for" sheet: `selected` links a curated item; `useText` keeps the
+    // typed text as a plain description with no link.
+    const unsubscribeItem = categoryItemSelectBridge.subscribe(bridgeId, {
+      selected: (payload) => applyItemSelection(payload),
+      useText: (text) => {
+        setDescription(text);
+        setCategoryItemId(null);
+      },
+    });
+    return () => {
+      unsubscribeCategory();
+      unsubscribeItem();
+    };
+  }, [bridgeId, applyItemSelection]);
 
   const typeOptions: SegmentedOption<TransactionType>[] = useMemo(
     () => [
@@ -198,56 +226,22 @@ export function TransactionForm({
     setCategoryItemId(null);
   };
 
-  // Selecting a curated item fills the description, links it, and pre-fills the
-  // amount from its expected amount when the field is still empty.
+  // Selecting a curated item from the quick-pick chip row.
   const selectItem = (item: CategoryItem) => {
-    setCategoryItemId(item.id);
-    setDescription(item.name);
-    if (amountCents === 0 && item.defaultAmount != null) {
-      setAmountCents(Math.round(item.defaultAmount * 100));
-    }
-  };
-
-  // Typing re-derives the link: an exact (case-insensitive) match against a
-  // non-archived item in the selected category links it; anything else clears
-  // the link. Typed text is never turned into an item.
-  const handleDescriptionChange = (text: string) => {
-    setDescription(text);
-    const trimmed = text.trim().toLowerCase();
-    const match =
-      categoryId && trimmed
-        ? categoryItems.find(
-            (it) =>
-              it.categoryId === categoryId && !it.archivedAt && it.name.toLowerCase() === trimmed,
-          )
-        : undefined;
-    setCategoryItemId(match?.id ?? null);
-  };
-
-  // Saving the typed name as a reusable item (inline, no modal). Offered only
-  // when a category is picked, something is typed, and no non-archived item in
-  // this category already has that name (case-insensitively). Saving creates a
-  // name-only item (recurrence defaults to none) and links it; richer setup
-  // (amount, recurrence) still happens in the Categories tab.
-  const trimmed = description.trim();
-  const categoryItemsForCategory = categoryItems.filter(
-    (it) => it.categoryId === categoryId && !it.archivedAt,
-  );
-  const canSaveTyped =
-    !!categoryId &&
-    trimmed.length > 0 &&
-    !categoryItemsForCategory.some((it) => it.name.toLowerCase() === trimmed.toLowerCase());
-
-  const saveTypedAsItem = () => {
-    if (!categoryId || !canSaveTyped) return;
-    createItem(
-      { categoryId, name: trimmed, recurrence: 'none' },
-      { onSuccess: (item) => setCategoryItemId(item.id) },
-    );
+    applyItemSelection({ id: item.id, name: item.name, defaultAmount: item.defaultAmount ?? null });
   };
 
   const openCategorySelect = () =>
     router.push(categorySelectHref({ type, bridgeId, selectedId: categoryId ?? undefined }));
+
+  // Full "What for" item picker — the escape hatch past the top-5 chip row.
+  // Only meaningful once a category is picked.
+  const openItemSelect = () => {
+    if (!categoryId) return;
+    router.push(
+      itemSelectHref({ categoryId, bridgeId, selectedId: categoryItemId ?? undefined }),
+    );
+  };
 
   const openCreateCategory = (prefillName?: string) =>
     router.push(categoryFormHref({ type, bridgeId, ...(prefillName ? { prefillName } : {}) }));
@@ -428,53 +422,19 @@ export function TransactionForm({
         </View>
       ) : null}
 
+      {/* "What for" mirrors "Where it goes": a tappable select that opens the
+          full item sheet (browse / select / type→Use / type→Save). It's
+          disabled until a category is picked, since items belong to a category.
+          The top-5 chips below are the same quick-pick shortcut as categories. */}
       <View style={styles.field}>
-        <View style={styles.descriptionHeader}>
-          <Text variant="caption" tone="textMuted" weight="medium" style={styles.label}>
-            {t('create.descriptionLabel').toUpperCase()}
-          </Text>
-          <Text variant="caption" tone="textMuted">
-            {t('create.descriptionCounter', { count: description.length })}
-          </Text>
-        </View>
-        <TextInput
-          value={description}
-          onChangeText={handleDescriptionChange}
-          maxLength={TRANSACTION_DESCRIPTION_MAX_LENGTH}
+        <CategorySelect
+          title={t('create.descriptionLabel')}
+          selectedLabel={description || null}
           placeholder={t('create.descriptionPlaceholder')}
-          placeholderTextColor={mutedColor}
-          style={[
-            styles.descriptionInput,
-            {
-              color: textColor,
-              fontFamily: Fonts.sans,
-              backgroundColor: surfaceMutedColor,
-            },
-          ]}
+          disabled={!categoryId}
+          onPress={openItemSelect}
         />
-        {/* Curated items for this category, plus an inline "＋ Save …" chip that
-            turns the typed name into a reusable item (no modal). Shown once a
-            category is picked and there are chips or something new to save. */}
-        {categoryId && (itemChips.length > 0 || canSaveTyped) ? (
-          <QuickPickChips
-            items={itemChips}
-            trailing={
-              canSaveTyped
-                ? {
-                    label: `＋ ${t('create.saveItem', { name: trimmed })}`,
-                    onPress: saveTypedAsItem,
-                  }
-                : undefined
-            }
-          />
-        ) : null}
-        {/* When the category has no items and nothing is typed, a muted helper
-            line teaches the save-to-reuse concept. */}
-        {categoryId && categoryItemsForCategory.length === 0 && trimmed.length === 0 ? (
-          <Text variant="caption" tone="textMuted" style={styles.hint}>
-            {t('create.itemHint', { category: selectedCategoryName })}
-          </Text>
-        ) : null}
+        {categoryId && itemChips.length > 0 ? <QuickPickChips items={itemChips} /> : null}
       </View>
     </ModalFormScaffold>
   );
@@ -496,21 +456,6 @@ const styles = StyleSheet.create({
   },
   label: {
     letterSpacing: 0.8,
-  },
-  descriptionInput: {
-    fontSize: 15,
-    lineHeight: 21,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-  },
-  descriptionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  hint: {
-    paddingTop: 2,
   },
   errorBanner: {
     marginBottom: 12,

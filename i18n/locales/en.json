@@ -196,8 +196,6 @@
     "forWhomMyself": "Myself",
     "descriptionLabel": "What for",
     "descriptionPlaceholder": "Give it a name",
-    "descriptionCounter": "{{count}}/50",
-    "saveItem": "Save \"{{name}}\"",
     "itemHint": "Type what it was for, then save it to reuse next time in {{category}}.",
     "save": "Save",
     "error": "Oops! That didn't save. Want to try again?",
@@ -430,6 +428,19 @@
       "expense": "Groceries, Pharmacy, Rent",
       "income": "Salary, Investments, Freelance"
     }
+  },
+  "itemSelect": {
+    "title": "What for",
+    "searchPlaceholder": "Search or give it a name",
+    "groups": {
+      "mostUsed": "Most used",
+      "all": "All items"
+    },
+    "useNamed": "Use “{{name}}”",
+    "saveSubtitle": "Create the item and save this name as a suggestion for future items in this category.",
+    "emptyHint": "No saved items yet.",
+    "useSubtitle": "Create the item using this name only.",
+    "saveLabel": "Use & save as a suggestion"
   },
   "categoriesTab": {
     "sections": {

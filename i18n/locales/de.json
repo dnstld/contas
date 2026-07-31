@@ -196,8 +196,6 @@
     "forWhomMyself": "Ich selbst",
     "descriptionLabel": "Wofür",
     "descriptionPlaceholder": "Gib einen Namen",
-    "descriptionCounter": "{{count}}/50",
-    "saveItem": "„{{name}}“ speichern",
     "itemHint": "Gib ein, wofür es war, und speichere es, um es beim nächsten Mal in {{category}} wiederzuverwenden.",
     "save": "Speichern",
     "error": "Ups! Das hat nicht gespeichert. Nochmal versuchen?",
@@ -430,6 +428,19 @@
       "expense": "Lebensmittel, Apotheke, Miete",
       "income": "Gehalt, Investitionen, Freelance"
     }
+  },
+  "itemSelect": {
+    "title": "Wofür",
+    "searchPlaceholder": "Suchen oder einen Namen geben",
+    "groups": {
+      "mostUsed": "Am häufigsten genutzt",
+      "all": "Alle Einträge"
+    },
+    "useNamed": "„{{name}}“ verwenden",
+    "saveSubtitle": "Erstellt den Eintrag und speichert diesen Namen als Vorschlag für zukünftige Einträge in dieser Kategorie.",
+    "emptyHint": "Noch keine gespeicherten Einträge.",
+    "useSubtitle": "Erstellt den Eintrag nur mit diesem Namen.",
+    "saveLabel": "Verwenden & als Vorschlag speichern"
   },
   "categoriesTab": {
     "sections": {

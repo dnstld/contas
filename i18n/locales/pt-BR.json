@@ -196,8 +196,6 @@
     "forWhomMyself": "Eu mesmo",
     "descriptionLabel": "Para quê",
     "descriptionPlaceholder": "Dê um nome",
-    "descriptionCounter": "{{count}}/50",
-    "saveItem": "Salvar \"{{name}}\"",
     "itemHint": "Digite para que foi e salve para reutilizar na próxima vez em {{category}}.",
     "save": "Salvar",
     "error": "Ops! Isso não salvou. Tenta de novo?",
@@ -430,6 +428,19 @@
       "expense": "Mercado, Farmácia, Aluguel",
       "income": "Salário, Investimentos, Freelance"
     }
+  },
+  "itemSelect": {
+    "title": "Para quê",
+    "searchPlaceholder": "Buscar ou dar um nome",
+    "groups": {
+      "mostUsed": "Mais usados",
+      "all": "Todos os itens"
+    },
+    "useNamed": "Usar “{{name}}”",
+    "saveSubtitle": "Cria o item e salva este nome como sugestão para itens futuros nesta categoria.",
+    "emptyHint": "Nenhum item salvo ainda.",
+    "useSubtitle": "Cria o item usando apenas este nome.",
+    "saveLabel": "Usar e salvar como sugestão"
   },
   "categoriesTab": {
     "sections": {

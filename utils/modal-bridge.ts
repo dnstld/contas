@@ -34,6 +34,20 @@ export const categoryItemFormBridge = createChannel<{
   changed: string;
 }>();
 
+// Carries the "What for" choice from the `item-select` modal back to the
+// transaction form. Unlike categories, an item description can be free text, so
+// there are two outcomes:
+//  - `selected`: an existing or just-created curated item was chosen. The
+//    payload carries `name` + `defaultAmount` (not just the id) so the form can
+//    apply the selection immediately without waiting for the `categoryItems`
+//    query to refetch — this also covers the "created inline then selected"
+//    case with no race against query invalidation.
+//  - `useText`: the typed query is used as a plain description with no item link.
+export const categoryItemSelectBridge = createChannel<{
+  selected: { id: string; name: string; defaultAmount: number | null };
+  useText: string;
+}>();
+
 export function makeBridgeId(): string {
   return `bridge-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
 }

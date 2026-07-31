@@ -97,3 +97,18 @@ export function categorySelectHref(args: {
     },
   };
 }
+
+export function itemSelectHref(args: {
+  categoryId: string;
+  bridgeId: string;
+  selectedId?: string;
+}): Href {
+  return {
+    pathname: '/item-select',
+    params: {
+      categoryId: args.categoryId,
+      bridgeId: args.bridgeId,
+      ...(args.selectedId ? { selectedId: args.selectedId } : {}),
+    },
+  };
+}

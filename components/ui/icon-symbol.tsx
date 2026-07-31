@@ -62,6 +62,7 @@ const MAPPING = {
   hourglass: 'hourglass-empty',
   'arrow.clockwise': 'refresh',
   'hand.tap': 'touch-app',
+  'square.and.arrow.down': 'save-alt',
 } satisfies IconMapping;
 
 /**
