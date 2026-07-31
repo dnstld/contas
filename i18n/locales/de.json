@@ -45,15 +45,15 @@
   "feedback": {
     "transactionCreated": "Transaktion hinzugefügt!",
     "transactionUpdated": "Transaktion aktualisiert",
-    "transactionDeleted": "Transaktion gelöscht.",
+    "transactionDeleted": "Transaktion gelöscht",
     "categoryCreated": "Kategorie erstellt!",
     "categoryUpdated": "Kategorie aktualisiert",
-    "categoryDeleted": "Kategorie gelöscht.",
+    "categoryDeleted": "Kategorie gelöscht",
     "categoryItemCreated": "Eintrag erstellt!",
     "categoryItemUpdated": "Eintrag aktualisiert",
     "categoryItemArchived": "Eintrag archiviert",
     "categoryItemUnarchived": "Eintrag wiederhergestellt",
-    "categoryItemDeleted": "Eintrag gelöscht."
+    "categoryItemDeleted": "Eintrag gelöscht"
   },
   "tabs": {
     "balance": "Übersicht",
@@ -63,8 +63,8 @@
   },
   "errorFallback": {
     "title": "Ups! Da ist etwas schiefgelaufen",
-    "body": "Das sollte nicht passieren. Nochmal versuchen?",
-    "retry": "Nochmal versuchen"
+    "body": "Das sollte nicht passieren. Versuch's noch mal.",
+    "retry": "Noch mal versuchen"
   },
   "notFound": {
     "title": "Diese Seite ist ins All geflogen",
@@ -101,7 +101,7 @@
     "signOut": "Abmelden",
     "errors": {
       "title": "Ups! Anmeldung hat nicht geklappt",
-      "generic": "Versuch's gleich noch mal?",
+      "generic": "Versuch's noch mal.",
       "playServices": "Google Play Services ist auf diesem Gerät nicht verfügbar.",
       "signInRequired": "Bitte melde dich erneut an, um fortzufahren."
     }
@@ -198,7 +198,7 @@
     "descriptionPlaceholder": "Gib einen Namen",
     "itemHint": "Gib ein, wofür es war, und speichere es, um es beim nächsten Mal in {{category}} wiederzuverwenden.",
     "save": "Speichern",
-    "error": "Ups! Das hat nicht gespeichert. Nochmal versuchen?",
+    "error": "Ups! Das hat nicht gespeichert. Versuch's noch mal.",
     "duplicateWarning": {
       "title": "Mögliches Duplikat",
       "body_one": "Du hast bereits eine Transaktion mit demselben Datum, Betrag und derselben Kategorie.",
@@ -211,8 +211,8 @@
     "title": "Transaktion bearbeiten",
     "save": "Änderungen speichern",
     "delete": "Löschen",
-    "updateError": "Ups! Das ließ sich nicht aktualisieren. Nochmal versuchen?",
-    "deleteError": "Ups! Das ließ sich nicht entfernen. Nochmal versuchen?",
+    "updateError": "Ups! Das ließ sich nicht aktualisieren. Versuch's noch mal.",
+    "deleteError": "Ups! Das ließ sich nicht entfernen. Versuch's noch mal.",
     "deleteConfirmTitle": "Diese Transaktion löschen?",
     "deleteConfirmMessage": "Sie wird aus deinen Aufzeichnungen entfernt. Das kann nicht rückgängig gemacht werden.",
     "deleteConfirmAction": "Löschen",
@@ -245,7 +245,7 @@
       "decline": "Ablehnen",
       "acceptedToast": "Du bist {{wallet}} beigetreten!",
       "declinedToast": "Einladung abgelehnt",
-      "error": "Etwas ist schiefgelaufen. Versuch's noch mal."
+      "error": "Ups! Etwas ist schiefgelaufen. Versuch's noch mal."
     },
     "switchedToast": "Du bist jetzt in \"{{wallet}}\"",
     "deleteBanner": {
@@ -256,7 +256,7 @@
       "dismiss": "Abbrechen",
       "approvedToast": "\"{{wallet}}\" gelöscht",
       "cancelledToast": "Löschung abgebrochen",
-      "error": "Etwas ist schiefgelaufen. Versuch's noch mal."
+      "error": "Ups! Etwas ist schiefgelaufen. Versuch's noch mal."
     },
     "leave": {
       "button": "Wallet verlassen",
@@ -265,7 +265,7 @@
       "confirmBody": "Die andere Person behält den Zugriff. Du bekommst ein neues, persönliches Wallet.",
       "confirmLeave": "Verlassen",
       "confirmCancel": "Abbrechen",
-      "errorToast": "Etwas ist schiefgelaufen. Versuch's noch mal."
+      "errorToast": "Ups! Etwas ist schiefgelaufen. Versuch's noch mal."
     }
   },
   "dangerZone": {
@@ -471,7 +471,7 @@
     },
     "welcome": {
       "title": "Füge dieser Kategorie Einträge hinzu",
-      "body": "Einträge sind das, wofür du hier ausgibst, z. B. Netflix in Abos. Sie liefern dir schnelle Vorschläge beim Erfassen von Transaktionen."
+      "body": "Wofür du hier ausgibst, z. B. Netflix in Abos. Füge sie für schnelle Vorschläge hinzu."
     },
     "archivedEmpty": {
       "title": "Keine archivierten Einträge",

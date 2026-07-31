@@ -45,15 +45,15 @@
   "feedback": {
     "transactionCreated": "Transaction added!",
     "transactionUpdated": "Transaction updated",
-    "transactionDeleted": "Transaction deleted.",
+    "transactionDeleted": "Transaction deleted",
     "categoryCreated": "Category created!",
     "categoryUpdated": "Category updated",
-    "categoryDeleted": "Category deleted.",
+    "categoryDeleted": "Category deleted",
     "categoryItemCreated": "Item created!",
     "categoryItemUpdated": "Item updated",
     "categoryItemArchived": "Item archived",
     "categoryItemUnarchived": "Item unarchived",
-    "categoryItemDeleted": "Item deleted."
+    "categoryItemDeleted": "Item deleted"
   },
   "tabs": {
     "balance": "Overview",
@@ -63,7 +63,7 @@
   },
   "errorFallback": {
     "title": "Oops! Something went wrong",
-    "body": "That wasn't supposed to happen. Want to try again?",
+    "body": "That wasn't supposed to happen. Give it another try.",
     "retry": "Try again"
   },
   "notFound": {
@@ -101,7 +101,7 @@
     "signOut": "Sign out",
     "errors": {
       "title": "Oops! Couldn't sign you in",
-      "generic": "Mind trying again in a bit?",
+      "generic": "Give it another try.",
       "playServices": "Google Play Services is unavailable on this device.",
       "signInRequired": "Please sign in again to continue."
     }
@@ -112,7 +112,7 @@
       "signOut": "Sign out"
     },
     "editName": {
-      "title": "Edit Name",
+      "title": "Edit name",
       "nameLabel": "Name",
       "namePlaceholder": "Your name",
       "save": "Save",
@@ -184,7 +184,7 @@
     "fullYear": "Full year"
   },
   "create": {
-    "title": "New Transaction",
+    "title": "New transaction",
     "close": "Close",
     "types": {
       "expense": "Expense",
@@ -198,7 +198,7 @@
     "descriptionPlaceholder": "Give it a name",
     "itemHint": "Type what it was for, then save it to reuse next time in {{category}}.",
     "save": "Save",
-    "error": "Oops! That didn't save. Want to try again?",
+    "error": "Oops! That didn't save. Give it another try.",
     "duplicateWarning": {
       "title": "Possible duplicate",
       "body_one": "You already have a transaction with the same date, amount, and category.",
@@ -208,11 +208,11 @@
     }
   },
   "edit": {
-    "title": "Edit Transaction",
+    "title": "Edit transaction",
     "save": "Save changes",
     "delete": "Delete",
-    "updateError": "Oops! Couldn't update that. Want to try again?",
-    "deleteError": "Oops! Couldn't remove that. Want to try again?",
+    "updateError": "Oops! Couldn't update that. Give it another try.",
+    "deleteError": "Oops! Couldn't remove that. Give it another try.",
     "deleteConfirmTitle": "Delete this transaction?",
     "deleteConfirmMessage": "It'll be removed from your records. This can't be undone.",
     "deleteConfirmAction": "Delete",
@@ -245,7 +245,7 @@
       "decline": "Decline",
       "acceptedToast": "You joined {{wallet}}!",
       "declinedToast": "Invitation declined",
-      "error": "Something went wrong. Give it another try."
+      "error": "Oops! Something went wrong. Give it another try."
     },
     "switchedToast": "You are now in \"{{wallet}}\"",
     "deleteBanner": {
@@ -256,7 +256,7 @@
       "dismiss": "Cancel",
       "approvedToast": "\"{{wallet}}\" deleted",
       "cancelledToast": "Deletion cancelled",
-      "error": "Something went wrong. Give it another try."
+      "error": "Oops! Something went wrong. Give it another try."
     },
     "leave": {
       "button": "Leave wallet",
@@ -265,7 +265,7 @@
       "confirmBody": "The other person will keep access. You'll start a new personal wallet.",
       "confirmLeave": "Leave",
       "confirmCancel": "Cancel",
-      "errorToast": "Something went wrong. Give it another try."
+      "errorToast": "Oops! Something went wrong. Give it another try."
     }
   },
   "dangerZone": {
@@ -282,9 +282,9 @@
       "partnerDescription": "Needs {{partner}}'s approval before deleting.",
       "lastWalletDescription": "At least 1 wallet is required. Create another before you can delete this one.",
       "button": "Delete",
-      "soloTitle": "Delete Wallet?",
+      "soloTitle": "Delete wallet?",
       "soloMessage": "This will permanently delete the wallet and all its data. This cannot be undone.",
-      "partnerTitle": "Request Deletion?",
+      "partnerTitle": "Request deletion?",
       "partnerMessage": "{{partner}} will receive a deletion request and must approve it before anything is deleted.",
       "confirmAction": "Delete",
       "requestAction": "Send request",
@@ -293,14 +293,14 @@
       "cancelRequest": "Cancel request",
       "partnerRequestedTitle": "{{partner}} wants to delete this wallet",
       "partnerRequestedCaption": "Once you approve, all data will be permanently deleted and cannot be recovered.",
-      "approveTitle": "Approve Deletion?",
+      "approveTitle": "Approve deletion?",
       "approveMessage": "This will permanently delete the wallet and all its data for both of you. This cannot be undone.",
       "approveAction": "Yes, delete the wallet"
     }
   },
   "wallets": {
-    "modalTitle": "My Wallets",
-    "createTitle": "Create Wallet",
+    "modalTitle": "My wallets",
+    "createTitle": "Create wallet",
     "editTitle": "Edit wallet",
     "saveButton": "Save",
     "actions": {
@@ -325,10 +325,10 @@
     "pendingDeleteOther": "The other person wants to delete this wallet.",
     "confirmDeleteButton": "Confirm",
     "cancelDeleteButton": "Cancel",
-    "deleteConfirmTitle": "Delete Wallet",
+    "deleteConfirmTitle": "Delete wallet",
     "deleteConfirmMessage": "This will permanently delete the wallet and all its data. This cannot be undone.",
     "deleteConfirmAction": "Delete",
-    "deleteRequestTitle": "Request Deletion",
+    "deleteRequestTitle": "Request deletion",
     "deleteRequestMessage": "The other person will need to confirm before the wallet is deleted.",
     "deleteRequestAction": "Send request"
   },
@@ -336,7 +336,7 @@
     "create": {
       "chipLabel": "+ Add",
       "chipLabelCategory": "+ Category",
-      "title": "New Category",
+      "title": "New category",
       "nameLabel": "Name",
       "namePlaceholder": "Type the category name",
       "budgetLabel": "Monthly goal",
@@ -359,7 +359,7 @@
       }
     },
     "edit": {
-      "title": "Edit Category",
+      "title": "Edit category",
       "saveButton": "Save",
       "saving": "Saving…",
       "delete": "Delete",
@@ -471,7 +471,7 @@
     },
     "welcome": {
       "title": "Add items to this category",
-      "body": "Items are what you spend on here, like Netflix in Subscriptions. Adding them gives you quick suggestions when logging transactions."
+      "body": "The things you spend on here, like Netflix in Subscriptions. Add them for quick suggestions."
     },
     "archivedEmpty": {
       "title": "No archived items",

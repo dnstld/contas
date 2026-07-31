@@ -238,9 +238,7 @@ export function TransactionForm({
   // Only meaningful once a category is picked.
   const openItemSelect = () => {
     if (!categoryId) return;
-    router.push(
-      itemSelectHref({ categoryId, bridgeId, selectedId: categoryItemId ?? undefined }),
-    );
+    router.push(itemSelectHref({ categoryId, bridgeId, selectedId: categoryItemId ?? undefined }));
   };
 
   const openCreateCategory = (prefillName?: string) =>

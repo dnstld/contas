@@ -124,7 +124,12 @@ export function QuickSelectSheet({
                 <Icon name={action.icon} size={18} tone={tinted ? 'tint' : 'textMuted'} />
               ) : null}
               <View style={styles.actionText}>
-                <Text variant="body" weight="medium" numberOfLines={1} style={{ color: contentColor }}>
+                <Text
+                  variant="body"
+                  weight="medium"
+                  numberOfLines={1}
+                  style={{ color: contentColor }}
+                >
                   {action.label}
                 </Text>
                 {action.subtitle ? (

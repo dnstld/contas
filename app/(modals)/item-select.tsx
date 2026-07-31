@@ -7,10 +7,7 @@ import {
   type QuickSelectAction,
   type QuickSelectGroup,
 } from '@/components/ui/organisms/quick-select-sheet';
-import {
-  MOST_USED_DESCRIPTIONS_LIMIT,
-  rankItemsForCategory,
-} from '@/data/finance-aggregations';
+import { MOST_USED_DESCRIPTIONS_LIMIT, rankItemsForCategory } from '@/data/finance-aggregations';
 import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from '@/constants/limits';
 import type { CategoryItem } from '@/data/finance-types';
 import { useCreateCategoryItem } from '@/hooks/use-category-item-mutations';
