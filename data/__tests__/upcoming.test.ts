@@ -97,29 +97,29 @@ describe('nextOccurrenceOnOrAfter', () => {
 });
 
 describe('buildUpcoming', () => {
-  // Local July 15, 2026 → window is [2026-07-15, 2026-08-14] (today + 30 days).
+  // Local July 15, 2026 → window is [2026-07-15, 2026-07-25] (today + 10 days).
   const now = new Date(2026, 6, 15);
 
   it('includes a recurring expense item due within the window, sorted by due date', () => {
     const items: CategoryItem[] = [
-      mkItem({ id: 'later', nextDueOn: '2026-08-10' }), // rolls to 2026-08-10
+      mkItem({ id: 'later', nextDueOn: '2026-07-24' }), // rolls to 2026-07-24
       mkItem({ id: 'soon', nextDueOn: '2026-07-20' }),
     ];
     const result = buildUpcoming(items, categories, now);
     expect(result.map((o) => o.item.id)).toEqual(['soon', 'later']);
-    expect(result.map((o) => o.dueOn)).toEqual(['2026-07-20', '2026-08-10']);
+    expect(result.map((o) => o.dueOn)).toEqual(['2026-07-20', '2026-07-24']);
   });
 
   it('rolls a past anchor forward into the window', () => {
-    const items = [mkItem({ id: 'old', nextDueOn: '2026-05-10' })];
+    const items = [mkItem({ id: 'old', nextDueOn: '2026-06-20' })];
     const [occ] = buildUpcoming(items, categories, now);
-    expect(occ?.dueOn).toBe('2026-08-10');
+    expect(occ?.dueOn).toBe('2026-07-20');
   });
 
   it('includes an occurrence exactly at today + windowDays and excludes beyond it', () => {
     const items: CategoryItem[] = [
-      mkItem({ id: 'boundary', nextDueOn: '2026-08-14' }), // == today + 30
-      mkItem({ id: 'beyond', nextDueOn: '2026-08-15' }), // == today + 31
+      mkItem({ id: 'boundary', nextDueOn: '2026-07-25' }), // == today + 10
+      mkItem({ id: 'beyond', nextDueOn: '2026-07-26' }), // == today + 11
     ];
     const result = buildUpcoming(items, categories, now);
     expect(result.map((o) => o.item.id)).toEqual(['boundary']);

@@ -591,7 +591,7 @@ export function buildUpcoming(
   items: CategoryItem[],
   categories: Category[],
   now: Date,
-  windowDays = 30,
+  windowDays = 10,
 ): UpcomingOccurrence[] {
   const todayStart = parseDayStart(toDayString(now));
   const windowEnd = new Date(
