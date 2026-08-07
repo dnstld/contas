@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Icon, SectionList, Surface, Text } from '@/components/ui';
-import { Badge } from '@/components/ui/atoms/badge';
 import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
 import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
@@ -83,16 +82,7 @@ export default function CategoriesScreen() {
 
   const toRow = (category: Category): Row => ({
     id: category.id,
-    title: category.archivedAt ? (
-      <View style={styles.titleRow}>
-        <Text variant="body" weight="medium" numberOfLines={1} style={styles.titleName}>
-          {category.name}
-        </Text>
-        <Badge label={t('category.archivedBadge')} tone="neutral" />
-      </View>
-    ) : (
-      category.name
-    ),
+    title: category.name,
     trailing: (
       <CountTrailing label={t('categoriesTab.itemCount', { count: counts[category.id] ?? 0 })} />
     ),
@@ -106,12 +96,8 @@ export default function CategoriesScreen() {
           : categoryItemsHref(category.id),
       ),
     onLongPress: () => router.push(categoryFormHref({ editId: category.id, bridgeId })),
-    accessibilityLabel: category.archivedAt
-      ? `${category.name}, ${t('category.archivedBadge')}`
-      : category.name,
   });
 
-  const hasArchived = categories.some((c) => c.archivedAt);
   const visibleCategories = categories.filter((c) =>
     segment === 'archived' ? c.archivedAt : !c.archivedAt,
   );
@@ -200,13 +186,11 @@ export default function CategoriesScreen() {
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        {hasArchived ? (
-          <SegmentedControl<Segment>
-            options={segmentedOptions}
-            value={segment}
-            onChange={setSegment}
-          />
-        ) : null}
+        <SegmentedControl<Segment>
+          options={segmentedOptions}
+          value={segment}
+          onChange={setSegment}
+        />
 
         {isSegmentEmpty ? (
           <Surface variant="plain" bordered padding={16}>
@@ -262,16 +246,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  titleName: {
-    flexShrink: 1,
   },
   hint: {
     flexDirection: 'row',
