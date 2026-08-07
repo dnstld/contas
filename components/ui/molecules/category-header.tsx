@@ -32,7 +32,7 @@ export function CategoryHeader({
         <Text variant="body" weight="semibold" numberOfLines={1} style={styles.name}>
           {name}
         </Text>
-        {badge ? <Badge label={badge} tone="neutral" variant="solid" /> : null}
+        {badge ? <Badge label={badge} tone="inverse" variant="solid" /> : null}
       </View>
       <View style={styles.amountRow}>
         <PriceText value={total} currency={currency} tone={tone} size="lg" />
