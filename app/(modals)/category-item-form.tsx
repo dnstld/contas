@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 
 import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
@@ -165,7 +165,7 @@ export default function CategoryItemFormScreen() {
     );
   };
 
-  const handleDelete = () => {
+  const performDelete = () => {
     if (!editItem || isPending) return;
     setInUseWarning(null);
     deleteItem(editItem.id, {
@@ -180,6 +180,22 @@ export default function CategoryItemFormScreen() {
         }
       },
     });
+  };
+
+  const handleDelete = () => {
+    if (!editItem || isPending) return;
+    Alert.alert(
+      t('categoryItemForm.deleteConfirmTitle'),
+      t('categoryItemForm.deleteConfirmMessage'),
+      [
+        { text: t('categoryItemForm.deleteConfirmCancel'), style: 'cancel' },
+        {
+          text: t('categoryItemForm.deleteConfirmAction'),
+          style: 'destructive',
+          onPress: performDelete,
+        },
+      ],
+    );
   };
 
   return (

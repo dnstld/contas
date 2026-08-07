@@ -517,6 +517,10 @@
     "archive": "Eintrag archivieren",
     "unarchive": "Eintrag wiederherstellen",
     "delete": "Eintrag löschen",
+    "deleteConfirmTitle": "Diesen Eintrag löschen?",
+    "deleteConfirmMessage": "Das kann nicht rückgängig gemacht werden.",
+    "deleteConfirmAction": "Löschen",
+    "deleteConfirmCancel": "Abbrechen",
     "inUseWarning_one": "Dieser Eintrag wird von {{count}} Transaktion verwendet. Weise sie vor dem Löschen neu zu.",
     "inUseWarning_other": "Dieser Eintrag wird von {{count}} Transaktionen verwendet. Weise sie vor dem Löschen neu zu."
   },

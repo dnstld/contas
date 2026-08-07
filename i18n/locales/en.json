@@ -517,6 +517,10 @@
     "archive": "Archive item",
     "unarchive": "Unarchive item",
     "delete": "Delete item",
+    "deleteConfirmTitle": "Delete this item?",
+    "deleteConfirmMessage": "This can't be undone.",
+    "deleteConfirmAction": "Delete",
+    "deleteConfirmCancel": "Cancel",
     "inUseWarning_one": "This item is used by {{count}} transaction. Reassign it before deleting.",
     "inUseWarning_other": "This item is used by {{count}} transactions. Reassign them before deleting."
   },

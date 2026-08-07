@@ -517,6 +517,10 @@
     "archive": "Arquivar item",
     "unarchive": "Desarquivar item",
     "delete": "Excluir item",
+    "deleteConfirmTitle": "Excluir este item?",
+    "deleteConfirmMessage": "Não dá pra desfazer.",
+    "deleteConfirmAction": "Excluir",
+    "deleteConfirmCancel": "Cancelar",
     "inUseWarning_one": "Este item é usado por {{count}} transação. Reatribua-a antes de excluir.",
     "inUseWarning_other": "Este item é usado por {{count}} transações. Reatribua-as antes de excluir."
   },
