@@ -13,7 +13,6 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 
 export type PressableButtonVariant = 'primary' | 'secondary' | 'destructive';
 export type PressableButtonSize = 'medium' | 'large';
-export type PressableButtonTone = 'positive' | 'tint';
 
 const ICON_SLOT = 18;
 
@@ -22,7 +21,6 @@ export interface PressableButtonProps {
   onPress?: () => void;
   variant?: PressableButtonVariant;
   size?: PressableButtonSize;
-  tone?: PressableButtonTone;
   iconName?: IconName;
   loading?: boolean;
   disabled?: boolean;
@@ -35,21 +33,17 @@ export function PressableButton({
   onPress,
   variant = 'primary',
   size = 'medium',
-  tone = 'tint',
   iconName,
   loading = false,
   disabled = false,
   style,
   accessibilityLabel,
 }: PressableButtonProps) {
-  const positive = useThemeColor({}, 'positive');
-  const tint = useThemeColor({}, 'tint');
+  const primaryFill = useThemeColor({}, 'tint');
   const negative = useThemeColor({}, 'negative');
   const muted = useThemeColor({}, 'textMuted');
   const border = useThemeColor({}, 'border');
   const onPrimary = useThemeColor({}, 'onPrimary');
-
-  const primaryFill = tone === 'tint' ? tint : positive;
 
   const isPrimary = variant === 'primary';
   const isDestructive = variant === 'destructive';
@@ -102,6 +96,7 @@ export function PressableButton({
       <Text
         variant={size === 'large' ? 'subtitle' : 'body'}
         weight={isPrimary ? 'bold' : 'semibold'}
+        numberOfLines={1}
         style={[styles.label, { color: labelColor }]}
       >
         {label}

@@ -192,6 +192,7 @@ export default function CategoryFormScreen() {
                 ? [
                     {
                       label: isArchived ? t('category.edit.unarchive') : t('category.edit.archive'),
+                      iconName: isArchived ? 'arrow.clockwise' : 'archivebox.fill',
                       onPress: handleArchiveToggle,
                       tone: 'muted',
                       loading: isArchiving,
@@ -201,6 +202,7 @@ export default function CategoryFormScreen() {
                     },
                     {
                       label: t('category.edit.delete'),
+                      iconName: 'trash',
                       onPress: handleDelete,
                       tone: 'destructive',
                       loading: isDeleting,

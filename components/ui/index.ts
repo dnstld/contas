@@ -26,7 +26,6 @@ export { ChipGroup } from './molecules/chip-group';
 export { EmptyState } from './molecules/empty-state';
 export { ListCardRow } from './molecules/list-card-row';
 export { MetricCard } from './molecules/metric-card';
-export { ModalActionLink } from './molecules/modal-action-link';
 export { ModalActions } from './molecules/modal-actions';
 export { MetricRow } from './molecules/metric-row';
 export { SectionHeader } from './molecules/section-header';
