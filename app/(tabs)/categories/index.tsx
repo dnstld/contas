@@ -64,7 +64,10 @@ export default function CategoriesScreen() {
       deleted: () => {
         refetch();
       },
-      archived: () => {
+      archived: ({ archived }) => {
+        // Jump to the segment where the category now lives so the user sees the
+        // result of their action (Archived on archive, Active on unarchive).
+        setSegment(archived ? 'archived' : 'active');
         refetch();
       },
     });

@@ -26,7 +26,6 @@ import { useNow } from '@/hooks/use-now';
 import { useWallet } from '@/hooks/use-wallet';
 import { nextAmountCents } from '@/utils/amount-input';
 import { categoryItemFormBridge } from '@/utils/modal-bridge';
-import { snackbar } from '@/utils/snackbar';
 import { toast } from '@/utils/toast';
 
 const RECURRENCE_ORDER: Recurrence[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
@@ -156,17 +155,11 @@ export default function CategoryItemFormScreen() {
       { id: editItem.id, archived },
       {
         onSuccess: (updated) => {
-          // Archiving offers an inline Undo via the snackbar; unarchiving just
-          // confirms with a plain toast.
-          if (archived) {
-            snackbar.show({
-              message: t('feedback.categoryItemArchived'),
-              undo: { kind: 'categoryItem', id: updated.id },
-            });
-          } else {
-            toast.success(t('feedback.categoryItemUnarchived'));
-          }
+          toast.success(
+            archived ? t('feedback.categoryItemArchived') : t('feedback.categoryItemUnarchived'),
+          );
           categoryItemFormBridge.emit(bridgeId, 'changed', updated.id);
+          categoryItemFormBridge.emit(bridgeId, 'archived', { id: updated.id, archived });
           router.back();
         },
       },

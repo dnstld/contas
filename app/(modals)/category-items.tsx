@@ -45,6 +45,11 @@ export default function CategoryItemsScreen() {
       changed: () => {
         refetch();
       },
+      archived: ({ archived }) => {
+        // Jump to the segment where the item now lives (refetch is handled by
+        // the `changed` signal emitted alongside).
+        setSegment(archived ? 'archived' : 'active');
+      },
     });
   }, [bridgeId, refetch]);
 

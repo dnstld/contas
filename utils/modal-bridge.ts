@@ -25,7 +25,9 @@ export const categoryFormBridge = createChannel<{
   created: string;
   deleted: string;
   selected: string;
-  archived: string;
+  // Carries the new archived state so the categories list can jump to the
+  // matching segment (Archived on archive, Active on unarchive).
+  archived: { id: string; archived: boolean };
 }>();
 
 // Signals that a category item was created / updated / archived / deleted from
@@ -33,6 +35,9 @@ export const categoryFormBridge = createChannel<{
 // subscribes so it can refresh once the form closes. Payload = the item id.
 export const categoryItemFormBridge = createChannel<{
   changed: string;
+  // Emitted alongside `changed` on archive/unarchive, carrying the new state so
+  // the items list can jump to the matching segment.
+  archived: { id: string; archived: boolean };
 }>();
 
 // Carries the "What for" choice from the `item-select` modal back to the

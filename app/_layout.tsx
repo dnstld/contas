@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { ErrorFallback } from '@/components/error-fallback';
-import { SnackbarHost } from '@/components/ui/organisms/snackbar-host';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import {
@@ -99,7 +98,6 @@ function RootLayout() {
               <FinanceQueryProvider>
                 <WalletProvider>
                   <RootStack />
-                  <SnackbarHost />
                 </WalletProvider>
               </FinanceQueryProvider>
             </AuthProvider>
