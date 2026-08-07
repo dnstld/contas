@@ -26,7 +26,7 @@ export type ChipSystemImage = Parameters<typeof SwiftUI.Button>[0]['systemImage'
 // prefix (mirroring how the selected checkmark degrades to "✓"). Extend as new
 // icons are used on chips.
 const ANDROID_GLYPH: Partial<Record<string, string>> = {
-  'lock.fill': '🔒',
+  'archivebox.fill': '🗄',
 };
 
 export interface ChipProps {
