@@ -17,6 +17,7 @@
     "addTransaction": "Transaction",
     "addCategory": "Category",
     "cancel": "Cancel",
+    "undo": "Undo",
     "manage": "Manage",
     "back": "Back",
     "done": "Done",

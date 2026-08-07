@@ -17,6 +17,7 @@ import {
 } from '@/hooks/use-finance-mutations';
 import { useCategories } from '@/hooks/use-finance-queries';
 import { categoryFormBridge } from '@/utils/modal-bridge';
+import { snackbar } from '@/utils/snackbar';
 import { toast } from '@/utils/toast';
 
 export default function CategoryFormScreen() {
@@ -141,9 +142,16 @@ export default function CategoryFormScreen() {
       { id: editCategory.id, archived },
       {
         onSuccess: (updated) => {
-          toast.success(
-            archived ? t('feedback.categoryArchived') : t('feedback.categoryUnarchived'),
-          );
+          // Archiving offers an inline Undo via the snackbar; unarchiving just
+          // confirms with a plain toast.
+          if (archived) {
+            snackbar.show({
+              message: t('feedback.categoryArchived'),
+              undo: { kind: 'category', id: updated.id },
+            });
+          } else {
+            toast.success(t('feedback.categoryUnarchived'));
+          }
           categoryFormBridge.emit(bridgeId, 'archived', updated.id);
           router.back();
         },
