@@ -96,7 +96,15 @@ export default function CategoriesScreen() {
     trailing: (
       <CountTrailing label={t('categoriesTab.itemCount', { count: counts[category.id] ?? 0 })} />
     ),
-    onPress: () => router.push(categoryItemsHref(category.id)),
+    // Archived rows tap straight into the form (where Unarchive lives), matching
+    // how tapping an archived item opens the item form. Drilling into an archived
+    // category's items is a dead-end, so we don't route there.
+    onPress: () =>
+      router.push(
+        category.archivedAt
+          ? categoryFormHref({ editId: category.id, bridgeId })
+          : categoryItemsHref(category.id),
+      ),
     onLongPress: () => router.push(categoryFormHref({ editId: category.id, bridgeId })),
     accessibilityLabel: category.archivedAt
       ? `${category.name}, ${t('category.archivedBadge')}`
