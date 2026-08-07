@@ -214,12 +214,12 @@ export default function CategoriesScreen() {
               title={t(
                 segment === 'archived'
                   ? 'categoriesTab.archivedEmpty.title'
-                  : 'categoriesTab.welcome.title',
+                  : 'categoriesTab.activeEmpty.title',
               )}
               subtitle={t(
                 segment === 'archived'
                   ? 'categoriesTab.archivedEmpty.body'
-                  : 'categoriesTab.welcome.body',
+                  : 'categoriesTab.activeEmpty.body',
               )}
             />
           </Surface>

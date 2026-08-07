@@ -467,6 +467,10 @@
     "archivedEmpty": {
       "title": "Keine archivierten Kategorien",
       "body": "Archiviere eine Kategorie, um sie aus Listen und Budgets auszublenden, ohne ihren Verlauf zu verlieren."
+    },
+    "activeEmpty": {
+      "title": "Keine aktiven Kategorien",
+      "body": "Alle sind archiviert. Öffne den Tab „Archiviert“, um eine wiederherzustellen."
     }
   },
   "categoryItems": {

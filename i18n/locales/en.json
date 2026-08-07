@@ -467,6 +467,10 @@
     "archivedEmpty": {
       "title": "No archived categories",
       "body": "Archive a category to hide it from your lists and budgets without losing its history."
+    },
+    "activeEmpty": {
+      "title": "No active categories",
+      "body": "They're all archived. Open the Archived tab to restore one."
     }
   },
   "categoryItems": {

@@ -467,6 +467,10 @@
     "archivedEmpty": {
       "title": "Nenhuma categoria arquivada",
       "body": "Arquive uma categoria para ocultá-la das listas e orçamentos sem perder seu histórico."
+    },
+    "activeEmpty": {
+      "title": "Nenhuma categoria ativa",
+      "body": "Todas estão arquivadas. Abra a aba Arquivadas para restaurar uma."
     }
   },
   "categoryItems": {
