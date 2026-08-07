@@ -59,6 +59,22 @@ export function useFinanceRealtime() {
           qc.invalidateQueries({ queryKey: financeKeys.all(walletId) });
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'category_items',
+          filter: `wallet_id=eq.${walletId}`,
+        },
+        () => {
+          // Item create/edit/archive/delete by another member (or another
+          // device) must reflect here too — the items list and the derived
+          // "upcoming" both read from this query. Mirrors the local cache
+          // patching done in `use-category-item-mutations`.
+          qc.invalidateQueries({ queryKey: financeKeys.categoryItems(walletId) });
+        },
+      )
       .subscribe();
 
     return () => {
