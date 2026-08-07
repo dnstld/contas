@@ -13,8 +13,8 @@ import {
   type QuickSelectGroup,
 } from '@/components/ui/organisms/quick-select-sheet';
 import { rankCategoriesByUsage } from '@/data/finance-aggregations';
-import type { TransactionType } from '@/data/finance-types';
-import { useCreateCategory } from '@/hooks/use-finance-mutations';
+import type { Category, TransactionType } from '@/data/finance-types';
+import { useArchiveCategory, useCreateCategory } from '@/hooks/use-finance-mutations';
 import { useCategories, useTransactions } from '@/hooks/use-finance-queries';
 import { categoryFormBridge } from '@/utils/modal-bridge';
 import { toast } from '@/utils/toast';
@@ -35,6 +35,7 @@ export default function CategorySelectScreen() {
   const { data: categories = [] } = useCategories();
   const { data: transactions = [] } = useTransactions();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
+  const { mutate: archiveCategory } = useArchiveCategory();
 
   const [mode, setMode] = useState<'list' | 'create'>('list');
   const [query, setQuery] = useState('');
@@ -124,13 +125,41 @@ export default function CategorySelectScreen() {
   }, [categories, transactions, type, query, t, suggestionNames, selectedId]);
 
   // Offer "Create X" when the typed term doesn't exactly match an existing
-  // category of this type (case-insensitive).
+  // category of this type (case-insensitive). If it matches an *archived*
+  // category, offer "Unarchive X" instead — creating a same-named one would hit
+  // the unique-name constraint, and the archived one isn't otherwise selectable.
   const trimmedQuery = query.trim();
+  const archivedMatch = categories.find(
+    (c) => !!c.archivedAt && c.type === type && c.name.toLowerCase() === trimmedQuery.toLowerCase(),
+  );
   const hasExactMatch = categories.some(
     (c) => c.type === type && c.name.toLowerCase() === trimmedQuery.toLowerCase(),
   );
-  const actions: QuickSelectAction[] =
-    trimmedQuery.length > 0 && !hasExactMatch
+
+  const handleUnarchiveSelect = (category: Category) => {
+    archiveCategory(
+      { id: category.id, archived: false },
+      {
+        onSuccess: () => {
+          toast.success(t('feedback.categoryUnarchived'));
+          categoryFormBridge.emit(bridgeId, 'selected', category.id);
+          router.back();
+        },
+      },
+    );
+  };
+
+  const actions: QuickSelectAction[] = archivedMatch
+    ? [
+        {
+          key: 'unarchive',
+          label: t('categorySelect.unarchiveNamed', { name: archivedMatch.name }),
+          icon: 'arrow.clockwise',
+          tone: 'tint',
+          onPress: () => handleUnarchiveSelect(archivedMatch),
+        },
+      ]
+    : trimmedQuery.length > 0 && !hasExactMatch
       ? [
           {
             key: 'create',

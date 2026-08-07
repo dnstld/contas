@@ -10,9 +10,10 @@ import {
 import { MOST_USED_DESCRIPTIONS_LIMIT, rankItemsForCategory } from '@/data/finance-aggregations';
 import { TRANSACTION_DESCRIPTION_MAX_LENGTH } from '@/constants/limits';
 import type { CategoryItem } from '@/data/finance-types';
-import { useCreateCategoryItem } from '@/hooks/use-category-item-mutations';
+import { useArchiveCategoryItem, useCreateCategoryItem } from '@/hooks/use-category-item-mutations';
 import { useCategories, useCategoryItems, useTransactions } from '@/hooks/use-finance-queries';
 import { categoryItemSelectBridge } from '@/utils/modal-bridge';
+import { toast } from '@/utils/toast';
 
 export default function ItemSelectScreen() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function ItemSelectScreen() {
   const { data: categoryItems = [] } = useCategoryItems();
   const { data: transactions = [] } = useTransactions();
   const { mutate: createItem } = useCreateCategoryItem();
+  const { mutate: archiveItem } = useArchiveCategoryItem();
 
   const [query, setQuery] = useState('');
 
@@ -104,6 +106,27 @@ export default function ItemSelectScreen() {
     );
   };
 
+  // An archived item with the typed name can't be re-saved (unique name per
+  // category) and isn't offered above; unarchive + select it instead.
+  const archivedMatch = categoryItems.find(
+    (it) =>
+      it.categoryId === categoryId &&
+      !!it.archivedAt &&
+      it.name.toLowerCase() === trimmedQuery.toLowerCase(),
+  );
+
+  const unarchiveAndSelect = (item: CategoryItem) => {
+    archiveItem(
+      { id: item.id, archived: false },
+      {
+        onSuccess: () => {
+          toast.success(t('feedback.categoryItemUnarchived'));
+          selectItem(item);
+        },
+      },
+    );
+  };
+
   const hasExactMatch = categoryItems.some(
     (it) =>
       it.categoryId === categoryId &&
@@ -121,7 +144,15 @@ export default function ItemSelectScreen() {
       tone: 'plain',
       onPress: useText,
     });
-    if (!hasExactMatch) {
+    if (archivedMatch) {
+      actions.push({
+        key: 'unarchive',
+        label: t('itemSelect.unarchiveNamed', { name: archivedMatch.name }),
+        icon: 'arrow.clockwise',
+        tone: 'tint',
+        onPress: () => unarchiveAndSelect(archivedMatch),
+      });
+    } else if (!hasExactMatch) {
       actions.push({
         key: 'save',
         label: t('itemSelect.saveLabel'),

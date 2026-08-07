@@ -427,6 +427,7 @@
       "all": "Todas as categorias"
     },
     "createNamed": "Criar “{{name}}”",
+    "unarchiveNamed": "Desarquivar “{{name}}”",
     "createAndSelect": "Criar e selecionar",
     "suggestions": {
       "section": "Sugestões",
@@ -442,6 +443,7 @@
       "all": "Todos os itens"
     },
     "useNamed": "Usar “{{name}}”",
+    "unarchiveNamed": "Desarquivar “{{name}}”",
     "saveSubtitle": "Cria o item e salva este nome como sugestão para itens futuros nesta categoria.",
     "emptyHint": "Nenhum item salvo ainda.",
     "useSubtitle": "Cria o item usando apenas este nome.",
