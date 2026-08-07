@@ -473,6 +473,10 @@
       "archived": "Archiviert"
     },
     "addItem": "Neuer Eintrag",
+    "archivedNotice": {
+      "title": "Diese Kategorie ist archiviert",
+      "body": "Stelle sie wieder her, um ihre Einträge zu ändern."
+    },
     "recurrence": {
       "daily": "Jeden Tag",
       "weekly": "Jede Woche, nächster Termin {{date}}",

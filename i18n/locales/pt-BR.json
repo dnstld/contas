@@ -473,6 +473,10 @@
       "archived": "Arquivados"
     },
     "addItem": "Novo item",
+    "archivedNotice": {
+      "title": "Esta categoria está arquivada",
+      "body": "Desarquive-a para adicionar ou alterar seus itens."
+    },
     "recurrence": {
       "daily": "Todo dia",
       "weekly": "Toda semana, próximo {{date}}",

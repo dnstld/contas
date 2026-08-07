@@ -473,6 +473,10 @@
       "archived": "Archived"
     },
     "addItem": "New item",
+    "archivedNotice": {
+      "title": "This category is archived",
+      "body": "Unarchive it to add or change its items."
+    },
     "recurrence": {
       "daily": "Every day",
       "weekly": "Every week, next {{date}}",

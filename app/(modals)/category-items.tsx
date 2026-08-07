@@ -49,6 +49,7 @@ export default function CategoryItemsScreen() {
   }, [bridgeId, refetch]);
 
   const category = categories.find((c) => c.id === id);
+  const isCategoryArchived = !!category?.archivedAt;
   const items = useMemo(() => allItems.filter((it) => it.categoryId === id), [allItems, id]);
   const active = items.filter((it) => !it.archivedAt);
   const archived = items.filter((it) => it.archivedAt);
@@ -74,6 +75,17 @@ export default function CategoryItemsScreen() {
         </View>
       ) : (
         <View style={styles.body}>
+          {isCategoryArchived ? (
+            <View style={styles.noticeWrap}>
+              <Surface variant="plain" bordered padding={16}>
+                <NotificationBanner
+                  title={t('categoryItems.archivedNotice.title')}
+                  subtitle={t('categoryItems.archivedNotice.body')}
+                />
+              </Surface>
+            </View>
+          ) : null}
+
           <View style={styles.tabs}>
             <SegmentedControl<Segment>
               options={segmentedOptions}
@@ -129,18 +141,20 @@ export default function CategoryItemsScreen() {
         </View>
       )}
 
-      <StickyFooter onOverlapChange={setFooterOverlap}>
-        <ModalActions
-          primary={{
-            label: t('categoryItems.addItem'),
-            iconName: 'plus',
-            onPress: () => {
-              setSegment('active');
-              router.push(categoryItemFormHref({ categoryId: id, bridgeId }));
-            },
-          }}
-        />
-      </StickyFooter>
+      {isCategoryArchived ? null : (
+        <StickyFooter onOverlapChange={setFooterOverlap}>
+          <ModalActions
+            primary={{
+              label: t('categoryItems.addItem'),
+              iconName: 'plus',
+              onPress: () => {
+                setSegment('active');
+                router.push(categoryItemFormHref({ categoryId: id, bridgeId }));
+              },
+            }}
+          />
+        </StickyFooter>
+      )}
     </View>
   );
 }
@@ -185,6 +199,10 @@ const styles = StyleSheet.create({
   },
   bannerWrap: {
     padding: 16,
+  },
+  noticeWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
   listContent: {
     paddingBottom: 24,
