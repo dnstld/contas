@@ -67,18 +67,16 @@ export function useCategoryGrid({
   );
 
   // Chips reflect the active kind's categories (pre-selection). Archived
-  // categories that surface here (they contributed to the period) get an
-  // "· Archived" suffix so the chip carries the same signal as the card.
+  // categories that surface here (they contributed to the period) get a leading
+  // lock icon so the chip signals archived without a text suffix.
   const kindFilterItems = useMemo(() => {
     if (!filterItems) return [];
     const ids = new Set(byKind.map((c) => c.id));
     const archivedIds = new Set(categories.filter((c) => c.archived).map((c) => c.id));
     return filterItems
       .filter((f) => ids.has(f.id))
-      .map((f) =>
-        archivedIds.has(f.id) ? { ...f, label: `${f.label} · ${t('category.archivedBadge')}` } : f,
-      );
-  }, [filterItems, byKind, categories, t]);
+      .map((f) => (archivedIds.has(f.id) ? { ...f, systemImage: 'lock.fill' as const } : f));
+  }, [filterItems, byKind, categories]);
 
   const filtered = useMemo(() => {
     if (selected.length === 0) return byKind;

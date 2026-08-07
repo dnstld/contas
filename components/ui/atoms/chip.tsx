@@ -19,6 +19,16 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 
 export type ChipVariant = 'primary' | 'secondary' | 'tertiary' | 'default';
 
+/** SF Symbol name accepted by the underlying iOS button. */
+export type ChipSystemImage = Parameters<typeof SwiftUI.Button>[0]['systemImage'];
+
+// Android's native chip can't render an SF Symbol; fall back to a compact glyph
+// prefix (mirroring how the selected checkmark degrades to "✓"). Extend as new
+// icons are used on chips.
+const ANDROID_GLYPH: Partial<Record<string, string>> = {
+  'lock.fill': '🔒',
+};
+
 export interface ChipProps {
   label: string;
   onPress?: () => void;
@@ -29,6 +39,9 @@ export interface ChipProps {
   /** Tint the label/foreground with the variant color on a glass background (an
    * action accent), distinct from the filled look of a selected chip. */
   accent?: boolean;
+  /** Optional leading icon (SF Symbol on iOS, glyph fallback on Android). A
+   * selected chip's checkmark takes precedence when `showCheckWhenSelected`. */
+  systemImage?: ChipSystemImage;
 }
 
 const VARIANT_TONE: Record<ChipVariant, keyof typeof Colors.light> = {
@@ -46,6 +59,7 @@ export function Chip({
   showCheckWhenSelected = false,
   disabled,
   accent = false,
+  systemImage,
 }: ChipProps) {
   const { t } = useTranslation();
   const tone = useThemeColor({}, VARIANT_TONE[variant]);
@@ -60,7 +74,7 @@ export function Chip({
       <SwiftUI.Host matchContents style={styles.host}>
         <SwiftUI.Button
           label={label}
-          systemImage={selected && showCheckWhenSelected ? 'checkmark' : undefined}
+          systemImage={selected && showCheckWhenSelected ? 'checkmark' : systemImage}
           onPress={disabled ? undefined : onPress}
           modifiers={[
             buttonStyle(selected ? 'glassProminent' : 'glass'),
@@ -95,7 +109,11 @@ export function Chip({
           }}
         >
           <Compose.FilterChip.Label>
-            {selected && showCheckWhenSelected ? `✓  ${label}` : label}
+            {selected && showCheckWhenSelected
+              ? `✓  ${label}`
+              : systemImage && ANDROID_GLYPH[systemImage]
+                ? `${ANDROID_GLYPH[systemImage]}  ${label}`
+                : label}
           </Compose.FilterChip.Label>
         </Compose.FilterChip>
       </Compose.Host>
