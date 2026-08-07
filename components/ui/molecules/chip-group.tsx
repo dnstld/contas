@@ -8,14 +8,12 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Chip, type ChipSystemImage, type ChipVariant } from '@/components/ui/atoms/chip';
+import { Chip, type ChipVariant } from '@/components/ui/atoms/chip';
 
 export interface ChipGroupItem<T extends string> {
   id: T;
   label: string;
   variant?: ChipVariant;
-  /** Optional leading icon (SF Symbol on iOS, glyph fallback on Android). */
-  systemImage?: ChipSystemImage;
 }
 
 export interface ChipGroupProps<T extends string> {
@@ -59,7 +57,6 @@ export function ChipGroup<T extends string>({
             selected={selected}
             variant={selected ? (item.variant ?? selectedVariant) : unselectedVariant}
             showCheckWhenSelected={showCheckWhenSelected}
-            systemImage={item.systemImage}
             onPress={() => onToggle(item.id)}
           />
         );

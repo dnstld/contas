@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Badge } from '@/components/ui/atoms/badge';
+import { Icon } from '@/components/ui/atoms/icon';
 import { PriceText, type PriceTone } from '@/components/ui/atoms/price-text';
 import { Text, type TextTone } from '@/components/ui/atoms/text';
 
@@ -12,8 +12,9 @@ export interface CategoryHeaderProps {
   /** Shown next to the amount, e.g. "of 500,00", when the category has a goal.
    * Colored to match `tone` (green under goal, amber at goal, red over goal). */
   goalText?: string;
-  /** Optional pill next to the name, e.g. "Archived". */
-  badge?: string;
+  /** Marks the category as archived with a small archive-box icon by the name.
+   * (The card's accessibility label announces the archived state.) */
+  archived?: boolean;
 }
 
 export function CategoryHeader({
@@ -22,7 +23,7 @@ export function CategoryHeader({
   currency = 'USD',
   tone = 'neutral',
   goalText,
-  badge,
+  archived = false,
 }: CategoryHeaderProps) {
   const goalTone: TextTone = tone === 'neutral' || tone === 'auto' ? 'textMuted' : tone;
 
@@ -32,7 +33,7 @@ export function CategoryHeader({
         <Text variant="body" weight="semibold" numberOfLines={1} style={styles.name}>
           {name}
         </Text>
-        {badge ? <Badge label={badge} tone="inverse" variant="solid" /> : null}
+        {archived ? <Icon name="archivebox.fill" size={15} tone="textMuted" /> : null}
       </View>
       <View style={styles.amountRow}>
         <PriceText value={total} currency={currency} tone={tone} size="lg" />

@@ -66,17 +66,12 @@ export function useCategoryGrid({
     [categories, kind],
   );
 
-  // Chips reflect the active kind's categories (pre-selection). Archived
-  // categories that surface here (they contributed to the period) get a leading
-  // archive-box icon so the chip signals archived without a text suffix.
+  // Chips reflect the active kind's categories (pre-selection).
   const kindFilterItems = useMemo(() => {
     if (!filterItems) return [];
     const ids = new Set(byKind.map((c) => c.id));
-    const archivedIds = new Set(categories.filter((c) => c.archived).map((c) => c.id));
-    return filterItems
-      .filter((f) => ids.has(f.id))
-      .map((f) => (archivedIds.has(f.id) ? { ...f, systemImage: 'archivebox.fill' as const } : f));
-  }, [filterItems, byKind, categories]);
+    return filterItems.filter((f) => ids.has(f.id));
+  }, [filterItems, byKind]);
 
   const filtered = useMemo(() => {
     if (selected.length === 0) return byKind;

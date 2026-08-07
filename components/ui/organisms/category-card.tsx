@@ -76,7 +76,7 @@ function CategoryCardImpl({
         currency={currency}
         tone={tone}
         goalText={goalText}
-        badge={data.archived ? t('category.archivedBadge') : undefined}
+        archived={data.archived}
       />
 
       {data.delta !== undefined && data.previousLabel && !isEmpty ? (

@@ -63,6 +63,7 @@ const MAPPING = {
   'arrow.clockwise': 'refresh',
   'hand.tap': 'touch-app',
   'square.and.arrow.down': 'save-alt',
+  'archivebox.fill': 'archive',
 } satisfies IconMapping;
 
 /**
