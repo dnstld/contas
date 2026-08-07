@@ -49,6 +49,8 @@
     "categoryCreated": "Kategorie erstellt!",
     "categoryUpdated": "Kategorie aktualisiert",
     "categoryDeleted": "Kategorie gelöscht",
+    "categoryArchived": "Kategorie archiviert",
+    "categoryUnarchived": "Kategorie wiederhergestellt",
     "categoryItemCreated": "Eintrag erstellt!",
     "categoryItemUpdated": "Eintrag aktualisiert",
     "categoryItemArchived": "Eintrag archiviert",
@@ -362,6 +364,8 @@
       "title": "Kategorie bearbeiten",
       "saveButton": "Speichern",
       "saving": "Wird gespeichert…",
+      "archive": "Kategorie archivieren",
+      "unarchive": "Kategorie wiederherstellen",
       "delete": "Löschen",
       "deleting": "Wird gelöscht…",
       "deleteConfirmTitle": "Diese Kategorie löschen?",
@@ -382,6 +386,7 @@
     "clear": "Zurücksetzen",
     "noActivity": "Keine Aktivität in diesem Zeitraum",
     "exampleBadge": "Beispiel",
+    "archivedBadge": "Archiviert",
     "goalOf": "von {{value}}",
     "perYear": "pro Jahr",
     "perMonth": "pro Monat",
@@ -443,6 +448,10 @@
     "saveLabel": "Verwenden & als Vorschlag speichern"
   },
   "categoriesTab": {
+    "segments": {
+      "active": "Aktiv",
+      "archived": "Archiviert"
+    },
     "sections": {
       "expenses": "Ausgaben",
       "income": "Einnahmen"
@@ -452,6 +461,10 @@
     "welcome": {
       "title": "Beginne mit Kategorien",
       "body": "Kategorien gruppieren deine Transaktionen, z. B. Lebensmittel oder Gehalt, damit du siehst, wohin dein Geld fließt."
+    },
+    "archivedEmpty": {
+      "title": "Keine archivierten Kategorien",
+      "body": "Archiviere eine Kategorie, um sie aus Listen und Budgets auszublenden, ohne ihren Verlauf zu verlieren."
     }
   },
   "categoryItems": {

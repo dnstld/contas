@@ -49,6 +49,8 @@
     "categoryCreated": "Category created!",
     "categoryUpdated": "Category updated",
     "categoryDeleted": "Category deleted",
+    "categoryArchived": "Category archived",
+    "categoryUnarchived": "Category unarchived",
     "categoryItemCreated": "Item created!",
     "categoryItemUpdated": "Item updated",
     "categoryItemArchived": "Item archived",
@@ -362,6 +364,8 @@
       "title": "Edit category",
       "saveButton": "Save",
       "saving": "Saving…",
+      "archive": "Archive category",
+      "unarchive": "Unarchive category",
       "delete": "Delete",
       "deleting": "Deleting…",
       "deleteConfirmTitle": "Delete this category?",
@@ -382,6 +386,7 @@
     "clear": "Clear",
     "noActivity": "No activity in this period",
     "exampleBadge": "Example",
+    "archivedBadge": "Archived",
     "goalOf": "of {{value}}",
     "perYear": "per year",
     "perMonth": "per month",
@@ -443,6 +448,10 @@
     "saveLabel": "Use & save as a suggestion"
   },
   "categoriesTab": {
+    "segments": {
+      "active": "Active",
+      "archived": "Archived"
+    },
     "sections": {
       "expenses": "Expenses",
       "income": "Income"
@@ -452,6 +461,10 @@
     "welcome": {
       "title": "Start with categories",
       "body": "Categories group your transactions, like Groceries or Salary, so you can see where your money goes."
+    },
+    "archivedEmpty": {
+      "title": "No archived categories",
+      "body": "Archive a category to hide it from your lists and budgets without losing its history."
     }
   },
   "categoryItems": {

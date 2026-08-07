@@ -233,6 +233,43 @@ export function useUpdateCategory() {
   });
 }
 
+export type ArchiveCategoryInput = {
+  id: string;
+  archived: boolean;
+};
+
+export function useArchiveCategory() {
+  const { walletId } = useWallet();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, archived }: ArchiveCategoryInput) => {
+      const archivedAt = archived ? new Date().toISOString() : null;
+      const { data, error } = await supabase
+        .from('categories')
+        .update({ archived_at: archivedAt })
+        .eq('id', id)
+        .select('id, archived_at')
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (!walletId) return;
+      // Patch the archive state into the cache immediately (queries use
+      // `staleTime: Infinity`); the invalidate reconciles.
+      qc.setQueryData<Category[]>(financeKeys.categories(walletId), (old) =>
+        old?.map((c) =>
+          c.id === data.id ? { ...c, archivedAt: data.archived_at ?? undefined } : c,
+        ),
+      );
+      // Refresh everything that denormalizes/derives from categories (dashboard
+      // cards, upcoming, transactions).
+      qc.invalidateQueries({ queryKey: financeKeys.all(walletId) });
+    },
+  });
+}
+
 export function useDeleteCategory() {
   const { walletId } = useWallet();
   const qc = useQueryClient();

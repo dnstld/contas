@@ -77,7 +77,7 @@ export default function CategorySelectScreen() {
     // the most-used/all-categories split only applies to the browsing view.
     if (needle.length > 0) {
       const matches = categories
-        .filter((c) => c.type === type)
+        .filter((c) => c.type === type && !c.archivedAt)
         .filter((c) => c.name.toLowerCase().includes(needle))
         .sort((a, b) => a.name.localeCompare(b.name));
 

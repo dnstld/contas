@@ -10,6 +10,7 @@ import { ModalFormScaffold } from '@/components/ui/templates/modal-form-scaffold
 import type { TransactionType } from '@/data/finance-types';
 import {
   isCategoryHasTransactionsError,
+  useArchiveCategory,
   useCreateCategory,
   useDeleteCategory,
   useUpdateCategory,
@@ -35,6 +36,7 @@ export default function CategoryFormScreen() {
 
   const { data: allCategories = [] } = useCategories();
   const editCategory = isEdit ? (allCategories.find((c) => c.id === editId) ?? null) : null;
+  const isArchived = !!editCategory?.archivedAt;
 
   const paramType = params.type ?? null;
   const [pickedType, setPickedType] = useState<TransactionType>(paramType ?? 'expense');
@@ -51,8 +53,9 @@ export default function CategoryFormScreen() {
 
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();
+  const { mutate: archiveCategory, isPending: isArchiving } = useArchiveCategory();
   const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory();
-  const isPending = isCreating || isUpdating || isDeleting;
+  const isPending = isCreating || isUpdating || isArchiving || isDeleting;
 
   const [name, setName] = useState(editCategory?.name ?? prefillName ?? '');
   const [budgetCents, setBudgetCents] = useState(
@@ -131,6 +134,23 @@ export default function CategoryFormScreen() {
     });
   };
 
+  const handleArchiveToggle = () => {
+    if (!editCategory || isPending) return;
+    const archived = !isArchived;
+    archiveCategory(
+      { id: editCategory.id, archived },
+      {
+        onSuccess: (updated) => {
+          toast.success(
+            archived ? t('feedback.categoryArchived') : t('feedback.categoryUnarchived'),
+          );
+          categoryFormBridge.emit(bridgeId, 'archived', updated.id);
+          router.back();
+        },
+      },
+    );
+  };
+
   const handleDelete = () => {
     if (!editCategory || isPending) return;
     Alert.alert(t('category.edit.deleteConfirmTitle'), t('category.edit.deleteConfirmMessage'), [
@@ -170,6 +190,13 @@ export default function CategoryFormScreen() {
             secondary={
               isEdit
                 ? [
+                    {
+                      label: isArchived ? t('category.edit.unarchive') : t('category.edit.archive'),
+                      onPress: handleArchiveToggle,
+                      tone: 'muted',
+                      loading: isArchiving,
+                      disabled: isPending && !isArchiving,
+                    },
                     {
                       label: t('category.edit.delete'),
                       onPress: handleDelete,

@@ -12,6 +12,10 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 export interface CategoryCardData {
   id: string;
   name: string;
+  /** Category is archived; the card renders an "Archived" badge. Archived
+   * categories only appear in periods they contributed to, so the breakdown
+   * still reconciles with the header total. */
+  archived?: boolean;
   total: number;
   /** Share of total expenses in the period. No longer displayed on the card,
    * kept for potential future use (e.g. a detail screen or alternate sort). */
@@ -72,6 +76,7 @@ function CategoryCardImpl({
         currency={currency}
         tone={tone}
         goalText={goalText}
+        badge={data.archived ? t('category.archivedBadge') : undefined}
       />
 
       {data.delta !== undefined && data.previousLabel && !isEmpty ? (
@@ -116,6 +121,7 @@ function CategoryCardImpl({
       : undefined;
   const accessibilityLabel = [
     data.name,
+    data.archived ? t('category.archivedBadge') : undefined,
     formatCurrency(data.total, currency),
     goalText,
     statusLabel,

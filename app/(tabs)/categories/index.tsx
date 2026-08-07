@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Icon, SectionList, Surface, Text } from '@/components/ui';
+import { Badge } from '@/components/ui/atoms/badge';
+import { SegmentedControl } from '@/components/ui/atoms/segmented-control';
 import type { ListCardRowProps } from '@/components/ui/molecules/list-card-row';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { SectionListRow } from '@/components/ui/molecules/section-list-row';
@@ -16,6 +18,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { categoryFormBridge, makeBridgeId } from '@/utils/modal-bridge';
 
 type Row = ListCardRowProps & { id: string };
+type Segment = 'active' | 'archived';
 
 const ROW_DEFAULTS: Pick<ListCardRowProps, 'size' | 'density'> = {
   size: 'sm',
@@ -47,18 +50,22 @@ export default function CategoriesScreen() {
   const router = useRouter();
 
   const [bridgeId] = useState(() => makeBridgeId());
+  const [segment, setSegment] = useState<Segment>('active');
 
   const { data: categories = [], isLoading, refetch } = useCategories();
   const { data: items = [] } = useCategoryItems();
 
-  // A category created/deleted from the `category-form` modal signals here so
-  // the list refreshes once the modal closes.
+  // A category created/deleted/archived from the `category-form` modal signals
+  // here so the list refreshes once the modal closes.
   useEffect(() => {
     return categoryFormBridge.subscribe(bridgeId, {
       created: () => {
         refetch();
       },
       deleted: () => {
+        refetch();
+      },
+      archived: () => {
         refetch();
       },
     });
@@ -76,16 +83,34 @@ export default function CategoriesScreen() {
 
   const toRow = (category: Category): Row => ({
     id: category.id,
-    title: category.name,
+    title: category.archivedAt ? (
+      <View style={styles.titleRow}>
+        <Text variant="body" weight="medium" numberOfLines={1} style={styles.titleName}>
+          {category.name}
+        </Text>
+        <Badge label={t('category.archivedBadge')} tone="neutral" />
+      </View>
+    ) : (
+      category.name
+    ),
     trailing: (
       <CountTrailing label={t('categoriesTab.itemCount', { count: counts[category.id] ?? 0 })} />
     ),
     onPress: () => router.push(categoryItemsHref(category.id)),
     onLongPress: () => router.push(categoryFormHref({ editId: category.id, bridgeId })),
+    accessibilityLabel: category.archivedAt
+      ? `${category.name}, ${t('category.archivedBadge')}`
+      : category.name,
   });
 
-  const expenseRows: Row[] = categories.filter((c) => c.type === 'expense').map(toRow);
-  const incomeRows: Row[] = categories.filter((c) => c.type === 'income').map(toRow);
+  const hasArchived = categories.some((c) => c.archivedAt);
+  const visibleCategories = categories.filter((c) =>
+    segment === 'archived' ? c.archivedAt : !c.archivedAt,
+  );
+
+  const expenseRows: Row[] = visibleCategories.filter((c) => c.type === 'expense').map(toRow);
+  const incomeRows: Row[] = visibleCategories.filter((c) => c.type === 'income').map(toRow);
+  const isSegmentEmpty = expenseRows.length === 0 && incomeRows.length === 0;
 
   const sections: SectionListSection<Row>[] = [
     {
@@ -159,16 +184,46 @@ export default function CategoriesScreen() {
     );
   }
 
+  const segmentedOptions = [
+    { value: 'active' as const, label: t('categoriesTab.segments.active') },
+    { value: 'archived' as const, label: t('categoriesTab.segments.archived') },
+  ];
+
   return (
     <View style={[styles.container, { backgroundColor: background, paddingTop: headerHeight }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <SectionList<Row>
-          variant="card"
-          scrollEnabled={false}
-          keyExtractor={keyExtractor}
-          renderItem={renderRow}
-          sections={sections}
-        />
+        {hasArchived ? (
+          <SegmentedControl<Segment>
+            options={segmentedOptions}
+            value={segment}
+            onChange={setSegment}
+          />
+        ) : null}
+
+        {isSegmentEmpty ? (
+          <Surface variant="plain" bordered padding={16}>
+            <NotificationBanner
+              title={t(
+                segment === 'archived'
+                  ? 'categoriesTab.archivedEmpty.title'
+                  : 'categoriesTab.welcome.title',
+              )}
+              subtitle={t(
+                segment === 'archived'
+                  ? 'categoriesTab.archivedEmpty.body'
+                  : 'categoriesTab.welcome.body',
+              )}
+            />
+          </Surface>
+        ) : (
+          <SectionList<Row>
+            variant="card"
+            scrollEnabled={false}
+            keyExtractor={keyExtractor}
+            renderItem={renderRow}
+            sections={sections}
+          />
+        )}
         <View style={styles.hint}>
           <Icon name="hand.tap" size={14} tone="textMuted" />
           <Text variant="caption" tone="textMuted">
@@ -199,6 +254,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  titleName: {
+    flexShrink: 1,
   },
   hint: {
     flexDirection: 'row',

@@ -96,7 +96,7 @@ export function rankCategoriesByUsage(
   }
 
   const ranked = categories
-    .filter((c) => c.type === type)
+    .filter((c) => c.type === type && !c.archivedAt)
     .slice()
     .sort((a, b) => {
       const diff = (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0);
@@ -282,6 +282,7 @@ function toCardData(
   return {
     id: category.id,
     name: category.name,
+    archived: category.archivedAt != null,
     total,
     // Percentage is the category's share of total expenses; it's meaningless for
     // income categories, so omit it there.
@@ -407,7 +408,13 @@ function buildMonthMode(
   };
 
   const visibleCategories = mock.categories.filter((c) =>
-    isCategoryVisibleInYear(c, year, yearActiveIds, usedIds),
+    c.archivedAt
+      ? // Archived categories reappear only in periods they actually contributed
+        // to (a completed transaction this period), so the badged card keeps the
+        // per-category breakdown reconciled with the header total. Empty periods
+        // stay clutter-free.
+        (cur.byCategory[c.id]?.count ?? 0) > 0
+      : isCategoryVisibleInYear(c, year, yearActiveIds, usedIds),
   );
   const categories = visibleCategories.map((c) =>
     toCardData(
@@ -462,7 +469,13 @@ function buildYearMode(
   };
 
   const visibleCategories = mock.categories.filter((c) =>
-    isCategoryVisibleInYear(c, year, yearActiveIds, usedIds),
+    c.archivedAt
+      ? // Archived categories reappear only in periods they actually contributed
+        // to (a completed transaction this period), so the badged card keeps the
+        // per-category breakdown reconciled with the header total. Empty periods
+        // stay clutter-free.
+        (cur.byCategory[c.id]?.count ?? 0) > 0
+      : isCategoryVisibleInYear(c, year, yearActiveIds, usedIds),
   );
   const categories = visibleCategories.map((c) =>
     toCardData(
@@ -601,7 +614,7 @@ export function buildUpcoming(
   );
   const windowEndStr = toDayString(windowEnd);
   const expenseCategoryIds = new Set(
-    categories.filter((c) => c.type === 'expense').map((c) => c.id),
+    categories.filter((c) => c.type === 'expense' && !c.archivedAt).map((c) => c.id),
   );
 
   const out: UpcomingOccurrence[] = [];

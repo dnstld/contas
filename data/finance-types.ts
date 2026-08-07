@@ -12,6 +12,7 @@ export type Category = {
   type: TransactionType;
   monthlyBudget?: number;
   createdAt?: string;
+  archivedAt?: string; // ISO; set = archived
 };
 
 export type CategoryItem = {

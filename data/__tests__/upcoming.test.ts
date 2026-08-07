@@ -137,6 +137,19 @@ describe('buildUpcoming', () => {
     expect(buildUpcoming(items, categories, now)).toEqual([]);
   });
 
+  it('excludes items whose category is archived', () => {
+    const archivedCategories: Category[] = [
+      {
+        id: 'subs',
+        name: 'Subscriptions',
+        type: 'expense',
+        archivedAt: '2026-06-01T00:00:00.000Z',
+      },
+    ];
+    const items = [mkItem({ id: 'netflix', nextDueOn: '2026-07-20' })];
+    expect(buildUpcoming(items, archivedCategories, now)).toEqual([]);
+  });
+
   it("excludes items with recurrence 'none' or no due date", () => {
     const items: CategoryItem[] = [
       mkItem({ id: 'oneoff', recurrence: 'none', nextDueOn: undefined }),

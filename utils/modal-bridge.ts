@@ -25,6 +25,7 @@ export const categoryFormBridge = createChannel<{
   created: string;
   deleted: string;
   selected: string;
+  archived: string;
 }>();
 
 // Signals that a category item was created / updated / archived / deleted from

@@ -26,6 +26,7 @@ function adaptCategory(row: CategoryRow): Category {
     type: TransactionTypeSchema.catch('expense').parse(row.type),
     monthlyBudget: row.monthly_budget_cents == null ? undefined : row.monthly_budget_cents / 100,
     createdAt: row.created_at,
+    archivedAt: row.archived_at ?? undefined,
   };
 }
 
@@ -83,7 +84,7 @@ function adaptCategoryItem(row: Omit<CategoryItemRow, 'created_at' | 'updated_at
 async function fetchCategories(walletId: string): Promise<Category[]> {
   const { data, error } = await supabase
     .from('categories')
-    .select('id, name, type, monthly_budget_cents, created_at, updated_at, wallet_id')
+    .select('id, name, type, monthly_budget_cents, created_at, updated_at, wallet_id, archived_at')
     .eq('wallet_id', walletId);
   if (error) throw error;
   return (data ?? []).map(adaptCategory);

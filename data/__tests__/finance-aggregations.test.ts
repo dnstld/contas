@@ -4,6 +4,7 @@ import {
   aggregate,
   buildDashboard,
   inYear,
+  rankCategoriesByUsage,
   rankItemsForCategory,
 } from '@/data/finance-aggregations';
 import type { Category, CategoryItem, Finance, OneOffTransaction } from '@/data/finance-types';
@@ -383,5 +384,49 @@ describe('rankItemsForCategory — "What for" curated item suggestions', () => {
     const items = Array.from({ length: 8 }, (_, i) => mkItem({ id: `i${i}`, name: `Item ${i}` }));
     expect(rankItemsForCategory(items, [], 'groceries')).toHaveLength(5);
     expect(rankItemsForCategory(items, [], 'groceries', 3)).toHaveLength(3);
+  });
+});
+
+describe('archived categories', () => {
+  it('rankCategoriesByUsage excludes archived categories', () => {
+    const cats: Category[] = [
+      { id: 'rent', name: 'Rent', type: 'expense' },
+      { id: 'old', name: 'Old', type: 'expense', archivedAt: '2026-06-01T00:00:00.000Z' },
+    ];
+    const { mostUsed, rest } = rankCategoriesByUsage(cats, [], 'expense');
+    const ids = [...mostUsed, ...rest].map((c) => c.id);
+    expect(ids).toEqual(['rent']);
+  });
+
+  it('shows an archived category (badged) in periods it contributed to, keeping the total reconciled', () => {
+    const archivedFinance: Finance = {
+      ...finance,
+      categories: finance.categories.map((c) =>
+        c.id === 'rent' ? { ...c, archivedAt: '2026-06-01T00:00:00.000Z' } : c,
+      ),
+    };
+    const dashboard = buildDashboard(archivedFinance, monthFilter, now, 'en');
+    const rentCard = dashboard.categories.find((c) => c.id === 'rent');
+    // Rent has a July 2026 transaction, so its card stays visible with the flag.
+    expect(rentCard?.archived).toBe(true);
+    // Card totals still reconcile with the header (rent 250 + groceries 100).
+    const cardExpenseSum = dashboard.categories
+      .filter((c) => c.kind === 'expense')
+      .reduce((sum, c) => sum + c.total, 0);
+    expect(cardExpenseSum).toBe(350);
+    expect(dashboard.overview.expenses).toBe(350);
+  });
+
+  it('hides an archived category in periods with no transactions (nothing to reconcile)', () => {
+    // `travel` has no transactions at all; archived, it should not surface even
+    // though unused non-archived categories normally show.
+    const archivedFinance: Finance = {
+      ...finance,
+      categories: finance.categories.map((c) =>
+        c.id === 'travel' ? { ...c, archivedAt: '2026-06-01T00:00:00.000Z' } : c,
+      ),
+    };
+    const dashboard = buildDashboard(archivedFinance, monthFilter, now, 'en');
+    expect(dashboard.categories.map((c) => c.id)).not.toContain('travel');
   });
 });

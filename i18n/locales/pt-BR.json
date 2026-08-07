@@ -49,6 +49,8 @@
     "categoryCreated": "Categoria criada!",
     "categoryUpdated": "Categoria atualizada",
     "categoryDeleted": "Categoria removida",
+    "categoryArchived": "Categoria arquivada",
+    "categoryUnarchived": "Categoria desarquivada",
     "categoryItemCreated": "Item criado!",
     "categoryItemUpdated": "Item atualizado",
     "categoryItemArchived": "Item arquivado",
@@ -362,6 +364,8 @@
       "title": "Editar categoria",
       "saveButton": "Salvar",
       "saving": "Salvando…",
+      "archive": "Arquivar categoria",
+      "unarchive": "Desarquivar categoria",
       "delete": "Excluir",
       "deleting": "Excluindo…",
       "deleteConfirmTitle": "Excluir esta categoria?",
@@ -382,6 +386,7 @@
     "clear": "Limpar",
     "noActivity": "Sem atividade neste período",
     "exampleBadge": "Exemplo",
+    "archivedBadge": "Arquivada",
     "goalOf": "de {{value}}",
     "perYear": "por ano",
     "perMonth": "por mês",
@@ -443,6 +448,10 @@
     "saveLabel": "Usar e salvar como sugestão"
   },
   "categoriesTab": {
+    "segments": {
+      "active": "Ativas",
+      "archived": "Arquivadas"
+    },
     "sections": {
       "expenses": "Despesas",
       "income": "Receitas"
@@ -452,6 +461,10 @@
     "welcome": {
       "title": "Comece com categorias",
       "body": "Categorias agrupam suas transações, como Mercado ou Salário, para você ver para onde vai seu dinheiro."
+    },
+    "archivedEmpty": {
+      "title": "Nenhuma categoria arquivada",
+      "body": "Arquive uma categoria para ocultá-la das listas e orçamentos sem perder seu histórico."
     }
   },
   "categoryItems": {
