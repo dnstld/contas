@@ -102,6 +102,18 @@ export default function CategoryItemFormScreen() {
 
   const canSave = name.trim().length > 0 && !isPending;
 
+  // In edit mode, whether the form differs from the persisted item. Archiving
+  // ignores field edits, so we disable it while dirty to avoid silently
+  // discarding them (mirrors the category form).
+  const originalAmountCents =
+    editItem?.defaultAmount != null ? Math.round(editItem.defaultAmount * 100) : 0;
+  const isDirty =
+    !isEdit ||
+    name.trim() !== (editItem?.name ?? '').trim() ||
+    amountCents !== originalAmountCents ||
+    recurrence !== (editItem?.recurrence ?? 'none') ||
+    (recurrence !== 'none' && toDayString(nextDue) !== (editItem?.nextDueOn ?? ''));
+
   const handleSave = () => {
     const trimmed = name.trim();
     if (!trimmed || isPending) return;
@@ -190,7 +202,7 @@ export default function CategoryItemFormScreen() {
                     onPress: handleArchiveToggle,
                     tone: 'muted',
                     loading: isArchiving,
-                    disabled: isPending && !isArchiving,
+                    disabled: isDirty || (isPending && !isArchiving),
                   },
                   {
                     label: t('categoryItemForm.delete'),

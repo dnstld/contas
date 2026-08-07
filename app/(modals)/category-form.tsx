@@ -195,7 +195,9 @@ export default function CategoryFormScreen() {
                       onPress: handleArchiveToggle,
                       tone: 'muted',
                       loading: isArchiving,
-                      disabled: isPending && !isArchiving,
+                      // Disable while there are unsaved edits: archiving discards
+                      // the pending changes silently, so require Save/discard first.
+                      disabled: isDirty || (isPending && !isArchiving),
                     },
                     {
                       label: t('category.edit.delete'),
