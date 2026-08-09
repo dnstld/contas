@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { categoryFormHref, categorySelectHref, itemSelectHref } from '@/constants/routes';
-import { nextAmountCents } from '@/utils/amount-input';
 import { categoryFormBridge, categoryItemSelectBridge, makeBridgeId } from '@/utils/modal-bridge';
 import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { DatePicker } from '@/components/ui/atoms/date-picker';
@@ -23,7 +22,6 @@ import {
 import type { CategoryItem } from '@/data/finance-types';
 import { useAuth } from '@/hooks/use-auth';
 import { useCategories, useCategoryItems, useTransactions } from '@/hooks/use-finance-queries';
-import { useFormatters } from '@/hooks/use-formatters';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useWallet } from '@/hooks/use-wallet';
 import { useWalletMembers } from '@/hooks/use-wallet-members';
@@ -86,7 +84,6 @@ export function TransactionForm({
   const { members } = useWalletMembers();
   const { session } = useAuth();
   const myUserId = session?.user.id ?? null;
-  const { formatAmount } = useFormatters();
   // Stable per-mount id. Lazy useState avoids react-hooks/refs (no `.current`
   // access during render) and gives us a one-time value identical to a ref.
   const [bridgeId] = useState(() => makeBridgeId());
@@ -206,12 +203,6 @@ export function TransactionForm({
     () => (categoryId ? rankItemsForCategory(categoryItems, transactions, categoryId) : []),
     [categoryItems, transactions, categoryId],
   );
-
-  const formattedAmount = formatAmount(amountCents / 100, currency);
-
-  const handleAmountChange = (text: string) => {
-    setAmountCents(nextAmountCents(amountCents, formattedAmount, text));
-  };
 
   const handleTypeChange = (next: TransactionType) => {
     setType(next);
@@ -388,8 +379,8 @@ export function TransactionForm({
         <CurrencyInput
           currency={currency}
           symbolColor={mutedColor}
-          value={formattedAmount}
-          onChangeText={handleAmountChange}
+          valueCents={amountCents}
+          onChangeCents={setAmountCents}
           keyboardType="number-pad"
           inputMode="numeric"
           accessibilityLabel={t('create.amountPlaceholder')}

@@ -20,11 +20,9 @@ import {
   useUpdateCategoryItem,
 } from '@/hooks/use-category-item-mutations';
 import { useCategoryItems } from '@/hooks/use-finance-queries';
-import { useFormatters } from '@/hooks/use-formatters';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useNow } from '@/hooks/use-now';
 import { useWallet } from '@/hooks/use-wallet';
-import { nextAmountCents } from '@/utils/amount-input';
 import { categoryItemFormBridge } from '@/utils/modal-bridge';
 import { toast } from '@/utils/toast';
 
@@ -35,7 +33,6 @@ export default function CategoryItemFormScreen() {
   const { t } = useTranslation();
   const now = useNow();
   const { currency } = useWallet();
-  const { formatAmount } = useFormatters();
   const { text: textColor, textMuted: mutedColor, inputBackground } = useModalChrome();
 
   const params = useLocalSearchParams<{ categoryId: string; bridgeId: string; editId?: string }>();
@@ -95,10 +92,6 @@ export default function CategoryItemFormScreen() {
     [t],
   );
 
-  const formattedAmount = formatAmount(amountCents / 100, currency);
-  const handleAmountChange = (value: string) => {
-    setAmountCents(nextAmountCents(amountCents, formattedAmount, value));
-  };
 
   const canSave = name.trim().length > 0 && !isPending;
 
@@ -264,8 +257,8 @@ export default function CategoryItemFormScreen() {
         <CurrencyInput
           currency={currency}
           symbolColor={mutedColor}
-          value={formattedAmount}
-          onChangeText={handleAmountChange}
+          valueCents={amountCents}
+          onChangeCents={setAmountCents}
           keyboardType="number-pad"
           inputMode="numeric"
           returnKeyType="done"

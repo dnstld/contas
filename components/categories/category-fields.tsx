@@ -7,10 +7,8 @@ import { CurrencyInput } from '@/components/ui/atoms/currency-input';
 import { Text } from '@/components/ui/atoms/text';
 import { CATEGORY_NAME_MAX_LENGTH } from '@/constants/limits';
 import { Fonts } from '@/constants/theme';
-import { useFormatters } from '@/hooks/use-formatters';
 import { useModalChrome } from '@/hooks/use-modal-chrome';
 import { useWallet } from '@/hooks/use-wallet';
-import { nextAmountCents } from '@/utils/amount-input';
 
 export interface CategoryFieldsProps {
   name: string;
@@ -44,14 +42,7 @@ export function CategoryFields({
 }: CategoryFieldsProps) {
   const { t } = useTranslation();
   const { currency } = useWallet();
-  const { formatAmount } = useFormatters();
   const { text: textColor, textMuted: mutedColor, inputBackground } = useModalChrome();
-
-  const formattedBudget = formatAmount(budgetCents / 100, currency);
-
-  const handleBudgetChange = (value: string) => {
-    onBudgetChange(nextAmountCents(budgetCents, formattedBudget, value));
-  };
 
   return (
     <>
@@ -99,8 +90,8 @@ export function CategoryFields({
         <CurrencyInput
           currency={currency}
           symbolColor={mutedColor}
-          value={formattedBudget}
-          onChangeText={handleBudgetChange}
+          valueCents={budgetCents}
+          onChangeCents={onBudgetChange}
           keyboardType="number-pad"
           inputMode="numeric"
           returnKeyType="done"
