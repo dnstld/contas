@@ -22,6 +22,11 @@ export interface TransactionRowProps {
    */
   beneficiary?: TransactionRowCreator | null;
   /**
+   * The member who last edited the transaction, when it was edited after
+   * creation. `null` when never edited.
+   */
+  editor?: TransactionRowCreator | null;
+  /**
    * Receives the transaction id so callers can keep a stable, memoized handler.
    * Omit to render the row as non-interactive (e.g. read-only example data).
    */
@@ -33,6 +38,7 @@ function TransactionRowImpl({
   currency,
   creator,
   beneficiary,
+  editor,
   onPress,
 }: TransactionRowProps) {
   const { t } = useTranslation();
@@ -41,19 +47,25 @@ function TransactionRowImpl({
   const description = transaction.description?.trim() ?? '';
   const hasDescription = description.length > 0;
 
-  const attribution = resolveRowAttribution(creator, beneficiary, {
+  const attribution = resolveRowAttribution(creator, beneficiary, editor, {
     you: t('transactions.createdByYou'),
     unnamed: t('wallet.partner.unnamed'),
   });
 
-  // Attribution line. On-behalf rows read "<beneficiary> · added by <actor>";
-  // ordinary rows keep the plain creator label ("You" / first name).
-  const creatorLabel = attribution.isOnBehalf
-    ? t('transactions.onBehalf', {
-        beneficiary: attribution.beneficiaryName,
-        actor: attribution.actorName,
+  // Attribution line. "edited by" wins when someone else last changed the row;
+  // otherwise on-behalf rows read "<beneficiary> · added by <actor>"; ordinary
+  // rows keep the plain creator label ("You" / first name).
+  const creatorLabel = attribution.isEdited
+    ? t('transactions.editedBy', {
+        subject: attribution.subjectName,
+        editor: attribution.editorName,
       })
-    : attribution.plainLabel;
+    : attribution.isOnBehalf
+      ? t('transactions.onBehalf', {
+          beneficiary: attribution.beneficiaryName,
+          actor: attribution.actorName,
+        })
+      : attribution.plainLabel;
 
   const avatarSource = attribution.avatarSource;
   const avatarName = avatarSource?.displayName ?? transaction.categoryName;

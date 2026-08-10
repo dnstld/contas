@@ -42,6 +42,8 @@ type TransactionBase = {
   createdByUserId: string | null;
   /** Member this transaction is FOR. `null` = for its creator (see `created_by`). */
   onBehalfOfUserId: string | null;
+  /** Member who last edited the row. `null` = never edited since creation. */
+  updatedByUserId: string | null;
 };
 
 export type OneOffTransaction = TransactionBase & {

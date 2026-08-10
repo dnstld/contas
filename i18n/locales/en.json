@@ -90,6 +90,7 @@
     "countShort_other": "{{count}} transactions",
     "createdByYou": "You",
     "onBehalf": "{{beneficiary}} · added by {{actor}}",
+    "editedBy": "{{subject}} · edited by {{editor}}",
     "empty": {
       "title": "Empty as space",
       "body": "No transactions in this period — yet."

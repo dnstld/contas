@@ -55,7 +55,10 @@ export function useCreateTransaction() {
           status: 'completed',
           recurrence: 'none',
           created_by: session.user.id,
-          on_behalf_of: values.onBehalfOfUserId,
+          // A transaction is never "on behalf of" its own creator; store null so
+          // the row renders as a plain transaction, not "<name> · added by <name>".
+          on_behalf_of:
+            values.onBehalfOfUserId === session.user.id ? null : values.onBehalfOfUserId,
         })
         .select()
         .single();

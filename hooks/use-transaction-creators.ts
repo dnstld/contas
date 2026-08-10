@@ -29,6 +29,7 @@ export function useTransactionCreators() {
   return useMemo(() => {
     const cache = new Map<string, TransactionRowCreator>();
     const meCreator: TransactionRowCreator = {
+      userId: myUserId,
       displayName: myDisplayName,
       avatarUrl: myAvatarUrl,
       isMe: true,
@@ -45,8 +46,8 @@ export function useTransactionCreators() {
 
       const member = memberByUserId.get(userId);
       const creator: TransactionRowCreator = member
-        ? { displayName: member.displayName, avatarUrl: member.avatarUrl, isMe: false }
-        : { displayName: null, avatarUrl: null, isMe: false };
+        ? { userId, displayName: member.displayName, avatarUrl: member.avatarUrl, isMe: false }
+        : { userId, displayName: null, avatarUrl: null, isMe: false };
       cache.set(userId, creator);
       return creator;
     };

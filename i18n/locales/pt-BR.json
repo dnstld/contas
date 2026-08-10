@@ -90,6 +90,7 @@
     "countShort_other": "{{count}} transações",
     "createdByYou": "Você",
     "onBehalf": "{{beneficiary}} · lançado por {{actor}}",
+    "editedBy": "{{subject}} · editado por {{editor}}",
     "empty": {
       "title": "Vazio como o espaço",
       "body": "Nenhuma transação neste período — ainda."

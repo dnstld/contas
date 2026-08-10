@@ -90,6 +90,7 @@
     "countShort_other": "{{count}} Transaktionen",
     "createdByYou": "Du",
     "onBehalf": "{{beneficiary}} · erfasst von {{actor}}",
+    "editedBy": "{{subject}} · bearbeitet von {{editor}}",
     "empty": {
       "title": "Leer wie das All",
       "body": "Noch keine Transaktionen in diesem Zeitraum."

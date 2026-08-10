@@ -285,7 +285,10 @@ export function TransactionForm({
         {
           key: '__self__',
           label: t('create.forWhomMyself'),
-          selected: onBehalfOfUserId === null,
+          // Treat a stale self-reference (a value pointing at me, which can be
+          // seeded when editing a transaction someone entered on my behalf) the
+          // same as "Myself" so it reads as selected and normalizes to null.
+          selected: onBehalfOfUserId === null || onBehalfOfUserId === myUserId,
           onPress: () => setOnBehalfOfUserId(null),
         },
         ...otherMembers.map((m) => ({
@@ -309,7 +312,8 @@ export function TransactionForm({
       categoryId,
       categoryItemId,
       description,
-      onBehalfOfUserId,
+      // Never submit a self-referential beneficiary; "for me" is stored as null.
+      onBehalfOfUserId: onBehalfOfUserId === myUserId ? null : onBehalfOfUserId,
     });
   };
 

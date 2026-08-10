@@ -35,6 +35,7 @@ function mkTx(
     updatedAt: overrides.date,
     createdByUserId: null,
     onBehalfOfUserId: null,
+    updatedByUserId: null,
     ...overrides,
   };
 }

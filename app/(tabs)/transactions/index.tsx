@@ -168,6 +168,7 @@ export default function TransactionsScreen() {
                         currency={currency}
                         creator={resolveCreator(item.createdByUserId)}
                         beneficiary={resolveCreator(item.onBehalfOfUserId)}
+                        editor={resolveCreator(item.updatedByUserId)}
                         onPress={handlePressTransaction}
                       />
                     )}

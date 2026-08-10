@@ -57,6 +57,7 @@ describe('day-string helpers — calendar dates are timezone-stable', () => {
       updatedAt: '2026-07-06T09:00:00.000Z',
       createdByUserId: null,
       onBehalfOfUserId: null,
+      updatedByUserId: null,
     };
     expect(transactionDate(tx)).toBe('2026-07-06');
     expect(txDate(tx).getDate()).toBe(6);
