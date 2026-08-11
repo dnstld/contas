@@ -76,7 +76,11 @@ export const queryClient = new QueryClient({
       // facing toast for screens that render their own inline error UI.
       captureError(err, { tags: { source: 'mutation' } });
       if (mutation.meta?.['silent']) return;
-      toast.error(i18n.t('common.errors.actionFailed'), i18n.t(mapSupabaseErrorKey(err)));
+      // Put the specific, mapped message in the toast *title* (no secondary
+      // message). Burnt's iOS SPIndicator truncates the subtitle to a single
+      // ellipsized line sized to the title width, so a two-arg toast clipped
+      // the actual explanation. A title-only toast renders on two wider lines.
+      toast.error(i18n.t(mapSupabaseErrorKey(err)));
     },
   }),
 });

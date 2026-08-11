@@ -4,7 +4,7 @@
 import * as Sentry from '@sentry/react-native';
 
 import { env } from '@/utils/env';
-import { isNetworkError } from '@/utils/error';
+import { isExpectedConstraintError, isNetworkError } from '@/utils/error';
 
 type CaptureContext = {
   tags?: Record<string, string>;
@@ -28,7 +28,11 @@ export function initMonitoring() {
     // captureError entirely and would otherwise report the original object
     // with a useless "Object captured as exception with keys: ..." title.
     beforeSend(event, hint) {
-      if (isNetworkError(hint?.originalException)) return null;
+      const cause = hint?.originalException;
+      // Transient network drops and expected constraint violations (e.g. a
+      // duplicate name the user is already toasted about) are not actionable
+      // bugs — drop them rather than filing an issue.
+      if (isNetworkError(cause) || isExpectedConstraintError(cause)) return null;
       return event;
     },
     beforeBreadcrumb(breadcrumb) {
@@ -67,6 +71,9 @@ export function captureError(error: unknown, context?: CaptureContext) {
   // (The beforeSend hook in initMonitoring is the backstop for network errors
   // that reach Sentry through other paths, e.g. unhandled rejections.)
   if (isNetworkError(error)) return;
+  // Expected constraint violations (e.g. duplicate name, Postgres 23505) are
+  // user-caused and already surfaced via a toast — not actionable in Sentry.
+  if (isExpectedConstraintError(error)) return;
   Sentry.captureException(toReportableError(error), context);
 }
 
