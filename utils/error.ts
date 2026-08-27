@@ -12,24 +12,42 @@ export function getErrorCode(err: unknown): string | undefined {
   return undefined;
 }
 
-const NETWORK_ERROR_PATTERN = /network|fetch failed|failed to fetch/i;
-
-/**
- * True for transient connectivity failures (device offline, request dropped
- * mid-flight, etc). Works on real `Error` instances as well as plain
- * Supabase/PostgREST-shaped error objects (`{ message, details, ... }`) that
- * never get wrapped in an `Error`.
- */
-export function isNetworkError(err: unknown): boolean {
-  if (err instanceof Error) return NETWORK_ERROR_PATTERN.test(err.message);
+// Scans an error's human-readable text against `pattern`. Works on real
+// `Error` instances as well as plain Supabase/PostgREST-shaped error objects
+// (`{ message, details, ... }`) that never get wrapped in an `Error`.
+function errorTextMatches(err: unknown, pattern: RegExp): boolean {
+  if (err instanceof Error) return pattern.test(err.message);
   if (err && typeof err === 'object') {
     const obj = err as Record<string, unknown>;
     for (const key of ['message', 'details'] as const) {
       const value = obj[key];
-      if (typeof value === 'string' && NETWORK_ERROR_PATTERN.test(value)) return true;
+      if (typeof value === 'string' && pattern.test(value)) return true;
     }
   }
   return false;
+}
+
+const NETWORK_ERROR_PATTERN = /network|fetch failed|failed to fetch/i;
+
+/**
+ * True for transient connectivity failures (device offline, request dropped
+ * mid-flight, etc).
+ */
+export function isNetworkError(err: unknown): boolean {
+  return errorTextMatches(err, NETWORK_ERROR_PATTERN);
+}
+
+const CLOCK_SKEW_ERROR_PATTERN = /issued at future|issued in the future|token used before issued|not yet valid/i;
+
+/**
+ * True for auth failures caused by device clock skew. When the device clock
+ * runs ahead of the server, Supabase/GoTrue rejects the token because its
+ * `iat`/`nbf` claim looks future-dated ("JWT issued at future"). This is an
+ * environmental device condition, not an application bug, so we keep it out of
+ * Sentry like transient network errors.
+ */
+export function isClockSkewError(err: unknown): boolean {
+  return errorTextMatches(err, CLOCK_SKEW_ERROR_PATTERN);
 }
 
 // Postgres error codes that represent an expected, user-caused validation

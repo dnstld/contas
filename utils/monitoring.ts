@@ -4,7 +4,7 @@
 import * as Sentry from '@sentry/react-native';
 
 import { env } from '@/utils/env';
-import { isExpectedConstraintError, isNetworkError } from '@/utils/error';
+import { isClockSkewError, isExpectedConstraintError, isNetworkError } from '@/utils/error';
 
 type CaptureContext = {
   tags?: Record<string, string>;
@@ -29,10 +29,16 @@ export function initMonitoring() {
     // with a useless "Object captured as exception with keys: ..." title.
     beforeSend(event, hint) {
       const cause = hint?.originalException;
-      // Transient network drops and expected constraint violations (e.g. a
-      // duplicate name the user is already toasted about) are not actionable
-      // bugs — drop them rather than filing an issue.
-      if (isNetworkError(cause) || isExpectedConstraintError(cause)) return null;
+      // Transient network drops, expected constraint violations (e.g. a
+      // duplicate name the user is already toasted about), and clock-skew auth
+      // rejections (device clock ahead of the server) are environmental or
+      // user-caused — not actionable bugs. Drop them rather than filing issues.
+      if (
+        isNetworkError(cause) ||
+        isExpectedConstraintError(cause) ||
+        isClockSkewError(cause)
+      )
+        return null;
       return event;
     },
     beforeBreadcrumb(breadcrumb) {
@@ -74,6 +80,9 @@ export function captureError(error: unknown, context?: CaptureContext) {
   // Expected constraint violations (e.g. duplicate name, Postgres 23505) are
   // user-caused and already surfaced via a toast — not actionable in Sentry.
   if (isExpectedConstraintError(error)) return;
+  // Clock-skew auth rejections ("JWT issued at future") come from a device
+  // clock set ahead of the server — environmental, not an app bug.
+  if (isClockSkewError(error)) return;
   Sentry.captureException(toReportableError(error), context);
 }
 

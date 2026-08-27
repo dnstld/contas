@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isExpectedConstraintError } from '@/utils/error';
+import { isClockSkewError, isExpectedConstraintError } from '@/utils/error';
 
 describe('isExpectedConstraintError', () => {
   it('is true for a duplicate-key violation (Postgres 23505)', () => {
@@ -32,5 +32,30 @@ describe('isExpectedConstraintError', () => {
   it('ignores a non-string code', () => {
     // getErrorCode only recognizes string codes; a numeric code should not match.
     expect(isExpectedConstraintError({ code: 23505 })).toBe(false);
+  });
+});
+
+describe('isClockSkewError', () => {
+  it('is true for a "JWT issued at future" rejection', () => {
+    // Shape Supabase/PostgREST returns when the device clock is ahead.
+    const err = { code: 'PGRST301', message: 'JWT issued at future', details: null };
+    expect(isClockSkewError(err)).toBe(true);
+  });
+
+  it('matches on a real Error instance too', () => {
+    expect(isClockSkewError(new Error('JWT issued at future'))).toBe(true);
+    expect(isClockSkewError(new Error('token used before issued'))).toBe(true);
+  });
+
+  it('matches the message via the details field', () => {
+    expect(isClockSkewError({ message: 'Unauthorized', details: 'JWT not yet valid' })).toBe(true);
+  });
+
+  it('is false for unrelated auth/other errors', () => {
+    expect(isClockSkewError(new Error('JWT expired'))).toBe(false);
+    expect(isClockSkewError({ message: 'invalid claim: missing sub' })).toBe(false);
+    expect(isClockSkewError(new Error('boom'))).toBe(false);
+    expect(isClockSkewError(null)).toBe(false);
+    expect(isClockSkewError(undefined)).toBe(false);
   });
 });
