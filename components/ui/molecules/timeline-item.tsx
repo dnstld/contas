@@ -22,6 +22,20 @@ export interface TimelineItemProps {
   onPress?: () => void;
   /** Replaces the bottom trend row (e.g. a transaction count). Takes precedence over `delta`. */
   footer?: ReactNode;
+  /**
+   * Text form of whatever `footer` renders, appended to the card's grouped
+   * accessibility label. `footer` is arbitrary JSX, so its content can't be
+   * derived here.
+   */
+  footerLabel?: string;
+  /** Announced as the card's action, when it has one. */
+  accessibilityHint?: string;
+  /**
+   * Floor for the card's width. A floor rather than a fixed size: cards must be
+   * free to grow for an unusually large amount, because clipping the number is
+   * never acceptable.
+   */
+  minWidth?: number;
 }
 
 export function TimelineItem({
@@ -35,6 +49,9 @@ export function TimelineItem({
   lowerIsBetter = false,
   onPress,
   footer,
+  footerLabel,
+  accessibilityHint,
+  minWidth,
 }: TimelineItemProps) {
   const { t } = useTranslation();
   const { formatCurrency } = useFormatters();
@@ -43,7 +60,7 @@ export function TimelineItem({
       variant={current ? 'elevated' : 'muted'}
       padding={12}
       bordered={!current}
-      style={styles.card}
+      style={[styles.card, minWidth != null ? { minWidth } : null]}
     >
       <Text variant="caption" tone={current ? 'tint' : 'textMuted'} weight="semibold">
         {label.toUpperCase()}
@@ -65,9 +82,21 @@ export function TimelineItem({
     </Surface>
   );
 
-  if (!onPress) return card;
+  // Built for every card, not just the pressable ones. Without this a
+  // display-only card announces as three separate fragments — its label, its
+  // amount, then its footer — so a month of days costs ~90 VoiceOver swipes
+  // instead of 31.
+  const accessibilityLabel = [label, formatCurrency(value, currency), footerLabel]
+    .filter(Boolean)
+    .join(', ');
 
-  const accessibilityLabel = [label, formatCurrency(value, currency)].filter(Boolean).join(', ');
+  if (!onPress) {
+    return (
+      <View accessible accessibilityLabel={accessibilityLabel}>
+        {card}
+      </View>
+    );
+  }
 
   return (
     <Pressable
@@ -75,7 +104,7 @@ export function TimelineItem({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: current }}
-      accessibilityHint={t('accessibility.hints.filterByMonth')}
+      accessibilityHint={accessibilityHint ?? t('accessibility.hints.filterByMonth')}
       style={({ pressed }) => (pressed ? styles.pressed : undefined)}
     >
       {card}
@@ -87,6 +116,19 @@ const styles = StyleSheet.create({
   card: {
     minWidth: 96,
     gap: 4,
+    // Lets a strip of cards self-level to its tallest member rather than every
+    // card reserving space for text it may not have.
+    //
+    // This only belongs on the card, never on the wrapper around it. The
+    // wrapper is an item of the horizontal row, where the main axis is
+    // horizontal — `flexGrow` there would stretch the card's WIDTH. The wrapper
+    // already fills the row's height via the row's default `align-items:
+    // stretch`; inside it the axis is vertical, so this is what passes that
+    // height down to the card.
+    //
+    // `flexGrow` rather than `flex`: `flex: 1` also sets `flexBasis: 0`, which
+    // would stop the card contributing its natural height and could collapse it.
+    flexGrow: 1,
   },
   trendPlaceholder: {
     height: 14,

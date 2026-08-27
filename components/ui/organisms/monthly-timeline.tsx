@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
 import { TimelineItem } from '@/components/ui/molecules/timeline-item';
 import { useFormatters } from '@/hooks/use-formatters';
@@ -56,21 +56,20 @@ export function MonthlyTimeline({
       contentContainerStyle={styles.row}
     >
       {ordered.map((p) => (
-        <View key={p.month} style={styles.cell}>
-          <TimelineItem
-            label={monthName(MONTHS.indexOf(p.month), 'short')}
-            value={p.value}
-            delta={p.delta}
-            percentage={p.deltaPercentage}
-            currency={currency}
-            current={p.month === currentMonth}
-            onPress={onSelectMonth ? () => onSelectMonth(p.month) : undefined}
-            // Spending: lower than the same month last year is favorable (green),
-            // higher is unfavorable (red) — matches the top comparison row.
-            lowerIsBetter
-            tone={p.value === 0 || !p.delta ? 'neutral' : p.delta < 0 ? 'positive' : 'negative'}
-          />
-        </View>
+        <TimelineItem
+          key={p.month}
+          label={monthName(MONTHS.indexOf(p.month), 'short')}
+          value={p.value}
+          delta={p.delta}
+          percentage={p.deltaPercentage}
+          currency={currency}
+          current={p.month === currentMonth}
+          onPress={onSelectMonth ? () => onSelectMonth(p.month) : undefined}
+          // Spending: lower than the same month last year is favorable (green),
+          // higher is unfavorable (red) — matches the top comparison row.
+          lowerIsBetter
+          tone={p.value === 0 || !p.delta ? 'neutral' : p.delta < 0 ? 'positive' : 'negative'}
+        />
       ))}
     </ScrollView>
   );
@@ -83,5 +82,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 4,
   },
-  cell: {},
 });

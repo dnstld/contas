@@ -338,6 +338,31 @@ function isoDay(year: number, month: number, day: number): string {
   return `${year}-${mm}-${dd}`;
 }
 
+/**
+ * The category a day's spending mostly went to, by amount. Ties break
+ * alphabetically so the label is stable across renders rather than depending on
+ * insertion order.
+ */
+function dominantCategory(
+  byCategory: Map<string, { amount: number; count: number }> | undefined,
+): { name: string; count: number } | undefined {
+  if (!byCategory || byCategory.size === 0) return undefined;
+  let bestName: string | undefined;
+  let bestAmount = -Infinity;
+  let bestCount = 0;
+  for (const [name, entry] of byCategory) {
+    if (
+      entry.amount > bestAmount ||
+      (entry.amount === bestAmount && bestName !== undefined && name.localeCompare(bestName) < 0)
+    ) {
+      bestName = name;
+      bestAmount = entry.amount;
+      bestCount = entry.count;
+    }
+  }
+  return bestName === undefined ? undefined : { name: bestName, count: bestCount };
+}
+
 // Per-day expense totals for the selected month, newest day first. For the
 // current month the strip stops at today; past months show every day.
 function buildDailyTimeline(
@@ -351,25 +376,46 @@ function buildDailyTimeline(
 
   const dayExpense = new Array<number>(lastDay + 1).fill(0);
   const dayCount = new Array<number>(lastDay + 1).fill(0);
+  // Transactions of *any* kind that day, income included. `dayCount` is
+  // expense-only (that is what the card's amount measures), so on a payday it
+  // reads zero even though something was recorded — which is why the card must
+  // not claim "0 transactions", and must still be openable.
+  const dayActivity = new Array<number>(lastDay + 1).fill(0);
+  // Per-day spend by category name, so each card can say where the money went.
+  const dayByCategory = new Array<Map<string, { amount: number; count: number }> | undefined>(
+    lastDay + 1,
+  );
+
   for (const t of mock.transactions) {
-    if (!isCompletedExpense(t)) continue;
+    if (t.status !== 'completed') continue;
     const d = txDate(t);
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      const day = d.getDate();
-      if (day >= 1 && day <= lastDay) {
-        dayExpense[day]! += t.amount;
-        dayCount[day]! += 1;
-      }
-    }
+    if (d.getFullYear() !== year || d.getMonth() !== month) continue;
+    const day = d.getDate();
+    if (day < 1 || day > lastDay) continue;
+
+    dayActivity[day]! += 1;
+    if (!isCompletedExpense(t)) continue;
+
+    dayExpense[day]! += t.amount;
+    dayCount[day]! += 1;
+    const byCat = (dayByCategory[day] ??= new Map());
+    const entry = byCat.get(t.categoryName) ?? { amount: 0, count: 0 };
+    entry.amount += t.amount;
+    entry.count += 1;
+    byCat.set(t.categoryName, entry);
   }
 
   const points: DailyTimelinePoint[] = [];
   for (let day = lastDay; day >= 1; day--) {
+    const top = dominantCategory(dayByCategory[day]);
     points.push({
       date: isoDay(year, month, day),
       value: dayExpense[day] ?? 0,
       count: dayCount[day] ?? 0,
+      activityCount: dayActivity[day] ?? 0,
       current: isCurrentMonth && day === now.getDate(),
+      topCategoryName: top?.name,
+      otherCount: top ? (dayCount[day] ?? 0) - top.count : undefined,
     });
   }
   return points;

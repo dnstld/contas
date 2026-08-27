@@ -58,6 +58,10 @@ export function walletsHref(): Href {
   return { pathname: '/wallets' };
 }
 
+export function dayDetailHref(date: string): Href {
+  return { pathname: '/day', params: { date } };
+}
+
 export function upcomingHref(): Href {
   return { pathname: '/upcoming' };
 }

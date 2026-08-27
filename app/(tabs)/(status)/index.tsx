@@ -20,7 +20,7 @@ import { ErrorEmptyState } from '@/components/ui/molecules/error-empty-state';
 import { NotificationBanner } from '@/components/ui/molecules/notification-banner';
 import { StaleDataBanner } from '@/components/ui/molecules/stale-data-banner';
 import { UpcomingSummary } from '@/components/upcoming/upcoming-summary';
-import { categoryDetailHref, categoryFormHref } from '@/constants/routes';
+import { categoryDetailHref, categoryFormHref, dayDetailHref } from '@/constants/routes';
 import { useCategoryGrid } from '@/hooks/use-category-grid';
 import { useFinanceDashboard } from '@/hooks/use-finance-dashboard';
 import { useFinanceTimeFilter } from '@/hooks/use-finance-time-filter';
@@ -89,6 +89,13 @@ export default function HomeScreen() {
     [router, filterApi.state],
   );
 
+  const handleSelectDay = useCallback(
+    (date: string) => {
+      router.push(dayDetailHref(date));
+    },
+    [router],
+  );
+
   const handleCreateCategory = useCallback(() => {
     router.push(categoryFormHref({ bridgeId }));
   }, [router, bridgeId]);
@@ -114,6 +121,7 @@ export default function HomeScreen() {
         currency={currency}
         revenueVisible={revenueVisible}
         onSelectMonth={filterApi.toggleMonth}
+        onSelectDay={handleSelectDay}
       />
 
       <UpcomingSummary />

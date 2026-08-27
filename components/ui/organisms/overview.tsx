@@ -53,6 +53,8 @@ export interface OverviewProps {
   onSelectMonth?: (month: Month) => void;
   // Month mode: per-day spend strip (newest day first).
   dailyTimeline?: readonly DailyTimelinePoint[];
+  /** When provided, day cards open that day's transactions. */
+  onSelectDay?: (date: string) => void;
 }
 
 export function Overview({
@@ -73,6 +75,7 @@ export function Overview({
   currentMonth,
   onSelectMonth,
   dailyTimeline,
+  onSelectDay,
 }: OverviewProps) {
   const { t } = useTranslation();
   const { formatCurrency, locale } = useFormatters();
@@ -184,7 +187,7 @@ export function Overview({
 
       {dailyTimeline && dailyTimeline.length > 0 ? (
         <View style={styles.timeline}>
-          <DailyTimeline points={dailyTimeline} currency={currency} />
+          <DailyTimeline points={dailyTimeline} currency={currency} onSelectDay={onSelectDay} />
         </View>
       ) : null}
     </Surface>

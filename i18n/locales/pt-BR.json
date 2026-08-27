@@ -6,7 +6,8 @@
     },
     "hints": {
       "viewTransactions": "Abre as transações desta categoria",
-      "filterByMonth": "Filtra por este mês"
+      "filterByMonth": "Filtra por este mês",
+      "viewDayTransactions": "Abre as transações deste dia"
     },
     "sort": "Ordenar",
     "logo": "Logotipo do Spendspacey"
@@ -181,7 +182,10 @@
     "balance": "Saldo",
     "primaryPrefix": "Para",
     "lastTransaction": "Última transação: {{date}}",
-    "addFirstTransaction": "Registrar minha primeira transação"
+    "addFirstTransaction": "Registrar minha primeira transação",
+    "daily": {
+      "noSpending": "Sem gastos"
+    }
   },
   "timeFilter": {
     "fullYear": "Ano todo"
@@ -537,6 +541,12 @@
     "empty": {
       "title": "Nada por vir",
       "subtitle": "Seus próximos pagamentos aparecerão aqui."
+    }
+  },
+  "day": {
+    "empty": {
+      "title": "Nada neste dia",
+      "body": "Nenhuma transação foi registrada."
     }
   }
 }

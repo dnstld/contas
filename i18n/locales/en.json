@@ -6,7 +6,8 @@
     },
     "hints": {
       "viewTransactions": "Opens this category's transactions",
-      "filterByMonth": "Filters by this month"
+      "filterByMonth": "Filters by this month",
+      "viewDayTransactions": "Opens this day's transactions"
     },
     "sort": "Sort",
     "logo": "Spendspacey logo"
@@ -181,7 +182,10 @@
     "balance": "Balance",
     "primaryPrefix": "For",
     "lastTransaction": "Last transaction: {{date}}",
-    "addFirstTransaction": "Add my first transaction"
+    "addFirstTransaction": "Add my first transaction",
+    "daily": {
+      "noSpending": "No spending"
+    }
   },
   "timeFilter": {
     "fullYear": "Full year"
@@ -537,6 +541,12 @@
     "empty": {
       "title": "Nothing upcoming",
       "subtitle": "Your upcoming payments will show up here."
+    }
+  },
+  "day": {
+    "empty": {
+      "title": "Nothing on this day",
+      "body": "No transactions were recorded."
     }
   }
 }

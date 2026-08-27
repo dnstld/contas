@@ -431,3 +431,139 @@ describe('archived categories', () => {
     expect(dashboard.categories.map((c) => c.id)).not.toContain('travel');
   });
 });
+
+describe('per-day dominant category (day-card footer)', () => {
+  const jul = (day: number, categoryId: string, categoryName: string, amount: number) =>
+    mkTx({
+      id: `d-${day}-${categoryId}-${amount}`,
+      date: `2026-07-${String(day).padStart(2, '0')}`,
+      type: 'expense',
+      categoryId,
+      categoryName,
+      amount,
+    });
+
+  function dayPoint(transactions: OneOffTransaction[], day: number) {
+    const finance: Finance = { years: [2026], currency: 'USD', categories, transactions };
+    const dashboard = buildDashboard(finance, monthFilter, now, 'en');
+    return (dashboard.overview.dailyTimeline ?? []).find(
+      (p) => p.date === `2026-07-${String(day).padStart(2, '0')}`,
+    );
+  }
+
+  it('names the category the day’s money mostly went to, by amount', () => {
+    const p = dayPoint(
+      [
+        jul(3, 'groceries', 'Groceries', 40),
+        jul(3, 'groceries', 'Groceries', 30),
+        jul(3, 'rent', 'Rent', 200),
+      ],
+      3,
+    );
+    // Rent wins on amount even though Groceries has more transactions.
+    expect(p?.topCategoryName).toBe('Rent');
+    expect(p?.count).toBe(3);
+    expect(p?.otherCount).toBe(2);
+  });
+
+  it('reports no others when the day is a single category', () => {
+    const p = dayPoint([jul(4, 'rent', 'Rent', 200), jul(4, 'rent', 'Rent', 50)], 4);
+    expect(p?.topCategoryName).toBe('Rent');
+    expect(p?.otherCount).toBe(0);
+  });
+
+  it('breaks an exact tie alphabetically, so the label is stable', () => {
+    const p = dayPoint([jul(5, 'rent', 'Rent', 100), jul(5, 'groceries', 'Groceries', 100)], 5);
+    expect(p?.topCategoryName).toBe('Groceries');
+  });
+
+  it('leaves an empty day without a category', () => {
+    const p = dayPoint([jul(6, 'rent', 'Rent', 100)], 7);
+    expect(p?.value).toBe(0);
+    expect(p?.topCategoryName).toBeUndefined();
+    expect(p?.otherCount).toBeUndefined();
+  });
+
+  it('ignores income when picking the day’s category', () => {
+    const salary = mkTx({
+      id: 'inc-8',
+      date: '2026-07-08',
+      type: 'income',
+      categoryId: 'salary',
+      categoryName: 'Salary',
+      amount: 9000,
+    });
+    const p = dayPoint([salary, jul(8, 'rent', 'Rent', 100)], 8);
+    expect(p?.topCategoryName).toBe('Rent');
+    expect(p?.count).toBe(1);
+  });
+});
+
+describe('income-only days (the "0 transactions" bug)', () => {
+  const salary = mkTx({
+    id: 'inc-only',
+    date: '2026-07-09',
+    type: 'income',
+    categoryId: 'salary',
+    categoryName: 'Salary',
+    amount: 9000,
+  });
+
+  function pointFor(transactions: OneOffTransaction[], day: number) {
+    const finance: Finance = { years: [2026], currency: 'USD', categories, transactions };
+    const dashboard = buildDashboard(finance, monthFilter, now, 'en');
+    return (dashboard.overview.dailyTimeline ?? []).find(
+      (p) => p.date === `2026-07-${String(day).padStart(2, '0')}`,
+    );
+  }
+
+  it('reports no spending but does report activity, so the card is still openable', () => {
+    const p = pointFor([salary], 9);
+    // Expense-only figures stay at zero — the card's amount is spending.
+    expect(p?.value).toBe(0);
+    expect(p?.count).toBe(0);
+    // …but something WAS recorded, which is what makes the card pressable.
+    expect(p?.activityCount).toBe(1);
+  });
+
+  it('counts income and expenses together as activity', () => {
+    const p = pointFor(
+      [
+        salary,
+        mkTx({
+          id: 'exp-9',
+          date: '2026-07-09',
+          type: 'expense',
+          categoryId: 'rent',
+          categoryName: 'Rent',
+          amount: 100,
+        }),
+      ],
+      9,
+    );
+    expect(p?.count).toBe(1);
+    expect(p?.activityCount).toBe(2);
+  });
+
+  it('reports zero activity on a day with nothing at all', () => {
+    const p = pointFor([salary], 10);
+    expect(p?.value).toBe(0);
+    expect(p?.count).toBe(0);
+    expect(p?.activityCount).toBe(0);
+  });
+
+  it('ignores scheduled transactions, which have not happened yet', () => {
+    const scheduled = mkTx({
+      id: 'sched-11',
+      date: '2026-07-11',
+      type: 'expense',
+      categoryId: 'rent',
+      categoryName: 'Rent',
+      amount: 500,
+      status: 'scheduled',
+    });
+    const p = pointFor([scheduled], 11);
+    expect(p?.activityCount).toBe(0);
+    expect(p?.value).toBe(0);
+  });
+});

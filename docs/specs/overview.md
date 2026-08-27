@@ -28,17 +28,77 @@ And all monetary values must be formatted via Intl.NumberFormat using the curren
   (BRL always "R$ 1.234,56"; USD always "$1,234.56"; EUR always "1.234,56 €")
 ```
 
-### Daily spend-intensity tint
+### Daily spend strip
 
 ```
 Given that the per-day spend strip ("By Day") is rendered for the selected month
-When a day's tone is computed
-Then it must be based on that day's spend relative to the average daily spend across the visible strip
-  (the mean of all rendered days, including €0 days — not a true statistical baseline, and it shifts as the month progresses)
-And a day's amount must render with the "negative" tone (red) when its spend exceeds 1.5× that average
-And every other day (including all €0 days) must render with the default/neutral tone — no green tint is applied
-And this strip has no arrow or delta indicator (day-over-day comparisons are too noisy to be meaningful);
-  each card's footer instead shows the day's transaction count via key "transactions.countShort"
+Then it must show one card per calendar day, newest day first
+And a day with no spending must still get its own card, showing a zero amount
+And consecutive empty days must NOT be grouped or collapsed — one day, one card
+And cards must share a minimum width (112pt), not a fixed one, so an unusually large amount
+  can widen its own card rather than being clipped
+  (at a fixed 112pt an amount such as "R$ 12.850,00" needs 90pt of an 88pt text box;
+   truncating the number is never acceptable, so the strip stays slightly ragged
+   and therefore cannot snap on a single interval)
+And cards must have no maximum width — a long amount or a long user-authored category name
+  widens its own card, which is preferred over clipping the number or wrapping the label
+And all cards in a strip must be the same height, self-levelling to the tallest
+  (the card fills its wrapper via `flexGrow`, which belongs on the card and never on the
+   wrapper — the wrapper is an item of the horizontal row, where growing means growing WIDTH;
+   the wrapper already receives the row's height from its default stretch alignment)
+And no card may reserve a fixed height for text it might not have — a strip whose footers
+  all fit on one line must render shorter cards than one where a footer wraps
+
+Given that a day's amount is rendered
+Then it must always use the default/neutral tone
+And no day may be tinted by how its spend compares to the rest of the month
+  (superseded rule: an earlier revision tinted a day red once it passed 1.5x the strip's average.
+   Nothing on the card explains why that number is red, so it reads as an error rather than as
+   information — and "above the month's average" is not a fault the reader needs alerting to.
+   The strip reports spending; it does not judge it.)
+And the current day must remain visually emphasised via the card's elevated surface, not via colour
+And this strip has no arrow or delta indicator (day-over-day comparisons are too noisy to be meaningful)
+```
+
+### Daily card footer
+
+```
+Given that a day recorded at least one expense
+Then the card footer must name the category that day's spending mostly went to, by amount
+And when other expense transactions that day fall outside that category, the name must carry a
+  "+N" suffix counting them (e.g. "Mercado +2")
+And ties on amount must break alphabetically, so the label is stable between renders
+
+Given that a day recorded no expenses
+Then the footer must read the i18next key "overview.daily.noSpending"
+  (en: "No spending" / pt-BR: "Sem gastos" / de: "Keine Ausgaben")
+And this applies to every empty day including the current one — no "today" variant
+  (each card is already named by its own date label, and the current day is emphasised by its
+   elevated surface, so naming the day again in the footer adds nothing;
+   the short form also fits on one line at 12pt in an 88pt box in all three languages)
+And it must NOT report a transaction count
+  (the card's count is expense-only, so a day whose only entry was income would read
+   "0 transactions" — false from the reader's point of view, since something was recorded)
+And the footer must reserve two lines of height on every card, so a wrapped label
+  cannot make one card taller than its neighbours in the stretched row
+```
+
+### Daily card interaction
+
+```
+Given that a day recorded any transaction at all, income included
+Then its card must be pressable, opening the /day modal for that date
+And the modal must list every transaction recorded that day, largest amount first,
+  headed by the day's expense total (and its income total, when non-zero)
+
+Given that a day recorded nothing at all
+Then its card must not be pressable
+
+Given that any card in the strip is rendered
+Then it must expose a single grouped accessibility label combining its date, amount and footer,
+  whether or not it is pressable
+  (a display-only card that omits this announces as three separate fragments, so one month
+   costs ~90 VoiceOver swipes instead of 31)
 ```
 
 ### Year overview display
